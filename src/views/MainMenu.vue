@@ -121,7 +121,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 
 import avatarImage from '@/assets/Avatar.png'
@@ -138,6 +138,23 @@ import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 
 const route = useRoute()
+
+/** Lưu params vào localStorage */
+onMounted(() => {
+  try {
+    const query = route.query
+    if (!query) return
+
+    Object.keys(query).forEach((key) => {
+      const value = query[key]
+      if (value !== undefined && value !== null) {
+        localStorage.setItem(key, String(value))
+      }
+    })
+  } catch (error) {
+    console.error('Error saving params to localStorage:', error)
+  }
+})
 
 /** Avatar URL based on client_id */
 const avatarUrl = computed(() => {
