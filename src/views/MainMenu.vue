@@ -26,7 +26,7 @@
                   {{ customerId }}
                 </span>
               </div>
-              <button @click="copyCustomerId">
+              <button @click="copyCustomerId" class="hover:cursor-pointer">
                 <Copy :size="20" class="text-blue-700" :stroke-width="2" />
               </button>
             </div>
