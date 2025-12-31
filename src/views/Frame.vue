@@ -81,18 +81,25 @@ function handleMessageEvent(event: MessageEvent) {
    */
   if (PAYLOAD?.status === 'READY') {
     console.log('[BRIDGE] Iframe is READY')
-    /** đánh dấu iframe đã ready */
+
     is_iframe_ready.value = true
 
-    const SAVED = localStorage.getItem(`${PAYLOAD.key}`)
-    console.log('SAVED', SAVED)
+    /** Lấy thông tin cố định từ localStorage theo yêu cầu */
+    const DATA_SEND = {
+      user_name: localStorage.getItem('user_name'),
+      user_phone: localStorage.getItem('user_phone'),
+      user_email: localStorage.getItem('user_email'),
+      client_id: localStorage.getItem('client_id'),
+    }
 
-    if (SAVED && iframe_ref.value?.contentWindow) {
+    console.log('Sending INFO to iframe:', DATA_SEND)
+
+    if (iframe_ref.value?.contentWindow) {
       iframe_ref.value.contentWindow.postMessage(
         {
           from: 'RETION_EMBED',
           type: 'CLIENT_ID',
-          data_embed_chat: SAVED,
+          data_embed_chat: JSON.stringify(DATA_SEND),
         },
         '*', // production thì check domain
       )
