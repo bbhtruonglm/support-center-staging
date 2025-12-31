@@ -3,7 +3,7 @@
     ref="iframe_ref"
     v-if="url"
     :src="url"
-    className="w-dvw h-dvh"
+    className="w-dvw h-dvh md:max-w-sm"
     title="Embedded Content"
     sandbox="allow-scripts allow-same-origin allow-popups"
     @load="OnIframeLoad"
@@ -27,10 +27,8 @@ const iframe_ref = ref<HTMLIFrameElement | null>(null)
 const is_iframe_ready = ref(false)
 
 onMounted(() => {
-  /** Đường dẫn host của merchant */
-
   /** id page */
-  const ID = route.params.id as string
+  const ID = (route.params.id as string) || '493168686296126'
 
   /** Validate ID */
   if (!ID || !/^[a-zA-Z0-9_-]+$/.test(ID)) {
@@ -41,7 +39,7 @@ onMounted(() => {
   const IFRAME_URL = 'https://chatbox-embed-ui.botbanhang.vn'
 
   /** IFRAME SOURCE */
-  url.value = `${IFRAME_URL}/view-screen?page_id=${encodeURIComponent('493168686296126')}`
+  url.value = `${IFRAME_URL}/view-screen?page_id=${encodeURIComponent(ID)}`
 
   /** Xử lý sự kiện message */
   window.addEventListener('message', handleMessageEvent)
@@ -62,6 +60,30 @@ function OnIframeLoad() {
   }, 1000)
 }
 
+/** forward message vào iframe */
+function ForwardToIframe(payload: any) {
+  /** Lấy thông tin user */
+  const USER_INFO = {
+    user_name: localStorage.getItem('user_name'),
+    user_phone: localStorage.getItem('user_phone'),
+    user_email: localStorage.getItem('user_email'),
+    client_id: localStorage.getItem('client_id'),
+  }
+
+  /** đổi from thành 'parent-app' & kèm thông tin user */
+  const FORWARD_PAYLOAD = {
+    ...payload,
+    ...USER_INFO,
+    from: 'parent-app',
+  }
+
+  iframe_ref.value?.contentWindow?.postMessage(
+    FORWARD_PAYLOAD,
+    '*', // production: IFRAME_ORIGIN
+  )
+  console.log('[BRIDGE] Forwarded to iframe:', FORWARD_PAYLOAD)
+}
+
 /** hàm xử lý sự kiện message */
 function handleMessageEvent(event: MessageEvent) {
   let PAYLOAD: any
@@ -73,6 +95,24 @@ function handleMessageEvent(event: MessageEvent) {
     return
   }
 
+  /** =================================================
+   *  🆕 LOGIC BỔ SUNG – Native → forward iframe
+   * ================================================= */
+
+  /** Nhận postMessage từ mobile app và forward vào iframe */
+  /** Bỏ check from === 'parent-app', trừ các message nội bộ (READY, BBH-EMBED-IFRAME) */
+  if (PAYLOAD?.status !== 'READY' && PAYLOAD?.from !== 'BBH-EMBED-IFRAME') {
+    console.log('[BRIDGE] Receive from Native (Pass-through):', PAYLOAD)
+
+    /** chờ 3 giây để iframe load xong rồi mới forward */
+    setTimeout(() => {
+      console.log('[BRIDGE] Delayed forward after 3s')
+
+      ForwardToIframe(PAYLOAD)
+    }, 3000)
+    return
+  }
+
   /**
    * LOGIC:
    * 1. Iframe load xong -> gửi postMessage 'READY' kèm 'key'
@@ -81,7 +121,7 @@ function handleMessageEvent(event: MessageEvent) {
    */
   if (PAYLOAD?.status === 'READY') {
     console.log('[BRIDGE] Iframe is READY')
-
+    /** đánh dấu iframe đã ready */
     is_iframe_ready.value = true
 
     /** Lấy thông tin cố định từ localStorage theo yêu cầu */

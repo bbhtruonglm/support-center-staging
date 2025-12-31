@@ -1,6 +1,6 @@
 <template>
   <!-- Wrapper -->
-  <div class="w-full h-full max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Header -->
     <AppHeader />
     <!-- Main Content -->
