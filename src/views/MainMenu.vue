@@ -12,20 +12,21 @@
         >
           <img :src="avatarImage" alt="Profile" class="w-full h-full object-cover" />
         </div>
-        <h2 class="text-lg font-semibold">Xin chào Tùng Nguyễn</h2>
+        <h2 class="text-lg font-semibold">Xin chào {{ customerName }}</h2>
       </section>
       <!-- Content -->
       <section class="py-3 flex flex-col gap-3">
         <div class="flex flex-col gap-2.5">
           <!-- Customer ID -->
-          <!-- Customer ID -->
           <InfoCard>
             <div class="flex items-center justify-between">
               <div class="flex flex-col text-sm">
                 <span class="font-medium text-blue-700"> Mã khách hàng </span>
-                <span class="font-medium"> 234521 </span>
+                <span class="font-medium">
+                  {{ customerId }}
+                </span>
               </div>
-              <button>
+              <button @click="copyCustomerId">
                 <Copy :size="20" class="text-blue-700" :stroke-width="2" />
               </button>
             </div>
@@ -35,25 +36,33 @@
           <InfoCard class="flex flex-col py-0 px-4" title="Liên hệ với chúng tôi">
             <MenuItem
               :icon="PhoneIcon"
-              title="1900.9999.70"
+              title="0961.750.846"
               subtitle="Tổng đài hỗ trợ khách hàng"
+              type="tel"
             />
 
             <MenuItem
               :icon="MailSmallIcon"
               title="hotro@botbanhang.vn"
               subtitle="Email hỗ trợ khách hàng"
+              type="email"
             />
 
-            <MenuItem :icon="bbhIcon" title="Chat với chúng tôi" subtitle="Chat ngay trong App" />
+            <MenuItem
+              :icon="bbhIcon"
+              title="Chat với chúng tôi"
+              subtitle="Chat ngay trong App"
+              to="/embed-web-chat"
+            />
 
             <MenuItem
               :icon="zaloIcon"
               title="Chat qua Zalo"
               subtitle="Chat với chúng tôi qua Zalo"
+              url="https://zalo.me/1591257820328477563"
             />
 
-            <MenuItem
+            <!-- <MenuItem
               :icon="AlertIcon"
               title="Khiếu nại & Báo lỗi"
               subtitle="Tiếp nhận ý kiến khách hàng"
@@ -63,11 +72,11 @@
                   <span class="text-xs font-medium text-white">2</span>
                 </div>
               </template>
-            </MenuItem>
+            </MenuItem> -->
           </InfoCard>
 
           <!-- Specialists -->
-          <InfoCard class="flex flex-col py-0 px-4" title="Chuyên viên riêng của quý khách">
+          <!-- <InfoCard class="flex flex-col py-0 px-4" title="Chuyên viên riêng của quý khách">
             <MenuItem
               :icon="zaloIcon"
               title="Nguyễn Văn A"
@@ -79,7 +88,7 @@
               title="Nguyễn Văn B"
               subtitle="Chat với Chuyên viên kỹ thuật"
             />
-          </InfoCard>
+          </InfoCard> -->
         </div>
         <!-- Footer -->
         <section class="flex flex-col gap-2">
@@ -92,7 +101,7 @@
               Quý Khách hàng để liên tục cải thiện Chất lượng - Dịch vụ.
             </p>
           </div>
-          <div class="flex gap-3 px-8">
+          <!-- <div class="flex gap-3 px-8">
             <button
               class="flex-1 flex items-center justify-center gap-2 p-2 bg-stone-500 rounded-lg"
             >
@@ -105,13 +114,16 @@
               <CheckCircle :size="20" class="text-white" :stroke-width="2" />
               <span class="text-sm font-medium text-white"> Thư cảm ơn </span>
             </button>
-          </div>
+          </div> -->
         </section>
       </section>
     </section>
   </div>
 </template>
-<script setup>
+<script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute } from 'vue-router'
+
 import avatarImage from '@/assets/Avatar.png'
 import mailIcon from '@/assets/MailIcon.png'
 import bbhIcon from '@/assets/BBHIcon.png'
@@ -119,8 +131,29 @@ import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
 import AlertIcon from '@/assets/Alerticon.png'
+
 import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
 import AppHeader from '@/components/AppHeader.vue'
 import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
+
+const route = useRoute()
+
+/** Tên khách hàng từ query */
+const customerName = computed(() => {
+  const name = route.query.user_name
+  if (!name) return 'Quý khách'
+  return decodeURIComponent(name as string)
+})
+
+/** Mã khách hàng từ query */
+const customerId = computed(() => {
+  return route.query.client_id || '---'
+})
+
+/** Copy mã khách hàng */
+const copyCustomerId = async () => {
+  if (!customerId.value || customerId.value === '---') return
+  await navigator.clipboard.writeText(customerId.value as string)
+}
 </script>

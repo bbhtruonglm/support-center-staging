@@ -33,6 +33,11 @@ const router = createRouter({
       name: 'Thankyou-success',
       component: () => import('@/views/ThankyouSuccess.vue'),
     },
+    {
+      path: '/embed-web-chat',
+      name: 'Embed-web-chat',
+      component: () => import('@/views/EmbedWebChat.vue'),
+    },
   ],
 })
 

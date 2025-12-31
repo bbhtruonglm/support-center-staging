@@ -1,7 +1,7 @@
 <template>
   <div class="bg-white py-3 px-4 border-b border-gray-200 text-black">
     <div class="flex items-center justify-between">
-      <button class="flex items-center gap-1 flex-1" @click="$emit('back')">
+      <button class="flex items-center gap-1 flex-1 cursor-pointer" @click="handleBack">
         <ArrowLeftCircle class="w-6 h-6 text-black" :stroke-width="2" />
         <span class="text-sm font-semibold">{{ backText }}</span>
       </button>
@@ -12,6 +12,7 @@
 </template>
 
 <script setup lang="ts">
+import { useRouter } from 'vue-router'
 import { ArrowLeftCircle } from 'lucide-vue-next'
 
 withDefaults(
@@ -24,7 +25,14 @@ withDefaults(
   },
 )
 
-defineEmits<{
+const emit = defineEmits<{
   (e: 'back'): void
 }>()
+
+const router = useRouter()
+
+const handleBack = () => {
+  emit('back')
+  router.back()
+}
 </script>
