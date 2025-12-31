@@ -109,7 +109,7 @@ function handleMessageEvent(event: MessageEvent) {
       console.log('[BRIDGE] Delayed forward after 3s')
 
       ForwardToIframe(PAYLOAD)
-    }, 3000)
+    }, 500)
     return
   }
 
