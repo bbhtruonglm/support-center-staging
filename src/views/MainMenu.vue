@@ -2,12 +2,7 @@
   <!-- Wrapper -->
   <div class="w-full h-full max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Header -->
-    <header class="bg-white px-3 py-1 flex items-center gap-1 text-black">
-      <button class="flex items-center justify-center w-6 h-6">
-        <ChevronLeft :size="20" :stroke-width="2" />
-      </button>
-      <h1 class="text-base font-medium">Trung tâm hỗ trợ khách hàng</h1>
-    </header>
+    <AppHeader />
     <!-- Main Content -->
     <section class="p-3 flex flex-col text-black text-sm">
       <!-- Profile -->
@@ -124,7 +119,8 @@ import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
 import AlertIcon from '@/assets/Alerticon.png'
-import { Copy, AlertCircle, CheckCircle, ChevronLeft } from 'lucide-vue-next'
+import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
+import AppHeader from '@/components/AppHeader.vue'
 import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 </script>

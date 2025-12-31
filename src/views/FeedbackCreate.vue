@@ -1,33 +1,10 @@
 <template>
   <div class="w-full h-full max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Header Section -->
-    <header class="bg-white px-3 py-1 flex items-center gap-1 text-black">
-      <!-- Back Button -->
-      <button class="flex items-center justify-center w-6 h-6">
-        <ChevronLeft
-          :size="20"
-          :stroke-width="2"
-        />
-      </button>
-
-      <!-- Title -->
-      <h1 class="text-base font-medium">Trung tâm hỗ trợ khách hàng</h1>
-    </header>
+    <AppHeader />
 
     <!-- Navigation -->
-    <div class="bg-white py-3 px-4 border-b border-gray-200 text-black">
-      <div class="flex items-center justify-between">
-        <button class="flex items-center gap-1 flex-1">
-          <ArrowLeftCircle
-            class="w-6 h-6 text-black"
-            :stroke-width="2"
-          />
-          <span class="text-sm font-semibold">Quay lại</span>
-        </button>
-        <h1 class="text-base font-bold flex-1 text-center">Tạo phản ánh</h1>
-        <div class="flex-1"></div>
-      </div>
-    </div>
+    <PageHeader title="Tạo phản ánh" />
 
     <!-- Form -->
     <div class="p-3 flex flex-col gap-3">
@@ -53,15 +30,9 @@
         <div
           class="w-full px-6 py-3 rounded-xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer"
         >
-          <span class="text-sm font-semibold text-black">
-            Hỗ trợ khách hàng
-          </span>
+          <span class="text-sm font-semibold text-black"> Hỗ trợ khách hàng </span>
 
-          <ChevronDown
-            :size="20"
-            class="text-slate-900"
-            :stroke-width="2"
-          />
+          <ChevronDown :size="20" class="text-slate-900" :stroke-width="2" />
         </div>
       </div>
 
@@ -86,11 +57,7 @@
           <div
             class="py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
           >
-            <Camera
-              :size="24"
-              :stroke-width="1.5"
-              class="text-gray-500"
-            />
+            <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
             Chụp ảnh
           </div>
         </div>
@@ -111,10 +78,7 @@
 </template>
 
 <script setup>
-import {
-  Camera,
-  ChevronLeft,
-  ArrowLeftCircle,
-  ChevronDown,
-} from 'lucide-vue-next'
+import { Camera, ChevronDown } from 'lucide-vue-next'
+import AppHeader from '@/components/AppHeader.vue'
+import PageHeader from '@/components/PageHeader.vue'
 </script>
