@@ -10,7 +10,7 @@
         <div
           class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
         >
-          <img :src="avatarImage" alt="Profile" class="w-full h-full object-cover" />
+          <img :src="avatarUrl" alt="Profile" class="w-full h-full object-cover" />
         </div>
         <h2 class="text-lg font-semibold">Xin chào {{ customerName }}</h2>
       </section>
@@ -138,6 +138,15 @@ import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 
 const route = useRoute()
+
+/** Avatar URL based on client_id */
+const avatarUrl = computed(() => {
+  const clientId = route.query.client_id
+  if (clientId) {
+    return `https://cdn.botbanhang.vn/media/s/${clientId}/user`
+  }
+  return avatarImage
+})
 
 /** Tên khách hàng từ query */
 const customerName = computed(() => {
