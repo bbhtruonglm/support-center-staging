@@ -36,7 +36,7 @@
           <InfoCard class="flex flex-col py-0 px-4" title="Liên hệ với chúng tôi">
             <MenuItem
               :icon="PhoneIcon"
-              title="0961.750.846"
+              title="0288.998.8688"
               subtitle="Tổng đài hỗ trợ khách hàng"
               type="tel"
             />
