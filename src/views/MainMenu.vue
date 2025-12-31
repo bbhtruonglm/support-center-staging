@@ -2,7 +2,7 @@
   <!-- Wrapper -->
   <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Header -->
-    <AppHeader />
+    <!-- <AppHeader /> -->
     <!-- Main Content -->
     <section class="p-3 flex flex-col text-black text-sm">
       <!-- Profile -->

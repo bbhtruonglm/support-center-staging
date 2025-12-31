@@ -1,7 +1,7 @@
 <template>
-  <div class="flex flex-col h-full md:max-w-sm bg-slate-100 overflow-y-auto">
+  <div class="flex flex-col h-dvh md:h-full md:max-w-sm bg-slate-100 overflow-y-auto">
     <!-- Header Section -->
-    <AppHeader />
+    <!-- <AppHeader /> -->
 
     <!-- Content Wrapper -->
     <div class="flex-1 flex flex-col">
