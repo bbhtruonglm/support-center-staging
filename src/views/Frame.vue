@@ -76,7 +76,7 @@ function ForwardToIframe(payload: any) {
     ...USER_INFO,
     from: 'parent-app',
   }
-
+  // post message
   iframe_ref.value?.contentWindow?.postMessage(
     FORWARD_PAYLOAD,
     '*', // production: IFRAME_ORIGIN
