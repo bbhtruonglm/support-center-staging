@@ -28,7 +28,7 @@ const is_iframe_ready = ref(false)
 
 onMounted(() => {
   /** id page */
-  const ID = (route.params.id as string) || '493168686296126'
+  const ID = (route.params.page_id as string) || '794843540615423'
 
   /** Validate ID */
   if (!ID || !/^[a-zA-Z0-9_-]+$/.test(ID)) {
