@@ -54,7 +54,7 @@ onUnmounted(() => {
 
 /** xử lý khi iframe load xong */
 function OnIframeLoad() {
-  console.log('[BRIDGE] Iframe loaded (native @load event)')
+  // console.log('[BRIDGE] Iframe loaded (native @load event)')
 
   /** đợi thêm 1 giây để JS trong iframe khởi tạo xong */
   setTimeout(() => {
@@ -90,17 +90,18 @@ function ForwardToIframe(payload: any) {
     FORWARD_PAYLOAD,
     '*', // production: IFRAME_ORIGIN
   )
-  console.log('[BRIDGE] Forwarded to iframe:', FORWARD_PAYLOAD)
+  // console.log('[BRIDGE] Forwarded to iframe:', FORWARD_PAYLOAD)
 }
 
 /** hàm xử lý sự kiện message */
 function handleMessageEvent(event: MessageEvent) {
-  let PAYLOAD: any
-  console.log('[BRIDGE] Received message:', event.data)
+  // Khai báo payload
+  let payload: any
+  // console.log('[BRIDGE] Received message:', event.data)
 
-  /** Parse payload an toàn */
+  // Parse payload an toàn
   try {
-    PAYLOAD = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
+    payload = typeof event.data === 'string' ? JSON.parse(event.data) : event.data
   } catch (e) {
     return
   }
@@ -109,8 +110,8 @@ function handleMessageEvent(event: MessageEvent) {
    * 🆕 Handle IFRAME_READY from Chatbot Iframe
    * Khi iframe load xong sẽ bắn message này ra -> Gửi data user vào
    */
-  if (PAYLOAD?.from === 'IFRAME_CHATBOT' && PAYLOAD?.type === 'IFRAME_READY') {
-    console.log('[BRIDGE] Received IFRAME_READY from Iframe')
+  if (payload?.from === 'IFRAME_CHATBOT' && payload?.type === 'IFRAME_READY') {
+    // console.log('[BRIDGE] Received IFRAME_READY from Iframe')
     is_iframe_ready.value = true
     ForwardToIframe({})
     return
@@ -122,9 +123,9 @@ function handleMessageEvent(event: MessageEvent) {
    * 2. Parent nhận 'READY' -> kiểm tra localStorage theo 'key'
    * 3. Nếu có data -> gửi lại cho Iframe (type: 'CLIENT_ID')
    */
-  if (PAYLOAD?.status === 'READY') {
-    console.log('[BRIDGE] Iframe is READY')
-    /** đánh dấu iframe đã ready */
+  if (payload?.status === 'READY') {
+    // console.log('[BRIDGE] Iframe is READY')
+    // đánh dấu iframe đã ready
     is_iframe_ready.value = true
 
     /** Lấy thông tin cố định từ localStorage theo yêu cầu */
@@ -136,7 +137,7 @@ function handleMessageEvent(event: MessageEvent) {
       page_id: page_id.value,
     }
 
-    console.log('Sending INFO to iframe:', DATA_SEND)
+    // console.log('Sending INFO to iframe:', DATA_SEND)
 
     if (iframe_ref.value?.contentWindow) {
       iframe_ref.value.contentWindow.postMessage(
@@ -151,15 +152,15 @@ function handleMessageEvent(event: MessageEvent) {
   }
 
   /** Logic lưu ngược lại từ Iframe vào localStorage (nếu cần) */
-  if (PAYLOAD?.from === 'BBH-EMBED-IFRAME' && PAYLOAD.type === 'CLIENT_ID') {
-    console.log('[BRIDGE] Iframe confirmed ready via BBH-EMBED-IFRAME')
+  if (payload?.from === 'BBH-EMBED-IFRAME' && payload.type === 'CLIENT_ID') {
+    // console.log('[BRIDGE] Iframe confirmed ready via BBH-EMBED-IFRAME')
 
     /** đánh dấu iframe đã ready */
     is_iframe_ready.value = true
 
-    localStorage.setItem(`${PAYLOAD.key}`, JSON.stringify(PAYLOAD.data_embed_chat))
+    localStorage.setItem(`${payload.key}`, JSON.stringify(payload.data_embed_chat))
 
-    console.log('[SDK] Saved:', PAYLOAD.data_embed_chat)
+    // console.log('[SDK] Saved:', payload.data_embed_chat)
   }
 }
 </script>
