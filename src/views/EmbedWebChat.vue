@@ -1,13 +1,15 @@
 <template>
-  <div class="flex flex-col h-dvh md:h-full md:max-w-sm bg-slate-100 overflow-y-auto">
+  <div class="flex flex-col h-dvh md:max-w-sm bg-slate-100 overflow-y-auto">
     <!-- Header Section -->
     <!-- <AppHeader /> -->
 
     <!-- Content Wrapper -->
-    <div class="flex-1 flex flex-col">
+    <div class="flex-1 flex flex-col h-full">
       <!-- Navigation Header -->
       <PageHeader title="Chat" />
-      <Frame />
+      <div class="flex-1 relative h-full">
+        <Frame />
+      </div>
     </div>
   </div>
 </template>

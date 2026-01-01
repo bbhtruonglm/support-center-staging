@@ -3,7 +3,7 @@
     ref="iframe_ref"
     v-if="url"
     :src="url"
-    className="w-dvw h-dvh md:max-w-sm"
+    class="w-full h-full md:max-w-sm"
     title="Embedded Content"
     sandbox="allow-scripts allow-same-origin allow-popups"
     @load="OnIframeLoad"
@@ -26,20 +26,22 @@ const iframe_ref = ref<HTMLIFrameElement | null>(null)
 /** cờ check iframe đã ready chưa */
 const is_iframe_ready = ref(false)
 
-onMounted(() => {
-  /** id page */
-  const ID = (route.params.page_id as string) || '794843540615423'
+/** id page */
+// const page_id = ref('493168686296126')
+const page_id = ref('794843540615423')
 
-  /** Validate ID */
-  if (!ID || !/^[a-zA-Z0-9_-]+$/.test(ID)) {
-    console.log('ID khong hop le')
+onMounted(() => {
+  /** Validate PAGE_ID */
+  if (!page_id.value || !/^[a-zA-Z0-9_-]+$/.test(page_id.value)) {
+    console.log('PAGE_ID khong hop le')
   }
 
   /** Iframe URL */
   const IFRAME_URL = 'https://chatbox-embed-ui.botbanhang.vn'
+  // const IFRAME_URL = 'http://192.168.1.15:5174'
 
   /** IFRAME SOURCE */
-  url.value = `${IFRAME_URL}/view-screen?page_id=${encodeURIComponent(ID)}`
+  url.value = `${IFRAME_URL}/view-screen/?page_id=${page_id.value}`
 
   /** Xử lý sự kiện message */
   window.addEventListener('message', handleMessageEvent)
@@ -68,12 +70,19 @@ function ForwardToIframe(payload: any) {
     user_phone: localStorage.getItem('user_phone'),
     user_email: localStorage.getItem('user_email'),
     client_id: localStorage.getItem('client_id'),
+    page_id: page_id.value,
   }
+
+  /** Loại bỏ các giá trị null/undefined khỏi USER_INFO */
+  const CLEAN_USER_INFO = Object.fromEntries(
+    Object.entries(USER_INFO).filter(([_, v]) => v != null),
+  )
 
   /** đổi from thành 'parent-app' & kèm thông tin user */
   const FORWARD_PAYLOAD = {
-    ...payload,
-    ...USER_INFO,
+    ...CLEAN_USER_INFO, // Storage base
+    ...payload, // Payload overrides storage
+    page_id: page_id.value, // Always include page_id
     from: 'parent-app',
   }
   // post message
@@ -87,6 +96,7 @@ function ForwardToIframe(payload: any) {
 /** hàm xử lý sự kiện message */
 function handleMessageEvent(event: MessageEvent) {
   let PAYLOAD: any
+  console.log('[BRIDGE] Received message:', event.data)
 
   /** Parse payload an toàn */
   try {
@@ -95,21 +105,14 @@ function handleMessageEvent(event: MessageEvent) {
     return
   }
 
-  /** =================================================
-   *  🆕 LOGIC BỔ SUNG – Native → forward iframe
-   * ================================================= */
-
-  /** Nhận postMessage từ mobile app và forward vào iframe */
-  /** Bỏ check from === 'parent-app', trừ các message nội bộ (READY, BBH-EMBED-IFRAME) */
-  if (PAYLOAD?.status !== 'READY' && PAYLOAD?.from !== 'BBH-EMBED-IFRAME') {
-    console.log('[BRIDGE] Receive from Native (Pass-through):', PAYLOAD)
-
-    /** chờ 3 giây để iframe load xong rồi mới forward */
-    setTimeout(() => {
-      console.log('[BRIDGE] Delayed forward after 3s')
-
-      ForwardToIframe(PAYLOAD)
-    }, 500)
+  /**
+   * 🆕 Handle IFRAME_READY from Chatbot Iframe
+   * Khi iframe load xong sẽ bắn message này ra -> Gửi data user vào
+   */
+  if (PAYLOAD?.from === 'IFRAME_CHATBOT' && PAYLOAD?.type === 'IFRAME_READY') {
+    console.log('[BRIDGE] Received IFRAME_READY from Iframe')
+    is_iframe_ready.value = true
+    ForwardToIframe({})
     return
   }
 
@@ -130,6 +133,7 @@ function handleMessageEvent(event: MessageEvent) {
       user_phone: localStorage.getItem('user_phone'),
       user_email: localStorage.getItem('user_email'),
       client_id: localStorage.getItem('client_id'),
+      page_id: page_id.value,
     }
 
     console.log('Sending INFO to iframe:', DATA_SEND)

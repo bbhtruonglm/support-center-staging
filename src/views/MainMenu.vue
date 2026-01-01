@@ -4,7 +4,7 @@
     <!-- Header -->
     <!-- <AppHeader /> -->
     <!-- Main Content -->
-    <section class="p-3 flex flex-col text-black text-sm">
+    <section class="p-3 flex flex-col text-black text-sm flex-1">
       <!-- Profile -->
       <section class="flex flex-col items-center gap-3">
         <div
@@ -15,7 +15,7 @@
         <h2 class="text-lg font-semibold">Xin chào {{ customerName }}</h2>
       </section>
       <!-- Content -->
-      <section class="py-3 flex flex-col gap-3">
+      <section class="py-3 flex flex-col gap-3 flex-1">
         <div class="flex flex-col gap-2.5">
           <!-- Customer ID -->
           <InfoCard>
@@ -91,7 +91,7 @@
           </InfoCard> -->
         </div>
         <!-- Footer -->
-        <section class="flex flex-col gap-2">
+        <section class="flex flex-col gap-2 mt-auto">
           <div class="flex flex-col items-center gap-2">
             <div class="w-24 h-24">
               <img :src="mailIcon" alt="Mail" class="w-full h-full object-contain" />
