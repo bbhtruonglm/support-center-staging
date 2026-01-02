@@ -5,3 +5,29 @@ declare module '*.vue' {
   const component: DefineComponent<{}, {}, any>
   export default component
 }
+
+declare module 'vue3-toastify' {
+  import { Plugin } from 'vue'
+
+  export interface ToastContainerOptions {
+    autoClose?: number
+    position?:
+      | 'top-right'
+      | 'top-left'
+      | 'top-center'
+      | 'bottom-right'
+      | 'bottom-left'
+      | 'bottom-center'
+    [key: string]: any
+  }
+
+  export const toast: {
+    success: (message: string) => void
+    error: (message: string) => void
+    info: (message: string) => void
+    warning: (message: string) => void
+  }
+
+  const Vue3Toastify: Plugin
+  export default Vue3Toastify
+}

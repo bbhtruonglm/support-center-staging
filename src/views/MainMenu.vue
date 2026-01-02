@@ -123,6 +123,13 @@
 <script setup lang="ts">
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
+import { toast } from 'vue3-toastify'
+
+import AppHeader from '@/components/AppHeader.vue'
+import InfoCard from '@/components/InfoCard.vue'
+import MenuItem from '@/components/MenuItem.vue'
+
+import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
 
 import avatarImage from '@/assets/Avatar.png'
 import mailIcon from '@/assets/MailIcon.png'
@@ -131,11 +138,6 @@ import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
 import AlertIcon from '@/assets/Alerticon.png'
-
-import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
-import AppHeader from '@/components/AppHeader.vue'
-import InfoCard from '@/components/InfoCard.vue'
-import MenuItem from '@/components/MenuItem.vue'
 
 const route = useRoute()
 
@@ -180,6 +182,11 @@ const customerId = computed(() => {
 /** Copy mã khách hàng */
 const copyCustomerId = async () => {
   if (!customerId.value || customerId.value === '---') return
-  await navigator.clipboard.writeText(customerId.value as string)
+  try {
+    await navigator.clipboard.writeText(customerId.value as string)
+    toast.success('Đã sao chép thành công!')
+  } catch (e) {
+    toast.error('Không thể sao chép mã khách hàng')
+  }
 }
 </script>
