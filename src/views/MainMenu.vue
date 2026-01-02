@@ -28,8 +28,21 @@
                   {{ customerId }}
                 </span>
               </div>
-              <button @click="copyCustomerId" class="hover:cursor-pointer">
-                <Copy :size="20" class="text-blue-700" :stroke-width="2" />
+              <button
+                @click="copyCustomerId"
+                :disabled="isCopyLoading"
+                :class="[
+                  'hover:cursor-pointer',
+                  isCopyLoading && 'opacity-50 cursor-not-allowed pointer-events-none',
+                ]"
+              >
+                <Loader2
+                  v-if="isCopyLoading"
+                  :size="20"
+                  class="text-blue-700 animate-spin"
+                  :stroke-width="2"
+                />
+                <Copy v-else :size="20" class="text-blue-700" :stroke-width="2" />
               </button>
             </div>
           </InfoCard>
@@ -122,7 +135,7 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, onMounted } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
@@ -130,7 +143,7 @@ import { useI18n } from 'vue-i18n'
 import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 
-import { Copy } from 'lucide-vue-next'
+import { Copy, Loader2 } from 'lucide-vue-next'
 
 import avatarDefault from '@/assets/avt-default.jpg'
 import mailIcon from '@/assets/MailIcon.png'
@@ -195,14 +208,27 @@ const customerId = computed(() => {
   return route.query.client_id || '---'
 })
 
+/** Trạng thái loading của nút copy */
+const isCopyLoading = ref(false)
+
+/** Thời gian delay giữa các lần click (ms) */
+const CLICK_DELAY = 500
+
 /** Copy mã khách hàng */
 const copyCustomerId = async () => {
-  if (!customerId.value || customerId.value === '---') return
+  if (!customerId.value || customerId.value === '---' || isCopyLoading.value) return
+
+  isCopyLoading.value = true
+
   try {
     await navigator.clipboard.writeText(customerId.value as string)
     toast.success(t('mainMenu.copySuccess'))
   } catch (e) {
     toast.error(t('mainMenu.copyError'))
+  } finally {
+    setTimeout(() => {
+      isCopyLoading.value = false
+    }, CLICK_DELAY)
   }
 }
 </script>
