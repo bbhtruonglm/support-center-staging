@@ -12,11 +12,13 @@
 
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 
-/** router */
-const route = useRoute()
+/** Chat iframe URL từ env */
+const CHAT_IFRAME_URL = import.meta.env.VITE_CHAT_IFRAME_URL
+
+/** Chat page ID từ env */
+const CHAT_PAGE_ID = import.meta.env.VITE_CHAT_PAGE_ID
 
 /** i18n */
 const { t, locale } = useI18n()
@@ -30,9 +32,8 @@ const iframe_ref = ref<HTMLIFrameElement | null>(null)
 /** cờ check iframe đã ready chưa */
 const is_iframe_ready = ref(false)
 
-/** id page */
-// const page_id = ref('493168686296126')
-const page_id = ref('794843540615423')
+/** id page từ env */
+const page_id = ref(CHAT_PAGE_ID)
 
 onMounted(() => {
   // validate page_id
@@ -43,12 +44,8 @@ onMounted(() => {
   /** Lấy locale từ i18n (đã được setup với fallback logic) */
   const current_locale = locale.value
 
-  /** Iframe URL */
-  const IFRAME_URL = 'https://chatbox-embed-ui.botbanhang.vn'
-  // const IFRAME_URL = 'http://192.168.1.15:5174'
-
   /** IFRAME SOURCE với */
-  url.value = `${IFRAME_URL}/view-screen/?page_id=${page_id.value}&locale=${current_locale}`
+  url.value = `${CHAT_IFRAME_URL}/view-screen/?page_id=${page_id.value}&locale=${current_locale}`
 
   /** Xử lý sự kiện message */
   window.addEventListener('message', handleMessageEvent)
@@ -93,10 +90,7 @@ function ForwardToIframe(payload: any) {
     from: 'parent-app',
   }
   // post message
-  iframe_ref.value?.contentWindow?.postMessage(
-    FORWARD_PAYLOAD,
-    '*', // production: IFRAME_ORIGIN
-  )
+  iframe_ref.value?.contentWindow?.postMessage(FORWARD_PAYLOAD, CHAT_IFRAME_URL)
   // console.log('[BRIDGE] Forwarded to iframe:', FORWARD_PAYLOAD)
 }
 
@@ -153,7 +147,7 @@ function handleMessageEvent(event: MessageEvent) {
           type: 'CLIENT_ID',
           data_embed_chat: JSON.stringify(DATA_SEND),
         },
-        '*', // production thì check domain
+        CHAT_IFRAME_URL,
       )
     }
   }

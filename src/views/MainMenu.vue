@@ -38,14 +38,14 @@
           <InfoCard class="flex flex-col py-0 px-4" :title="t('mainMenu.contactUs')">
             <MenuItem
               :icon="PhoneIcon"
-              title="0288.998.8688"
+              :title="SUPPORT_PHONE"
               :subtitle="t('mainMenu.supportHotline')"
               type="tel"
             />
 
             <MenuItem
               :icon="MailSmallIcon"
-              title="hotro@botbanhang.vn"
+              :title="SUPPORT_EMAIL"
               :subtitle="t('mainMenu.supportEmail')"
               type="email"
             />
@@ -61,7 +61,7 @@
               :icon="zaloIcon"
               :title="t('mainMenu.chatViaZalo')"
               :subtitle="t('mainMenu.chatViaZaloDesc')"
-              url="https://zalo.me/1591257820328477563"
+              :url="ZALO_OA_URL"
             />
 
             <!-- <MenuItem
@@ -127,11 +127,10 @@ import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 
-import AppHeader from '@/components/AppHeader.vue'
 import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 
-import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
+import { Copy } from 'lucide-vue-next'
 
 import avatarDefault from '@/assets/avt-default.jpg'
 import mailIcon from '@/assets/MailIcon.png'
@@ -139,7 +138,18 @@ import bbhIcon from '@/assets/BBHIcon.png'
 import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
-import AlertIcon from '@/assets/Alerticon.png'
+
+/** CDN base URL từ env */
+const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL
+
+/** Số điện thoại hỗ trợ từ env */
+const SUPPORT_PHONE = import.meta.env.VITE_SUPPORT_PHONE
+
+/** Email hỗ trợ từ env */
+const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL
+
+/** URL Zalo từ env */
+const ZALO_OA_URL = import.meta.env.VITE_ZALO_OA_URL
 
 /** router */
 const route = useRoute()
@@ -168,7 +178,7 @@ onMounted(() => {
 const avatarUrl = computed(() => {
   const clientId = route.query.client_id
   if (clientId) {
-    return `https://cdn.botbanhang.vn/media/s/${clientId}/user`
+    return `${CDN_BASE_URL}/media/s/${clientId}/user`
   }
   return avatarDefault
 })
