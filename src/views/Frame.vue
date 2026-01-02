@@ -31,7 +31,7 @@ const is_iframe_ready = ref(false)
 const page_id = ref('794843540615423')
 
 onMounted(() => {
-  /** Validate PAGE_ID */
+  // validate page_id
   if (!page_id.value || !/^[a-zA-Z0-9_-]+$/.test(page_id.value)) {
     console.log('PAGE_ID khong hop le')
   }
