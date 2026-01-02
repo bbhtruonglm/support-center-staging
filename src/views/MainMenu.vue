@@ -10,7 +10,7 @@
         <div
           class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
         >
-          <img :src="avatarUrl" alt="Profile" class="w-full h-full object-cover" />
+          <img :src="avatarUrl" alt="Profile" class="w-full h-full object-contain" />
         </div>
         <h2 class="text-lg font-semibold">Xin chào {{ customerName }}</h2>
       </section>
