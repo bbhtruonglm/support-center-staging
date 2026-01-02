@@ -131,7 +131,7 @@ import MenuItem from '@/components/MenuItem.vue'
 
 import { Copy, AlertCircle, CheckCircle } from 'lucide-vue-next'
 
-import avatarImage from '@/assets/Avatar.png'
+import avatarDefault from '@/assets/avt-default.jpg'
 import mailIcon from '@/assets/MailIcon.png'
 import bbhIcon from '@/assets/BBHIcon.png'
 import zaloIcon from '@/assets/ZaloIcon.png'
@@ -164,7 +164,7 @@ const avatarUrl = computed(() => {
   if (clientId) {
     return `https://cdn.botbanhang.vn/media/s/${clientId}/user`
   }
-  return avatarImage
+  return avatarDefault
 })
 
 /** Tên khách hàng từ query */
