@@ -12,7 +12,7 @@
         >
           <img :src="avatarUrl" alt="Profile" class="w-full h-full object-contain" />
         </div>
-        <h2 class="text-lg font-semibold">Xin chào {{ customerName }}</h2>
+        <h2 class="text-lg font-semibold">{{ t('mainMenu.greeting') }} {{ customerName }}</h2>
       </section>
       <!-- Content -->
       <section class="py-3 flex flex-col gap-3 flex-1">
@@ -21,7 +21,9 @@
           <InfoCard>
             <div class="flex items-center justify-between">
               <div class="flex flex-col text-sm">
-                <span class="font-medium text-blue-700"> Mã khách hàng </span>
+                <span class="font-medium text-blue-700">
+                  {{ t('mainMenu.customerId') }}
+                </span>
                 <span class="font-medium">
                   {{ customerId }}
                 </span>
@@ -33,32 +35,32 @@
           </InfoCard>
 
           <!-- Contact -->
-          <InfoCard class="flex flex-col py-0 px-4" title="Liên hệ với chúng tôi">
+          <InfoCard class="flex flex-col py-0 px-4" :title="t('mainMenu.contactUs')">
             <MenuItem
               :icon="PhoneIcon"
               title="0288.998.8688"
-              subtitle="Tổng đài hỗ trợ khách hàng"
+              :subtitle="t('mainMenu.supportHotline')"
               type="tel"
             />
 
             <MenuItem
               :icon="MailSmallIcon"
               title="hotro@botbanhang.vn"
-              subtitle="Email hỗ trợ khách hàng"
+              :subtitle="t('mainMenu.supportEmail')"
               type="email"
             />
 
             <MenuItem
               :icon="bbhIcon"
-              title="Chat với chúng tôi"
-              subtitle="Chat ngay trong App"
+              :title="t('mainMenu.chatWithUs')"
+              :subtitle="t('mainMenu.chatInApp')"
               to="/embed-web-chat"
             />
 
             <MenuItem
               :icon="zaloIcon"
-              title="Chat qua Zalo"
-              subtitle="Chat với chúng tôi qua Zalo"
+              :title="t('mainMenu.chatViaZalo')"
+              :subtitle="t('mainMenu.chatViaZaloDesc')"
               url="https://zalo.me/1591257820328477563"
             />
 
@@ -97,8 +99,7 @@
               <img :src="mailIcon" alt="Mail" class="w-full h-full object-contain" />
             </div>
             <p class="text-xs text-slate-500 text-center px-4">
-              Chúng tôi luôn lắng nghe các phản hồi của <br />
-              Quý Khách hàng để liên tục cải thiện Chất lượng - Dịch vụ.
+              {{ t('mainMenu.footerMessage') }}
             </p>
           </div>
           <!-- <div class="flex gap-3 px-8">
@@ -124,6 +125,7 @@
 import { computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
 
 import AppHeader from '@/components/AppHeader.vue'
 import InfoCard from '@/components/InfoCard.vue'
@@ -139,7 +141,11 @@ import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
 import AlertIcon from '@/assets/Alerticon.png'
 
+/** router */
 const route = useRoute()
+
+/** i18n */
+const { t } = useI18n()
 
 /** Lưu params vào localStorage */
 onMounted(() => {
@@ -170,7 +176,7 @@ const avatarUrl = computed(() => {
 /** Tên khách hàng từ query */
 const customerName = computed(() => {
   const name = route.query.user_name
-  if (!name) return 'Quý khách'
+  if (!name) return t('mainMenu.defaultCustomerName')
   return decodeURIComponent(name as string)
 })
 
@@ -184,9 +190,9 @@ const copyCustomerId = async () => {
   if (!customerId.value || customerId.value === '---') return
   try {
     await navigator.clipboard.writeText(customerId.value as string)
-    toast.success('Đã sao chép thành công!')
+    toast.success(t('mainMenu.copySuccess'))
   } catch (e) {
-    toast.error('Không thể sao chép mã khách hàng')
+    toast.error(t('mainMenu.copyError'))
   }
 }
 </script>

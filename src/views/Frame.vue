@@ -4,7 +4,7 @@
     v-if="url"
     :src="url"
     class="w-full h-full md:max-w-sm"
-    title="Embedded Content"
+    :title="t('chat.embeddedContent')"
     sandbox="allow-scripts allow-same-origin allow-popups"
     @load="OnIframeLoad"
   />
@@ -13,9 +13,13 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 
 /** router */
 const route = useRoute()
+
+/** i18n */
+const { t, locale } = useI18n()
 
 /** link iframe */
 const url = ref('')
@@ -36,12 +40,15 @@ onMounted(() => {
     console.log('PAGE_ID khong hop le')
   }
 
+  /** Lấy locale từ i18n (đã được setup với fallback logic) */
+  const current_locale = locale.value
+
   /** Iframe URL */
   const IFRAME_URL = 'https://chatbox-embed-ui.botbanhang.vn'
   // const IFRAME_URL = 'http://192.168.1.15:5174'
 
-  /** IFRAME SOURCE */
-  url.value = `${IFRAME_URL}/view-screen/?page_id=${page_id.value}`
+  /** IFRAME SOURCE với */
+  url.value = `${IFRAME_URL}/view-screen/?page_id=${page_id.value}&locale=${current_locale}`
 
   /** Xử lý sự kiện message */
   window.addEventListener('message', handleMessageEvent)
