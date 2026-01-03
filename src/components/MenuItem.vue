@@ -3,7 +3,11 @@
     :is="componentTag"
     :href="href"
     :to="to"
-    class="flex items-center justify-between w-full py-2 border-b border-gray-200 last:border-0 text-left cursor-pointer"
+    @click="handleClick"
+    :class="[
+      'flex items-center justify-between w-full py-2 border-b border-gray-200 last:border-0 text-left cursor-pointer',
+      isLoading && 'opacity-50 cursor-not-allowed pointer-events-none',
+    ]"
   >
     <div class="flex items-center gap-3">
       <img v-if="icon" :src="icon" alt="Icon" class="w-8 h-8 object-contain" />
@@ -14,16 +18,17 @@
         </span>
       </div>
     </div>
-    <div class="flex items-center gap-1">
+    <div class="flex items-center gap-3">
       <slot name="right-icon" />
-      <ChevronRight :size="20" class="text-slate-900" :stroke-width="2" />
+      <Loader2 v-if="isLoading" :size="20" class="text-slate-900 animate-spin" :stroke-width="2" />
+      <ChevronRight v-else :size="20" class="text-slate-900" :stroke-width="2" />
     </div>
   </component>
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { ChevronRight } from 'lucide-vue-next'
+import { computed, ref } from 'vue'
+import { ChevronRight, Loader2 } from 'lucide-vue-next'
 
 const props = defineProps<{
   icon?: string
@@ -33,7 +38,28 @@ const props = defineProps<{
   url?: string
   to?: string | object
 }>()
-// comment tag
+
+/** Trạng thái loading */
+const isLoading = ref(false)
+
+/** Thời gian delay giữa các lần click (ms) */
+const CLICK_DELAY = 500
+
+/** Xử lý click với delay */
+const handleClick = (e: Event) => {
+  if (isLoading.value) {
+    e.preventDefault()
+    e.stopPropagation()
+    return
+  }
+
+  isLoading.value = true
+
+  setTimeout(() => {
+    isLoading.value = false
+  }, CLICK_DELAY)
+}
+
 const componentTag = computed(() => {
   if (props.to) return 'RouterLink'
   if (props.type === 'tel' || props.type === 'email' || props.url) return 'a'
