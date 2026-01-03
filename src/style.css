@@ -11,5 +11,4 @@ body,
 
 /** Điều chỉnh vị trí toast notification xuống một chút */
 .Toastify__toast-container {
-  top: 1rem !important;
 }

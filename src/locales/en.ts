@@ -33,6 +33,14 @@ export default {
     defaultCustomerName: 'Customer',
     copySuccess: 'Copied successfully!',
     copyError: 'Unable to copy customer ID',
+    not_found_customer_id: 'Not found customer ID',
+    complaints: 'Complaints & Errors',
+    complaintsDesc: 'Customer feedback reception',
+    personalSpecialist: 'Your Personal Specialists',
+    chatWithSales: 'Chat with Sales Specialist',
+    chatWithTech: 'Chat with Technical Specialist',
+    feedbackButton: 'Feedback',
+    thankYouLetter: 'Thank You Letter',
   },
 
   // Feedback

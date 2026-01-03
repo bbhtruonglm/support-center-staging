@@ -10,9 +10,9 @@
         <div
           class="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden"
         >
-          <img :src="avatarUrl" alt="Profile" class="w-full h-full object-contain" />
+          <img :src="avatar_url" alt="Profile" class="w-full h-full object-contain" />
         </div>
-        <h2 class="text-lg font-semibold">{{ t('mainMenu.greeting') }} {{ customerName }}</h2>
+        <h2 class="text-lg font-semibold">{{ t('mainMenu.greeting') }} {{ customer_name }}</h2>
       </section>
       <!-- Content -->
       <section class="py-3 flex flex-col gap-3 flex-1">
@@ -25,19 +25,19 @@
                   {{ t('mainMenu.customerId') }}
                 </span>
                 <span class="font-medium">
-                  {{ customerId }}
+                  {{ customer_id }}
                 </span>
               </div>
               <button
                 @click="copyCustomerId"
-                :disabled="isCopyLoading"
+                :disabled="is_copy_loading"
                 :class="[
                   'hover:cursor-pointer',
-                  isCopyLoading && 'opacity-50 cursor-not-allowed pointer-events-none',
+                  is_copy_loading && 'opacity-50 cursor-not-allowed pointer-events-none',
                 ]"
               >
                 <Loader2
-                  v-if="isCopyLoading"
+                  v-if="is_copy_loading"
                   :size="20"
                   class="text-blue-700 animate-spin"
                   :stroke-width="2"
@@ -170,64 +170,122 @@ const route = useRoute()
 /** i18n */
 const { t } = useI18n()
 
-/** Lưu params vào localStorage */
+/** Hook xử lý khi component được mounted */
 onMounted(() => {
   try {
-    const query = route.query
-    if (!query) return
+    /** Lấy object query parameters từ URL hiện tại */
+    const QUERY = route.query
 
-    Object.keys(query).forEach((key) => {
-      const value = query[key]
-      if (value !== undefined && value !== null) {
-        localStorage.setItem(key, String(value))
-      }
+    // Kiểm tra nếu không có query param nào thì dừng hàm
+    if (!QUERY) return
+
+    // Duyệt qua từng key trong object query
+    Object.keys(QUERY).forEach((key) => {
+      /** Lấy giá trị của param tương ứng với key */
+      const VALUE = QUERY[key]
+
+      // Nếu giá trị hợp lệ (khác null/undefined) thì lưu vào localStorage
+      if (VALUE != null) localStorage.setItem(key, String(VALUE))
     })
   } catch (error) {
+    // Ghi log nếu có lỗi xảy ra trong quá trình lưu storage
     console.error('Error saving params to localStorage:', error)
   }
 })
 
 /** Avatar URL based on client_id */
-const avatarUrl = computed(() => {
-  const clientId = route.query.client_id
-  if (clientId) {
-    return `${CDN_BASE_URL}/media/s/${clientId}/user`
-  }
+const avatar_url = computed(() => {
+  /** Lấy client_id từ query params */
+  const CLIENT_ID = route.query.client_id
+
+  // Nếu có client_id thì trả về URL CDN tương ứng
+  if (CLIENT_ID) return `${CDN_BASE_URL}/media/s/${CLIENT_ID}/user`
+
+  // Nếu không có thì trả về avatar mặc định
   return avatarDefault
 })
 
 /** Tên khách hàng từ query */
-const customerName = computed(() => {
-  const name = route.query.user_name
-  if (!name) return t('mainMenu.defaultCustomerName')
-  return decodeURIComponent(name as string)
+const customer_name = computed(() => {
+  /** Lấy tên từ params */
+  const NAME = route.query.user_name
+
+  /** Nếu không có tên thì trả về mặc định */
+  if (!NAME) return t('mainMenu.defaultCustomerName')
+
+  // Decode URI component để hiển thị đúng tiếng Việt
+  return decodeURIComponent(NAME as string)
 })
 
 /** Mã khách hàng từ query */
-const customerId = computed(() => {
-  return route.query.client_id || '---'
+const customer_id = computed<string>(() => {
+  /** Lấy giá trị client_id từ URL query */
+  const CLIENT_ID = route.query.client_id
+
+  // Nếu là array thì lấy phần tử đầu tiên
+  if (Array.isArray(CLIENT_ID)) return CLIENT_ID[0] || '---'
+
+  // Trả về giá trị ID hoặc mặc định
+  return CLIENT_ID || '---'
 })
 
 /** Trạng thái loading của nút copy */
-const isCopyLoading = ref(false)
+const is_copy_loading = ref(false)
 
 /** Thời gian delay giữa các lần click (ms) */
 const CLICK_DELAY = 500
 
 /** Copy mã khách hàng */
-const copyCustomerId = async () => {
-  if (!customerId.value || customerId.value === '---' || isCopyLoading.value) return
+async function copyCustomerId() {
+  /** Lấy giá trị ID hiện tại */
+  const CUSTOMER_ID = customer_id.value
 
-  isCopyLoading.value = true
+  // Kiểm tra điều kiện: không có ID, ID mặc định '---', hoặc đang loading thì thoát
+  if (!CUSTOMER_ID || CUSTOMER_ID === '---' || is_copy_loading.value) {
+    toast.error(t('mainMenu.not_found_customer_id'))
+    return
+  }
+
+  // Đặt trạng thái đang xử lý
+  is_copy_loading.value = true
 
   try {
-    await navigator.clipboard.writeText(customerId.value as string)
+    // 1. Ưu tiên dùng Navigator Clipboard API (Chỉ hoạt động trên HTTPS hoặc Localhost)
+    if (navigator.clipboard && window.isSecureContext) {
+      await navigator.clipboard.writeText(CUSTOMER_ID)
+    }
+    // 2. Fallback cho Mobile / HTTP (Tránh lỗi trên môi trường dev không có HTTPS)
+    else {
+      /** Tạo thẻ textarea ẩn để chứa text */
+      const TEXT_AREA = document.createElement('textarea')
+      TEXT_AREA.value = CUSTOMER_ID
+
+      // Style để ẩn khỏi view nhưng vẫn select được
+      TEXT_AREA.style.position = 'fixed'
+      TEXT_AREA.style.left = '-9999px'
+      TEXT_AREA.style.top = '0'
+
+      document.body.appendChild(TEXT_AREA)
+      TEXT_AREA.focus()
+      TEXT_AREA.select()
+
+      // Thực hiện lệnh copy native
+      const SUCCESSFUL = document.execCommand('copy')
+      document.body.removeChild(TEXT_AREA)
+
+      if (!SUCCESSFUL) throw new Error('Copy fallback failed')
+    }
+
+    // Hiển thị thông báo thành công
     toast.success(t('mainMenu.copySuccess'))
   } catch (e) {
+    console.error('Copy error:', e)
+    // Hiển thị thông báo lỗi nếu copy thất bại
     toast.error(t('mainMenu.copyError'))
   } finally {
+    // Tắt trạng thái loading sau khoảng thời gian delay
     setTimeout(() => {
-      isCopyLoading.value = false
+      is_copy_loading.value = false
     }, CLICK_DELAY)
   }
 }

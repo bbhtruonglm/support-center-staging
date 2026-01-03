@@ -34,6 +34,14 @@ export default {
     defaultCustomerName: 'Quý khách',
     copySuccess: 'Đã sao chép thành công!',
     copyError: 'Không thể sao chép mã khách hàng',
+    not_found_customer_id: 'Không tìm thấy mã khách hàng',
+    complaints: 'Khiếu nại & Báo lỗi',
+    complaintsDesc: 'Tiếp nhận ý kiến khách hàng',
+    personalSpecialist: 'Chuyên viên riêng của quý khách',
+    chatWithSales: 'Chat với Chuyên viên kinh doanh',
+    chatWithTech: 'Chat với Chuyên viên kỹ thuật',
+    feedbackButton: 'Phản ánh',
+    thankYouLetter: 'Thư cảm ơn',
   },
 
   // Feedback
