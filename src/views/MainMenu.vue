@@ -51,7 +51,7 @@
           <InfoCard class="flex flex-col py-0 px-4" :title="t('mainMenu.contactUs')">
             <MenuItem
               :icon="PhoneIcon"
-              :title="SUPPORT_PHONE"
+              :title="formatted_support_phone"
               :subtitle="t('mainMenu.supportHotline')"
               type="tel"
             />
@@ -163,6 +163,25 @@ const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL
 
 /** URL Zalo từ env */
 const ZALO_OA_URL = import.meta.env.VITE_ZALO_OA_URL
+
+/** Format số điện thoại hiển thị dạng XXXX.XXX.XXXX */
+const formatted_support_phone = computed(() => {
+  // Loại bỏ ký tự không phải số nếu có
+  const PHONE = SUPPORT_PHONE?.replace(/\D/g, '') || ''
+
+  // Format theo nhóm 4-3-4 nếu đủ 11 số
+  if (PHONE.length === 11) {
+    return PHONE.replace(/(\d{4})(\d{3})(\d{4})/, '$1.$2.$3')
+  }
+
+  // Format theo nhóm 4-3-3 nếu 10 số (dự phòng)
+  if (PHONE.length === 10) {
+    return PHONE.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3')
+  }
+
+  // Trả về nguyên gốc nếu không đúng định dạng
+  return SUPPORT_PHONE
+})
 
 /** router */
 const route = useRoute()
