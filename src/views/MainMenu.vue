@@ -77,17 +77,18 @@
               :url="ZALO_OA_URL"
             />
 
-            <!-- <MenuItem
+            <MenuItem
               :icon="AlertIcon"
               title="Khiếu nại & Báo lỗi"
               subtitle="Tiếp nhận ý kiến khách hàng"
+              to="/feedback-list"
             >
               <template #right-icon>
                 <div class="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center">
                   <span class="text-xs font-medium text-white">2</span>
                 </div>
               </template>
-            </MenuItem> -->
+            </MenuItem>
           </InfoCard>
 
           <!-- Specialists -->
@@ -151,6 +152,7 @@ import bbhIcon from '@/assets/BBHIcon.png'
 import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
+import AlertIcon from '@/assets/AlertIcon.png'
 
 /** CDN base URL từ env */
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL
