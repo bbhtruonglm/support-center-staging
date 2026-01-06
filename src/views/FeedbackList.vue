@@ -14,10 +14,30 @@
 
         <!-- Feedback List Content -->
         <div class="flex-1 overflow-y-auto text-black">
-          <div class="flex flex-col gap-2.5 px-2">
+          <!-- Loading State -->
+          <div v-if="is_loading" class="flex items-center justify-center py-8">
+            <span class="text-sm text-gray-500">{{ t('common.loading') }}</span>
+          </div>
+
+          <!-- Empty State -->
+          <div
+            v-else-if="!is_valid || filteredFeedbackList.length === 0"
+            class="flex flex-col items-center justify-center py-8 px-4"
+          >
+            <p class="text-sm text-gray-500 text-center">
+              {{
+                !is_valid
+                  ? 'Vui lòng cung cấp client_id trong query parameters'
+                  : 'Không có phản ánh nào'
+              }}
+            </p>
+          </div>
+
+          <!-- Feedback List -->
+          <div v-else class="flex flex-col gap-2.5 px-2">
             <div
-              v-for="(item, index) in filteredFeedbackList"
-              :key="index"
+              v-for="item in filteredFeedbackList"
+              :key="item.title + item.date"
               class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)]"
             >
               <!-- Title & Status Row -->
@@ -57,7 +77,10 @@
 
         <!-- Footer Button -->
         <div class="p-3 bg-white mt-auto">
-          <button class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg">
+          <button
+            @click="navigateToCreate"
+            class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg"
+          >
             Tạo mới phản ánh
           </button>
         </div>
@@ -66,15 +89,33 @@
   </div>
 </template>
 
-<script setup>
-import { ref, computed } from 'vue'
-import { Calendar, MessageCircle, Bookmark } from 'lucide-vue-next'
+<script setup lang="ts">
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { Calendar, Bookmark } from 'lucide-vue-next'
+import { toast } from 'vue3-toastify'
+import { useI18n } from 'vue-i18n'
+
 import AppHeader from '@/components/AppHeader.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import TabNav from '@/components/TabNav.vue'
 
-const activeTab = ref('all')
+import { useApiContext } from '@/composables/useApiContext'
+import { getTicketList, type FeedbackItem } from '@/api/ticket'
 
+/** Router instance */
+const router = useRouter()
+
+/** i18n instance */
+const { t } = useI18n()
+
+/** API context từ composable */
+const { is_valid } = useApiContext()
+
+/** Tab đang active */
+const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
+
+/** Danh sách tabs */
 const tabs = [
   { key: 'all', label: 'Tất cả' },
   { key: 'pending', label: 'Gửi yêu cầu' },
@@ -82,66 +123,108 @@ const tabs = [
   { key: 'completed', label: 'Hoàn thành' },
 ]
 
-const feedbackList = ref([
-  {
-    title: 'Chăm sóc khách hàng quá kém',
-    date: '15/05/2024 - 15:32',
-    status: 'pending',
-    content:
-      'Tôi không hài lòng về thái độ và cách xử lý vấn đề của nhân viên nguyễn văn a, bạn đó ăn nói cọc lốc, ko đi thẳng vào ...',
-  },
-  {
-    title: 'Chăm sóc khách hàng quá kém',
-    date: '15/05/2024 - 15:32',
-    status: 'processing',
-    content:
-      'Tôi không hài lòng về thái độ và cách xử lý vấn đề của nhân viên nguyễn văn a, bạn đó ăn nói cọc lốc, ko đi thẳng vào ...',
-  },
-  {
-    title: 'Chăm sóc khách hàng quá kém',
-    date: '15/05/2024 - 15:32',
-    status: 'processing',
-    content:
-      'Tôi không hài lòng về thái độ và cách xử lý vấn đề của nhân viên nguyễn văn a, bạn đó ăn nói cọc lốc, ko đi thẳng vào ...',
-  },
-  {
-    title: 'Chăm sóc khách hàng quá kém, th...',
-    date: '15/05/2024 - 15:32',
-    status: 'completed',
-    content:
-      'Tôi không hài lòng về thái độ và cách xử lý vấn đề của nhân viên nguyễn văn a, bạn đó ăn nói cọc lốc, ko đi thẳng vào ...',
-  },
-  {
-    title: 'Chăm sóc khách hàng quá kém',
-    date: '15/05/2024 - 15:32',
-    status: 'completed',
-    content:
-      'Tôi không hài lòng về thái độ và cách xử lý vấn đề của nhân viên nguyễn văn a, bạn đó ăn nói cọc lốc, ko đi thẳng vào ...',
-  },
-])
+/** Danh sách feedback từ API */
+const feedbackList = ref<FeedbackItem[]>([])
 
+/** Trạng thái loading */
+const is_loading = ref(false)
+
+/**
+ * Computed property: Danh sách feedback đã được filter theo tab
+ */
 const filteredFeedbackList = computed(() => {
-  if (activeTab.value === 'all') return feedbackList.value
-  return feedbackList.value.filter((item) => item.status === activeTab.value)
+  return feedbackList.value
 })
 
-const getStatusClass = (status) => {
-  const classes = {
+/**
+ * Watch activeTab để reload data khi tab thay đổi
+ */
+watch(activeTab, () => {
+  loadFeedbackList()
+})
+
+/**
+ * Load danh sách feedback từ Ticket API
+ */
+async function loadFeedbackList() {
+  // Kiểm tra context hợp lệ
+  if (!is_valid.value) {
+    feedbackList.value = []
+    return
+  }
+
+  // Set loading state
+  is_loading.value = true
+
+  try {
+    /** Gọi Ticket API để lấy danh sách ticket */
+    const DATA = await getTicketList(activeTab.value)
+    feedbackList.value = DATA
+  } catch (e: any) {
+    console.error('Error loading feedback list:', e)
+    toast.error(e.message || 'Có lỗi xảy ra khi tải danh sách phản ánh')
+    feedbackList.value = []
+  } finally {
+    is_loading.value = false
+  }
+}
+
+/**
+ * Get CSS class cho status badge
+ * @param status - Trạng thái feedback
+ * @returns CSS class string
+ */
+function getStatusClass(status: string) {
+  const CLASSES = {
     pending: 'bg-orange-500 text-white',
     processing: 'bg-blue-500 text-white',
     completed: 'bg-green-600 text-white',
   }
-  return classes[status] || classes.pending
+  return CLASSES[status as keyof typeof CLASSES] || CLASSES.pending
 }
 
-const getStatusLabel = (status) => {
-  const labels = {
+/**
+ * Get label cho status
+ * @param status - Trạng thái feedback
+ * @returns Label string
+ */
+function getStatusLabel(status: string) {
+  const LABELS = {
     pending: 'Gửi yêu cầu',
     processing: 'Đang xử lý',
     completed: 'Hoàn thành',
   }
-  return labels[status] || 'Gửi yêu cầu'
+  return LABELS[status as keyof typeof LABELS] || 'Gửi yêu cầu'
 }
+
+/**
+ * Navigate đến trang tạo feedback mới
+ */
+function navigateToCreate() {
+  router.push('/feedback-create')
+}
+
+/**
+ * Watch is_valid để redirect sang FeedbackListEmpty nếu không có client_id
+ */
+watch(
+  is_valid,
+  (valid) => {
+    if (!valid) {
+      router.replace('/feedback-list-empty')
+    }
+  },
+  { immediate: true },
+)
+
+/** Load data khi component mounted */
+onMounted(() => {
+  // Nếu không có client_id thì không cần load data
+  if (!is_valid.value) {
+    return
+  }
+  loadFeedbackList()
+})
 </script>
 
 <style scoped>

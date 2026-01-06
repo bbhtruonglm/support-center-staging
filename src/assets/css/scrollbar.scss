@@ -1,0 +1,42 @@
+// Màu của thumb
+$thumb-color: #7217bd3f;
+// Màu khi kéo thumb
+$thumb-color-active: #7217bd6c;
+// độ rộng của thumb
+$thumb-size: 6px;
+
+// sửa lại thanh cuộn cho toàn bộ trang web
+* {
+  // đặt màu nền của track thành trong suốt
+  &::-webkit-scrollbar {
+    background: transparent;
+  }
+
+  // đặt kích thước cho track
+  &::-webkit-scrollbar-track {
+    border-radius: $thumb-size;
+  }
+
+  // đặt màu và kích thước cho thumb
+  &::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+    border-radius: $thumb-size;
+  }
+
+  // đặt màu cho thành scroll khi kéo
+  &::-webkit-scrollbar-thumb:active {
+    background-color: $thumb-color-active;
+  }
+
+  // Kiểu dáng riêng cho thanh cuộn ngang
+  // overflow-x: auto;
+  &::-webkit-scrollbar:horizontal {
+    height: $thumb-size;
+  }
+
+  // Kiểu dáng riêng cho thanh cuộn dọc
+  // overflow-y: auto;
+  &::-webkit-scrollbar:vertical {
+    width: $thumb-size;
+  }
+}
