@@ -14,6 +14,7 @@
           Tiêu đề góp ý <span class="text-red-500">*</span>
         </label>
         <input
+          v-model="form_title"
           type="text"
           placeholder="Vui lòng nhập tiêu đề"
           class="w-full px-6 py-3 text-sm rounded-xl border border-gray-200 bg-white"
@@ -91,6 +92,7 @@
           Nội dung góp ý <span class="text-red-500">*</span>
         </label>
         <textarea
+          v-model="form_content"
           rows="5"
           placeholder="Quý khách vui lòng nhập nội dung phản ánh"
           class="w-full px-6 py-3 text-sm rounded-xl border border-gray-200 resize-none bg-white"
@@ -102,19 +104,55 @@
         <label class="text-sm font-medium text-black"> Ảnh đính kèm </label>
         <span class="text-sm text-gray-500">Tối đa 6 ảnh</span>
 
-        <div class="flex gap-2.5">
+        <div class="flex flex-wrap gap-2.5">
+          <!-- Preview Images -->
           <div
-            class="py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
+            v-for="(image, index) in image_previews"
+            :key="index"
+            class="relative w-20 h-20 rounded-xl overflow-hidden border border-gray-200 bg-white"
+          >
+            <img :src="image" alt="Preview" class="w-full h-full object-cover" />
+            <button
+              @click="removeImage(index)"
+              class="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600"
+            >
+              ×
+            </button>
+          </div>
+
+          <!-- Add Image Button -->
+          <div
+            v-if="image_previews.length < 6"
+            @click="triggerFileInput"
+            class="w-20 h-20 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white cursor-pointer hover:border-gray-400"
           >
             <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
-            Chụp ảnh
+            <span class="text-xs mt-1">Chụp ảnh</span>
           </div>
+
+          <!-- Hidden File Input -->
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            @change="handleImageSelect"
+            class="hidden"
+          />
         </div>
       </div>
 
       <!-- Submit -->
-      <button class="p-3 bg-blue-700 rounded-lg text-white font-medium text-sm">
-        Gửi thông tin
+      <button
+        @click="handleSubmit"
+        :disabled="is_submitting"
+        :class="[
+          'p-3 rounded-lg text-white font-medium text-sm',
+          is_submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-700',
+        ]"
+      >
+        {{ is_submitting ? 'Đang gửi...' : 'Gửi thông tin' }}
       </button>
 
       <!-- Note -->
@@ -128,16 +166,23 @@
 
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import { Camera, ChevronDown } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
+import { Camera, ChevronDown, X } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
 import AppHeader from '@/components/AppHeader.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
-import { getWorkflowList, type WorkflowItem } from '@/api/ticket'
+import { getWorkflowList, createForm, createTicket, type WorkflowItem } from '@/api/ticket'
+
+/** Router instance */
+const router = useRouter()
 
 /** Ref cho dropdown container */
 const dropdownRef = ref<HTMLElement | null>(null)
+
+/** Ref cho file input */
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 /** Danh sách workflow từ API */
 const workflow_list = ref<WorkflowItem[]>([])
@@ -150,6 +195,24 @@ const is_dropdown_open = ref(false)
 
 /** Trạng thái loading workflow */
 const is_loading_workflow = ref(false)
+
+/** Form title */
+const form_title = ref('')
+
+/** Form content */
+const form_content = ref('')
+
+/** Danh sách preview ảnh (base64) */
+const image_previews = ref<string[]>([])
+
+/** Form attachments (base64 strings) */
+const form_attachments = ref<string[]>([])
+
+/** Trạng thái đang submit */
+const is_submitting = ref(false)
+
+/** Số lượng ảnh tối đa */
+const MAX_IMAGES = 6
 
 /**
  * Toggle dropdown mở/đóng
@@ -186,6 +249,161 @@ async function loadWorkflowList() {
     toast.error(e.message || 'Không thể tải danh sách dịch vụ')
   } finally {
     is_loading_workflow.value = false
+  }
+}
+
+/**
+ * Trigger file input để chọn/chụp ảnh
+ */
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+/**
+ * Xử lý khi chọn ảnh
+ * @param event - File input change event
+ */
+function handleImageSelect(event: Event) {
+  const TARGET = event.target as HTMLInputElement
+  const FILES = TARGET.files
+
+  if (!FILES || FILES.length === 0) return
+
+  /** Tính số ảnh còn lại có thể thêm */
+  const REMAINING_SLOTS = MAX_IMAGES - image_previews.value.length
+
+  if (REMAINING_SLOTS <= 0) {
+    toast.error(`Chỉ được tải tối đa ${MAX_IMAGES} ảnh`)
+    return
+  }
+
+  /** Lấy số lượng file sẽ thêm (không vượt quá số slot còn lại) */
+  const FILES_TO_ADD = Math.min(FILES.length, REMAINING_SLOTS)
+
+  /** Duyệt qua từng file và convert sang base64 */
+  for (let i = 0; i < FILES_TO_ADD; i++) {
+    const FILE = FILES[i]
+
+    // Kiểm tra file có phải là ảnh không
+    if (!FILE.type.startsWith('image/')) {
+      toast.error('Vui lòng chọn file ảnh')
+      continue
+    }
+
+    // Kiểm tra kích thước file (tối đa 5MB)
+    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    if (FILE.size > MAX_SIZE) {
+      toast.error(`Ảnh ${FILE.name} vượt quá 5MB`)
+      continue
+    }
+
+    /** Convert file sang base64 */
+    const READER = new FileReader()
+
+    READER.onload = (e) => {
+      const RESULT = e.target?.result as string
+
+      if (RESULT) {
+        image_previews.value.push(RESULT)
+        form_attachments.value.push(RESULT)
+      }
+    }
+
+    READER.onerror = () => {
+      toast.error(`Không thể đọc file ${FILE.name}`)
+    }
+
+    READER.readAsDataURL(FILE)
+  }
+
+  // Reset input để có thể chọn lại file giống nhau
+  if (TARGET) {
+    TARGET.value = ''
+  }
+
+  // Nếu có file bị bỏ qua do vượt quá số lượng
+  if (FILES.length > FILES_TO_ADD) {
+    toast.warning(`Chỉ thêm được ${FILES_TO_ADD} ảnh. Tối đa ${MAX_IMAGES} ảnh`)
+  }
+}
+
+/**
+ * Xóa ảnh khỏi danh sách
+ * @param index - Index của ảnh cần xóa
+ */
+function removeImage(index: number) {
+  image_previews.value.splice(index, 1)
+  form_attachments.value.splice(index, 1)
+}
+
+/**
+ * Validate form trước khi submit
+ * @returns true nếu form hợp lệ, false nếu không
+ */
+function validateForm(): boolean {
+  // Kiểm tra title
+  if (!form_title.value || form_title.value.trim() === '') {
+    toast.error('Vui lòng nhập tiêu đề góp ý')
+    return false
+  }
+
+  // Kiểm tra content
+  if (!form_content.value || form_content.value.trim() === '') {
+    toast.error('Vui lòng nhập nội dung góp ý')
+    return false
+  }
+
+  // Kiểm tra workflow đã chọn
+  if (!selected_workflow.value) {
+    toast.error('Vui lòng chọn loại dịch vụ')
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Handle submit form
+ */
+async function handleSubmit() {
+  // Validate form
+  if (!validateForm()) {
+    return
+  }
+
+  // Kiểm tra đang submit thì không cho submit lại
+  if (is_submitting.value) {
+    return
+  }
+
+  is_submitting.value = true
+
+  try {
+    // Bước 1: Tạo form với form_data
+    const FORM_DATA = {
+      title: form_title.value.trim(),
+      content: form_content.value.trim(),
+      attachments: form_attachments.value,
+    }
+
+    const FORM_RESPONSE = await createForm(FORM_DATA)
+
+    // Bước 2: Tạo ticket từ workflow_id và ticket_form_id
+    const TICKET_REQUEST = {
+      workflow_id: selected_workflow.value.workflow_id,
+      ticket_form_id: FORM_RESPONSE.id,
+    }
+
+    await createTicket(TICKET_REQUEST)
+
+    // Thành công: hiển thị thông báo và navigate
+    toast.success('Gửi phản ánh thành công!')
+    router.push('/feedback-list')
+  } catch (e: any) {
+    console.error('Error submitting feedback:', e)
+    toast.error(e.message || 'Có lỗi xảy ra khi gửi phản ánh')
+  } finally {
+    is_submitting.value = false
   }
 }
 

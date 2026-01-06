@@ -3,7 +3,16 @@
  */
 import { ticketApiClient } from './client'
 import { transformTicketToFeedback, mapTabToStageFilter } from './transform'
-import type { TicketItem, FeedbackItem, TabKey, WorkflowItem } from '@/types/ticket'
+import type {
+  TicketItem,
+  FeedbackItem,
+  TabKey,
+  WorkflowItem,
+  FormData,
+  CreateFormResponse,
+  CreateTicketRequest,
+  CreateTicketResponse,
+} from '@/types/ticket'
 
 /**
  * API: Lấy danh sách ticket theo stage filter
@@ -70,6 +79,60 @@ export async function getWorkflowList(): Promise<WorkflowItem[]> {
 }
 
 /**
+ * API: Tạo form với form_data
+ * @param form_data - Dữ liệu form (title, content, attachments)
+ * @returns Promise chứa CreateFormResponse
+ */
+export async function createForm(form_data: FormData): Promise<CreateFormResponse> {
+  try {
+    /** Gọi API POST để tạo form */
+    const RESPONSE = await ticketApiClient.post<CreateFormResponse>('create_form', {
+      form_data,
+    })
+
+    return RESPONSE.data
+  } catch (error: any) {
+    console.error('Error creating form:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể tạo form'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
+ * API: Tạo ticket từ workflow_id và ticket_form_id
+ * @param request - Request chứa workflow_id và ticket_form_id
+ * @returns Promise chứa CreateTicketResponse
+ */
+export async function createTicket(request: CreateTicketRequest): Promise<CreateTicketResponse> {
+  try {
+    /** Gọi API POST để tạo ticket */
+    const RESPONSE = await ticketApiClient.post<CreateTicketResponse>('create_ticket', request)
+
+    return RESPONSE.data
+  } catch (error: any) {
+    console.error('Error creating ticket:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể tạo ticket'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
  * Export types để sử dụng ở các component
  */
 export type {
@@ -82,4 +145,8 @@ export type {
   ContactInfo,
   TicketComment,
   WorkflowItem,
+  FormData,
+  CreateFormResponse,
+  CreateTicketRequest,
+  CreateTicketResponse,
 } from '@/types/ticket'

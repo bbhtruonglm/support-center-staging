@@ -326,3 +326,124 @@ export interface WorkflowItem {
   workflow_id: number
 }
 
+/**
+ * Interface định nghĩa form data để tạo form
+ */
+export interface FormData {
+  /** Tiêu đề */
+  title: string
+
+  /** Nội dung */
+  content: string
+
+  /** Danh sách attachments */
+  attachments: string[]
+}
+
+/**
+ * Interface định nghĩa response từ API create_form
+ */
+export interface CreateFormResponse {
+  /** ID form */
+  id: string
+
+  /** Scope */
+  scope: string | null
+
+  /** Form data */
+  form_data: FormData
+
+  /** Contact ID */
+  contact_id: string
+
+  /** Business ID */
+  business_id: string
+
+  /** Branch ID */
+  branch_id: string
+
+  /** Department ID */
+  department_id: string | null
+
+  /** Team ID */
+  team_id: string | null
+
+  /** Employee ID */
+  employee_id: string | null
+
+  /** User ID */
+  user_id: string | null
+
+  /** Thời gian tạo */
+  created_at: string
+
+  /** Thời gian cập nhật */
+  updated_at: string
+}
+
+/**
+ * Interface định nghĩa request để tạo ticket
+ */
+export interface CreateTicketRequest {
+  /** Workflow ID */
+  workflow_id: number
+
+  /** Ticket form ID */
+  ticket_form_id: string
+}
+
+/**
+ * Interface định nghĩa ticket form info trong response create_ticket
+ */
+export interface TicketFormInfo {
+  /** ID form */
+  id: string
+
+  /** Scope */
+  scope: string | null
+
+  /** Form data */
+  form_data: {
+    /** Tiêu đề */
+    title: string
+
+    /** Nội dung */
+    content: string
+  }
+
+  /** Contact ID */
+  contact_id: string
+
+  /** Business ID */
+  business_id: string
+
+  /** Branch ID */
+  branch_id: string
+
+  /** Department ID */
+  department_id: string | null
+
+  /** Team ID */
+  team_id: string | null
+
+  /** Employee ID */
+  employee_id: string | null
+
+  /** User ID */
+  user_id: string | null
+
+  /** Thời gian tạo */
+  created_at: string
+
+  /** Thời gian cập nhật */
+  updated_at: string
+}
+
+/**
+ * Interface định nghĩa response từ API create_ticket
+ */
+export interface CreateTicketResponse extends TicketItem {
+  /** Ticket form info */
+  ticket_form_info: TicketFormInfo
+}
+
