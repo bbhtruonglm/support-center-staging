@@ -3,7 +3,7 @@
  */
 import { ticketApiClient } from './client'
 import { transformTicketToFeedback, mapTabToStageFilter } from './transform'
-import type { TicketItem, FeedbackItem, TabKey } from '@/types/ticket'
+import type { TicketItem, FeedbackItem, TabKey, WorkflowItem } from '@/types/ticket'
 
 /**
  * API: Lấy danh sách ticket theo stage filter
@@ -22,9 +22,7 @@ export async function getTicketList(tab_key?: TabKey): Promise<FeedbackItem[]> {
     let FILTERED_TICKETS = RESPONSE.data
 
     if (STAGE_FILTER && STAGE_FILTER.length > 0) {
-      FILTERED_TICKETS = RESPONSE.data.filter((ticket) =>
-        STAGE_FILTER.includes(ticket.stage),
-      )
+      FILTERED_TICKETS = RESPONSE.data.filter((ticket) => STAGE_FILTER.includes(ticket.stage))
     }
 
     /** Transform data từ TicketItem sang FeedbackItem */
@@ -37,8 +35,32 @@ export async function getTicketList(tab_key?: TabKey): Promise<FeedbackItem[]> {
     /** Xử lý lỗi từ response */
     if (error.response) {
       const STATUS = error.response.status
-      const MESSAGE =
-        error.response.data?.message || 'Không thể tải danh sách phản ánh'
+      const MESSAGE = error.response.data?.message || 'Không thể tải danh sách phản ánh'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
+ * API: Lấy danh sách workflow
+ * @returns Promise chứa danh sách WorkflowItem
+ */
+export async function getWorkflowList(): Promise<WorkflowItem[]> {
+  try {
+    /** Gọi API POST để lấy danh sách workflow */
+    const RESPONSE = await ticketApiClient.post<WorkflowItem[]>('get_workflow', {})
+
+    return RESPONSE.data
+  } catch (error: any) {
+    console.error('Error loading workflow list:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể tải danh sách dịch vụ'
       throw new Error(MESSAGE)
     }
 
@@ -59,5 +81,5 @@ export type {
   WorkflowData,
   ContactInfo,
   TicketComment,
+  WorkflowItem,
 } from '@/types/ticket'
-

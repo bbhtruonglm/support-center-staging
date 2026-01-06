@@ -309,3 +309,20 @@ export interface FeedbackItem {
  */
 export type TabKey = 'all' | 'pending' | 'processing' | 'completed'
 
+/**
+ * Interface định nghĩa workflow item từ API get_workflow
+ */
+export interface WorkflowItem {
+  /** ID workflow */
+  id: string
+
+  /** Tên workflow */
+  name: string
+
+  /** Mô tả workflow */
+  description: string
+
+  /** Workflow ID số */
+  workflow_id: number
+}
+
