@@ -14,9 +14,40 @@
 
         <!-- Feedback List Content -->
         <div class="flex-1 overflow-y-auto text-black">
-          <!-- Loading State -->
-          <div v-if="is_loading" class="flex items-center justify-center py-8">
-            <span class="text-sm text-gray-500">{{ t('common.loading') }}</span>
+          <!-- Skeleton Loading State -->
+          <div v-if="is_loading" class="flex flex-col gap-2.5 px-2">
+            <div
+              v-for="i in 3"
+              :key="i"
+              class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)] animate-pulse"
+            >
+              <!-- Title & Status Row Skeleton -->
+              <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
+                <div class="flex-1">
+                  <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                </div>
+                <div class="h-5 bg-gray-200 rounded w-20"></div>
+              </div>
+
+              <!-- Date & Support Row Skeleton -->
+              <div class="flex items-center justify-between gap-1 py-2">
+                <div class="flex items-center gap-1">
+                  <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                  <div class="h-3 bg-gray-200 rounded w-24"></div>
+                </div>
+                <div class="flex items-center gap-1">
+                  <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                  <div class="h-3 bg-gray-200 rounded w-16"></div>
+                </div>
+              </div>
+
+              <!-- Content Description Skeleton -->
+              <div class="py-1 space-y-2">
+                <div class="h-3 bg-gray-200 rounded w-full"></div>
+                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+              </div>
+            </div>
           </div>
 
           <!-- Empty State -->
