@@ -11,12 +11,12 @@ import type { TicketItem, FeedbackItem, TicketStage, TabKey } from '@/types/tick
 export function mapStageToStatus(stage: TicketStage): 'pending' | 'processing' | 'completed' {
   switch (stage) {
     case 'OPEN':
-    case 'PENDING':
     case 'REOPEN':
       return 'pending'
+    case 'PENDING':
     case 'PROCESSING':
-      return 'processing'
     case 'RESOLVED':
+      return 'processing'
     case 'CLOSED':
       return 'completed'
     default:
@@ -78,17 +78,17 @@ export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
 export function mapTabToStageFilter(tab_key: TabKey): TicketStage[] | undefined {
   switch (tab_key) {
     case 'pending':
-      // Tab "Gửi yêu cầu" map với OPEN, PENDING, REOPEN
-      return ['OPEN', 'PENDING', 'REOPEN']
+      // Tab "Gửi yêu cầu" map với OPEN và REOPEN
+      return ['OPEN', 'REOPEN']
     case 'processing':
-      // Tab "Đang xử lý" map với PROCESSING
-      return ['PROCESSING']
+      // Tab "Đang xử lý" map với PENDING, PROCESSING, RESOLVED
+      return ['PENDING', 'PROCESSING', 'RESOLVED']
     case 'completed':
-      // Tab "Hoàn thành" map với RESOLVED, CLOSED
-      return ['RESOLVED', 'CLOSED']
+      // Tab "Hoàn thành" map với CLOSED
+      return ['CLOSED']
     case 'all':
     default:
-      // Tab "Tất cả" không filter
+      // Tab "Tất cả" không filter - hiển thị toàn bộ ticket
       return undefined
   }
 }
