@@ -5,15 +5,15 @@
     :to="to"
     @click="handleClick"
     :class="[
-      'flex items-center justify-between w-full py-2 border-b border-gray-200 last:border-0 text-left cursor-pointer',
+      'flex items-center justify-between w-full py-3 border-b border-gray-200 last:border-0 text-left cursor-pointer',
       is_loading && 'opacity-50 cursor-not-allowed pointer-events-none',
     ]"
   >
     <div class="flex items-center gap-3">
       <img v-if="icon" :src="icon" alt="Icon" class="w-8 h-8 object-contain" />
       <div class="flex flex-col items-start gap-0.5">
-        <span class="text-sm font-medium">{{ title }}</span>
-        <span v-if="subtitle" class="text-xs">
+        <span class="text-base font-medium">{{ title }}</span>
+        <span v-if="subtitle" class="text-sm">
           {{ subtitle }}
         </span>
       </div>
