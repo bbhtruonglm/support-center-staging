@@ -243,7 +243,7 @@
             </div>
 
             <!-- Pagination -->
-            <div v-if="total_pages > 1" class="flex items-center justify-between gap-1">
+            <div v-if="total_pages > 0" class="flex items-center justify-between gap-1">
               <!-- Previous Button -->
               <button
                 @click="goToPreviousPage"

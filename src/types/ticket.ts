@@ -486,4 +486,3 @@ export interface CommentItem {
   /** Có in đậm tên không */
   is_bold: boolean
 }
-
