@@ -42,10 +42,10 @@ onMounted(() => {
   }
 
   /** Lấy locale từ i18n (đã được setup với fallback logic) */
-  const current_locale = locale.value
+  const CURRENT_LOCALE = locale.value
 
   /** IFRAME SOURCE với */
-  url.value = `${CHAT_IFRAME_URL}/view-screen/?page_id=${page_id.value}&locale=${current_locale}`
+  url.value = `${CHAT_IFRAME_URL}/view-screen/?page_id=${page_id.value}&locale=${CURRENT_LOCALE}`
 
   /** Xử lý sự kiện message */
   window.addEventListener('message', handleMessageEvent)
