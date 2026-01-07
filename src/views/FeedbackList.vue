@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full max-w-sm bg-slate-100 overflow-y-auto">
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Content Wrapper -->
     <div class="flex-1 flex flex-col">
       <!-- Navigation Header -->
@@ -124,7 +124,6 @@ import { Calendar, Bookmark } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 
-import AppHeader from '@/components/AppHeader.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import TabNav from '@/components/TabNav.vue'
 

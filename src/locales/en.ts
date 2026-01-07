@@ -46,9 +46,12 @@ export default {
   // Feedback
   feedback: {
     createTitle: 'Create feedback',
+    detailTitle: 'Feedback details',
     feedbackTitle: 'Feedback title',
     feedbackTitlePlaceholder: 'Please enter title',
     serviceType: 'Service type',
+    category: 'Category',
+    status: 'Status',
     content: 'Feedback content',
     contentPlaceholder: 'Please enter your feedback content',
     attachImages: 'Attached images',

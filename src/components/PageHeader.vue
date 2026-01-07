@@ -5,7 +5,7 @@
         <ArrowLeftCircle class="w-6 h-6 text-black" :stroke-width="2" />
         <span class="text-sm font-semibold">{{ backText || t('common.back') }}</span>
       </button>
-      <h1 class="text-base font-bold flex-1 text-center">{{ title }}</h1>
+      <h1 class="text-base font-bold flex-1 text-center whitespace-nowrap">{{ title }}</h1>
       <div class="flex-1"></div>
     </div>
   </div>

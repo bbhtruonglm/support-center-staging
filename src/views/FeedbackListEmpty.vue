@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col h-full max-w-sm bg-slate-100 overflow-y-auto">
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Content Wrapper -->
     <div class="flex-1 flex flex-col">
       <!-- Navigation Header -->
@@ -35,8 +35,7 @@
 
 <script setup>
 import { ref } from 'vue'
-import { ArrowLeft, Bell } from 'lucide-vue-next'
-import AppHeader from '@/components/AppHeader.vue'
+
 import PageHeader from '@/components/PageHeader.vue'
 import TabNav from '@/components/TabNav.vue'
 import MailIcon from '@/assets/MailIcon.png'

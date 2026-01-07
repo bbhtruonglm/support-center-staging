@@ -47,9 +47,12 @@ export default {
   // Feedback
   feedback: {
     createTitle: 'Tạo phản ánh',
+    detailTitle: 'Chi tiết phản ánh',
     feedbackTitle: 'Tiêu đề góp ý',
     feedbackTitlePlaceholder: 'Vui lòng nhập tiêu đề',
     serviceType: 'Loại dịch vụ',
+    category: 'Danh mục',
+    status: 'Trạng thái',
     content: 'Nội dung góp ý',
     contentPlaceholder: 'Quý khách vui lòng nhập nội dung phản ánh',
     attachImages: 'Ảnh đính kèm',

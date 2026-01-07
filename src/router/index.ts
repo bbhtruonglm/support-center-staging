@@ -38,6 +38,11 @@ const router = createRouter({
       name: 'Embed-web-chat',
       component: () => import('@/views/EmbedWebChat.vue'),
     },
+    {
+      path: '/feedback-detail/:id',
+      name: 'Feedback-detail',
+      component: () => import('@/views/FeedbackDetail.vue'),
+    },
   ],
 })
 
