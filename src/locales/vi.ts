@@ -58,6 +58,7 @@ export default {
     attachImages: 'Ảnh đính kèm',
     maxImages: 'Tối đa 6 ảnh',
     takePhoto: 'Chụp ảnh',
+    noAttachments: 'Không có ảnh đính kèm',
     sendInfo: 'Gửi thông tin',
     note: 'Sau khi gửi phản ánh, chúng tôi sẽ tiếp nhận và liên lạc đến Quý khách hàng sớm nhất và không quá 24 tiếng.',
     required: '*',

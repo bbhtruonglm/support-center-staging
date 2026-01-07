@@ -135,19 +135,18 @@
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
             <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
             <div class="flex flex-wrap gap-2.5">
-              <!-- Empty State: Dashed Box -->
-              <div
+              <!-- Empty State: Text khi không có attachments -->
+              <p
                 v-if="
                   !ticket_detail.attachments ||
                   (Array.isArray(ticket_detail.attachments) &&
                     ticket_detail.attachments.length === 0)
                 "
-                class="w-20 h-20 py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
+                class="text-sm font-medium text-black"
               >
-                <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
-                <span class="text-xs text-gray-500">{{ t('feedback.takePhoto') }}</span>
-              </div>
-              <!-- Attachments -->
+                {{ t('feedback.noAttachments') }}
+              </p>
+              <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
               <img
                 v-else-if="Array.isArray(ticket_detail.attachments)"
                 v-for="(attachment, index) in ticket_detail.attachments"
