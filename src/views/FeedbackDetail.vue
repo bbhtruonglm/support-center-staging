@@ -1,294 +1,304 @@
 <template>
-  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
-    <!-- Header -->
-    <PageHeader :title="t('feedback.detailTitle')" />
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col">
+    <!-- Sticky Header -->
+    <div class="sticky top-0 z-10 bg-slate-100">
+      <PageHeader :title="t('feedback.detailTitle')" />
+    </div>
 
-    <!-- Content -->
-    <div class="flex-1 flex flex-col p-2">
-      <!-- Error State -->
-      <div v-if="error_message && !is_loading" class="flex items-center justify-center py-10">
-        <p class="text-sm text-red-500">{{ error_message }}</p>
-      </div>
-
-      <!-- Skeleton Loading State -->
-      <div v-if="is_loading" class="flex flex-col gap-1">
-        <!-- Chi tiết phản ánh Skeleton -->
-        <div class="flex flex-col gap-1">
-          <!-- Tiêu đề Skeleton -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-          </section>
-
-          <!-- Danh mục Skeleton -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-          </section>
-
-          <!-- Trạng thái Skeleton -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="h-5 bg-gray-200 rounded w-20"></div>
-          </section>
-
-          <!-- Nội dung Skeleton -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-            <div class="space-y-2">
-              <div class="h-3 bg-gray-200 rounded w-full"></div>
-              <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-              <div class="h-3 bg-gray-200 rounded w-4/6"></div>
-            </div>
-          </section>
-
-          <!-- Ảnh đính kèm Skeleton -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-            <div class="h-3 bg-gray-200 rounded w-20 mb-2"></div>
-            <div class="flex flex-wrap gap-2.5">
-              <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
-              <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
-            </div>
-          </section>
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="flex flex-col p-2">
+        <!-- Error State -->
+        <div v-if="error_message && !is_loading" class="flex items-center justify-center py-10">
+          <p class="text-sm text-red-500">{{ error_message }}</p>
         </div>
 
-        <!-- Tình trạng xử lý Skeleton -->
-        <div class="flex flex-col gap-2 mt-2">
-          <!-- Tiêu đề Skeleton -->
-          <div class="py-3 border-b-2 border-gray-200 flex justify-center animate-pulse">
-            <div class="h-4 bg-gray-200 rounded w-32"></div>
+        <!-- Skeleton Loading State -->
+        <div v-if="is_loading" class="flex flex-col gap-1">
+          <!-- Chi tiết phản ánh Skeleton -->
+          <div class="flex flex-col gap-1">
+            <!-- Tiêu đề Skeleton -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+            </section>
+
+            <!-- Danh mục Skeleton -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+            </section>
+
+            <!-- Trạng thái Skeleton -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+              <div class="h-5 bg-gray-200 rounded w-20"></div>
+            </section>
+
+            <!-- Nội dung Skeleton -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+              <div class="space-y-2">
+                <div class="h-3 bg-gray-200 rounded w-full"></div>
+                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+              </div>
+            </section>
+
+            <!-- Ảnh đính kèm Skeleton -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+              <div class="h-3 bg-gray-200 rounded w-20 mb-2"></div>
+              <div class="flex flex-wrap gap-2.5">
+                <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
+                <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
+              </div>
+            </section>
           </div>
 
-          <!-- Comments List Skeleton -->
-          <div class="flex flex-col gap-2">
-            <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
-              <!-- Avatar, Tên, vị trí, ngày Skeleton -->
-              <div class="flex items-start justify-between gap-2 mb-2">
-                <div class="flex gap-2 flex-1">
-                  <!-- Avatar Skeleton -->
-                  <div class="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
-                  <!-- Tên, vị trí Skeleton -->
-                  <div class="flex flex-col gap-1 flex-1">
-                    <div class="h-4 bg-gray-200 rounded w-24"></div>
-                    <div class="h-3 bg-gray-200 rounded w-32"></div>
+          <!-- Tình trạng xử lý Skeleton -->
+          <div class="flex flex-col gap-2 mt-2">
+            <!-- Tiêu đề Skeleton -->
+            <div class="py-3 border-b-2 border-gray-200 flex justify-center animate-pulse">
+              <div class="h-4 bg-gray-200 rounded w-32"></div>
+            </div>
+
+            <!-- Comments List Skeleton -->
+            <div class="flex flex-col gap-2">
+              <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
+                <!-- Avatar, Tên, vị trí, ngày Skeleton -->
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex gap-2 flex-1">
+                    <!-- Avatar Skeleton -->
+                    <div class="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
+                    <!-- Tên, vị trí Skeleton -->
+                    <div class="flex flex-col gap-1 flex-1">
+                      <div class="h-4 bg-gray-200 rounded w-24"></div>
+                      <div class="h-3 bg-gray-200 rounded w-32"></div>
+                    </div>
+                  </div>
+                  <!-- Ngày Skeleton -->
+                  <div class="flex flex-col items-end gap-1 shrink-0">
+                    <div class="h-3 bg-gray-200 rounded w-20"></div>
+                    <div class="h-3 bg-gray-200 rounded w-28"></div>
                   </div>
                 </div>
-                <!-- Ngày Skeleton -->
-                <div class="flex flex-col items-end gap-1 shrink-0">
-                  <div class="h-3 bg-gray-200 rounded w-20"></div>
-                  <div class="h-3 bg-gray-200 rounded w-28"></div>
+                <!-- Nội dung bình luận Skeleton -->
+                <div class="space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-full"></div>
+                  <div class="h-4 bg-gray-200 rounded w-5/6"></div>
                 </div>
-              </div>
-              <!-- Nội dung bình luận Skeleton -->
-              <div class="space-y-2">
-                <div class="h-4 bg-gray-200 rounded w-full"></div>
-                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
               </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <!-- Chi tiết phản ánh -->
-      <div v-else-if="ticket_detail" class="flex flex-col gap-1">
-        <!-- Tiêu đề -->
-        <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.title') }}</h3>
-          <p class="text-sm font-medium text-black">
-            {{ ticket_detail.title || t('feedback.noTitle') }}
-          </p>
-        </section>
+        <!-- Chi tiết phản ánh -->
+        <div v-else-if="ticket_detail" class="flex flex-col gap-1">
+          <!-- Tiêu đề -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.title') }}</h3>
+            <p class="text-sm font-medium text-black">
+              {{ ticket_detail.title || t('feedback.noTitle') }}
+            </p>
+          </section>
 
-        <!-- Danh mục -->
-        <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.category') }}</h3>
-          <p class="text-sm font-medium text-black">
-            {{ getCategoryLabel(ticket_detail.category_id) }}
-          </p>
-        </section>
+          <!-- Danh mục -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.category') }}</h3>
+            <p class="text-sm font-medium text-black">
+              {{ getCategoryLabel(ticket_detail.category_id) }}
+            </p>
+          </section>
 
-        <!-- Trạng thái -->
-        <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.status') }}</h3>
-          <span
-            :class="[
-              'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
-              getStatusBadgeClass(ticket_detail.stage),
-            ]"
-          >
-            {{ getStatusLabel(ticket_detail.stage) }}
-          </span>
-        </section>
-
-        <!-- Nội dung -->
-        <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.content') }}</h3>
-          <p class="text-sm font-medium text-black whitespace-pre-wrap">
-            {{ ticket_detail.content || t('feedback.noContent') }}
-          </p>
-        </section>
-
-        <!-- Ảnh đính kèm -->
-        <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
-          <div class="flex flex-wrap gap-2.5">
-            <!-- Empty State: Dashed Box -->
-            <div
-              v-if="
-                !ticket_detail.attachments ||
-                (Array.isArray(ticket_detail.attachments) && ticket_detail.attachments.length === 0)
-              "
-              class="w-20 h-20 py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
+          <!-- Trạng thái -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.status') }}</h3>
+            <span
+              :class="[
+                'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
+                getStatusBadgeClass(ticket_detail.stage),
+              ]"
             >
-              <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
-              <span class="text-xs text-gray-500">{{ t('feedback.takePhoto') }}</span>
+              {{ getStatusLabel(ticket_detail.stage) }}
+            </span>
+          </section>
+
+          <!-- Nội dung -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.content') }}</h3>
+            <p class="text-sm font-medium text-black whitespace-pre-wrap">
+              {{ ticket_detail.content || t('feedback.noContent') }}
+            </p>
+          </section>
+
+          <!-- Ảnh đính kèm -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
+            <div class="flex flex-wrap gap-2.5">
+              <!-- Empty State: Dashed Box -->
+              <div
+                v-if="
+                  !ticket_detail.attachments ||
+                  (Array.isArray(ticket_detail.attachments) &&
+                    ticket_detail.attachments.length === 0)
+                "
+                class="w-20 h-20 py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
+              >
+                <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
+                <span class="text-xs text-gray-500">{{ t('feedback.takePhoto') }}</span>
+              </div>
+              <!-- Attachments -->
+              <img
+                v-else-if="Array.isArray(ticket_detail.attachments)"
+                v-for="(attachment, index) in ticket_detail.attachments"
+                :key="index"
+                :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
+                :alt="`Attachment ${String(index + 1)}`"
+                class="w-20 h-20 object-cover rounded-xl"
+              />
             </div>
-            <!-- Attachments -->
-            <img
-              v-else-if="Array.isArray(ticket_detail.attachments)"
-              v-for="(attachment, index) in ticket_detail.attachments"
-              :key="index"
-              :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
-              :alt="`Attachment ${String(index + 1)}`"
-              class="w-20 h-20 object-cover rounded-xl"
-            />
-          </div>
-        </section>
-      </div>
+          </section>
 
-      <!-- Tình trạng xử lý -->
-      <div class="flex flex-col gap-2">
-        <!-- Tiêu đề -->
-        <div
-          class="py-3 border-b-2 border-blue-700 flex justify-center text-sm text-blue-700 font-bold"
-        >
-          Tình trạng xử lý
-        </div>
+          <!-- Tình trạng xử lý -->
+          <div class="flex flex-col gap-2">
+            <!-- Tiêu đề -->
+            <div
+              class="py-3 border-b-2 border-blue-700 flex justify-center text-sm text-blue-700 font-bold"
+            >
+              Tình trạng xử lý
+            </div>
 
-        <!-- Comments List -->
-        <div class="flex flex-col gap-2">
-          <!-- Comment Card -->
-          <div
-            v-for="comment in paginated_comments"
-            :key="comment.id"
-            class="bg-white rounded-xl p-3 shadow-sm"
-          >
-            <!-- Avatar, Tên, vị trí, ngày -->
-            <div class="flex items-start justify-between gap-2">
-              <!--Avatar, Tên, vị trí -->
-              <div class="flex gap-2 flex-1">
-                <!-- avatar -->
-                <img
-                  :src="comment.avatar"
-                  :alt="comment.name"
-                  class="w-8 h-8 object-cover shrink-0 rounded-full"
-                />
-                <!-- Tên, vị trí -->
-                <div class="flex flex-col gap-0.5 flex-1">
-                  <p :class="['text-sm text-black', comment.is_bold ? 'font-bold' : 'font-medium']">
-                    {{ comment.name }}
-                  </p>
-                  <p class="text-xs text-slate-500">{{ comment.position }}</p>
+            <!-- Comments List -->
+            <div class="flex flex-col gap-2">
+              <!-- Comment Card -->
+              <div
+                v-for="comment in paginated_comments"
+                :key="comment.id"
+                class="bg-white rounded-xl p-3 shadow-sm"
+              >
+                <!-- Avatar, Tên, vị trí, ngày -->
+                <div class="flex items-start justify-between gap-2">
+                  <!--Avatar, Tên, vị trí -->
+                  <div class="flex gap-2 flex-1">
+                    <!-- avatar -->
+                    <img
+                      :src="comment.avatar"
+                      :alt="comment.name"
+                      class="w-8 h-8 object-cover shrink-0 rounded-full"
+                    />
+                    <!-- Tên, vị trí -->
+                    <div class="flex flex-col gap-0.5 flex-1">
+                      <p
+                        :class="[
+                          'text-sm text-black',
+                          comment.is_bold ? 'font-bold' : 'font-medium',
+                        ]"
+                      >
+                        {{ comment.name }}
+                      </p>
+                      <p class="text-xs text-slate-500">{{ comment.position }}</p>
+                    </div>
+                  </div>
+                  <!-- Ngày -->
+                  <div class="flex flex-col items-end shrink-0">
+                    <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
+                    <p class="text-xs text-gray-500 whitespace-nowrap">{{ comment.date }}</p>
+                  </div>
                 </div>
-              </div>
-              <!-- Ngày -->
-              <div class="flex flex-col items-end shrink-0">
-                <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
-                <p class="text-xs text-gray-500 whitespace-nowrap">{{ comment.date }}</p>
+                <!-- Nội dung bình luận -->
+                <div class="py-1 text-black font-medium text-base">{{ comment.content }}</div>
               </div>
             </div>
-            <!-- Nội dung bình luận -->
-            <div class="py-1 text-black font-medium text-base">{{ comment.content }}</div>
-          </div>
-        </div>
 
-        <!-- Pagination -->
-        <div v-if="total_pages > 1" class="flex items-center justify-between gap-1">
-          <!-- Previous Button -->
-          <button
-            @click="goToPreviousPage"
-            :disabled="current_page === 1"
-            :class="[
-              'flex items-center gap-1 text-sm font-medium',
-              current_page === 1
-                ? 'text-slate-500 cursor-not-allowed'
-                : 'text-slate-950 cursor-pointer',
-            ]"
-          >
-            <ChevronLeft :size="16" class="text-slate-950" />
-            <span>Lùi</span>
-          </button>
-
-          <!-- Page Numbers -->
-          <div class="flex items-center gap-1">
-            <template v-for="(page, index) in visible_pages" :key="page">
+            <!-- Pagination -->
+            <div v-if="total_pages > 1" class="flex items-center justify-between gap-1">
+              <!-- Previous Button -->
               <button
-                @click="goToPage(page)"
+                @click="goToPreviousPage"
+                :disabled="current_page === 1"
                 :class="[
-                  'w-10 h-10 flex items-center justify-center text-sm rounded-lg',
-                  page === current_page
-                    ? 'text-slate-950 bg-white border border-gray-200'
-                    : 'text-slate-950',
+                  'flex items-center gap-1 text-sm font-medium',
+                  current_page === 1
+                    ? 'text-slate-500 cursor-not-allowed'
+                    : 'text-slate-950 cursor-pointer',
                 ]"
               >
-                {{ page }}
+                <ChevronLeft :size="16" class="text-slate-950" />
+                <span>Lùi</span>
               </button>
-              <!-- Hiển thị ellipsis sau số 1 khi trang hiện tại >= 4 -->
-              <span
-                v-if="
-                  show_ellipsis_after_first &&
-                  index === 0 &&
-                  page === 1 &&
-                  (() => {
-                    const NEXT_PAGE = visible_pages[index + 1]
-                    return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
-                  })()
-                "
-                class="text-sm text-gray-700 px-1"
+
+              <!-- Page Numbers -->
+              <div class="flex items-center gap-1">
+                <template v-for="(page, index) in visible_pages" :key="page">
+                  <button
+                    @click="goToPage(page)"
+                    :class="[
+                      'w-10 h-10 flex items-center justify-center text-sm rounded-lg',
+                      page === current_page
+                        ? 'text-slate-950 bg-white border border-gray-200'
+                        : 'text-slate-950',
+                    ]"
+                  >
+                    {{ page }}
+                  </button>
+                  <!-- Hiển thị ellipsis sau số 1 khi trang hiện tại >= 4 -->
+                  <span
+                    v-if="
+                      show_ellipsis_after_first &&
+                      index === 0 &&
+                      page === 1 &&
+                      (() => {
+                        const NEXT_PAGE = visible_pages[index + 1]
+                        return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
+                      })()
+                    "
+                    class="text-sm text-gray-700 px-1"
+                  >
+                    ...
+                  </span>
+                  <!-- Hiển thị ellipsis trước trang cuối nếu có khoảng cách -->
+                  <span
+                    v-if="
+                      show_ellipsis_before_last &&
+                      index === visible_pages.length - 2 &&
+                      (() => {
+                        const NEXT_PAGE = visible_pages[index + 1]
+                        return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
+                      })()
+                    "
+                    class="text-sm text-gray-700 px-1"
+                  >
+                    ...
+                  </span>
+                </template>
+              </div>
+
+              <!-- Next Button -->
+              <button
+                @click="goToNextPage"
+                :disabled="current_page === total_pages"
+                :class="[
+                  'flex items-center gap-1 text-sm font-medium',
+                  current_page === total_pages
+                    ? 'text-slate-500 cursor-not-allowed'
+                    : 'text-slate-950 cursor-pointer',
+                ]"
               >
-                ...
-              </span>
-              <!-- Hiển thị ellipsis trước trang cuối nếu có khoảng cách -->
-              <span
-                v-if="
-                  show_ellipsis_before_last &&
-                  index === visible_pages.length - 2 &&
-                  (() => {
-                    const NEXT_PAGE = visible_pages[index + 1]
-                    return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
-                  })()
-                "
-                class="text-sm text-gray-700 px-1"
-              >
-                ...
-              </span>
-            </template>
+                <span>Tiếp</span>
+                <ChevronRight :size="16" class="text-slate-950" />
+              </button>
+            </div>
+
+            <!-- Bình luận -->
+            <div class="flex flex-col gap-1.5">
+              <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
+              <textarea
+                placeholder="Nhập nội dung bình luận của bạn"
+                class="w-full px-4 py-3 text-sm rounded-md border border-gray-200 resize-none focus:outline-none text-black placeholder:text-gray-500"
+                rows="4"
+              ></textarea>
+            </div>
           </div>
-
-          <!-- Next Button -->
-          <button
-            @click="goToNextPage"
-            :disabled="current_page === total_pages"
-            :class="[
-              'flex items-center gap-1 text-sm font-medium',
-              current_page === total_pages
-                ? 'text-slate-500 cursor-not-allowed'
-                : 'text-slate-950 cursor-pointer',
-            ]"
-          >
-            <span>Tiếp</span>
-            <ChevronRight :size="16" class="text-slate-950" />
-          </button>
-        </div>
-
-        <!-- Bình luận -->
-        <div class="flex flex-col gap-1.5">
-          <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
-          <textarea
-            placeholder="Nhập nội dung bình luận của bạn"
-            class="w-full px-4 py-3 text-sm rounded-md border border-gray-200 resize-none focus:outline-none text-black placeholder:text-gray-500"
-            rows="4"
-          ></textarea>
         </div>
       </div>
     </div>

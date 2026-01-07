@@ -1,18 +1,21 @@
 <template>
-  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
-    <!-- Content Wrapper -->
-    <div class="flex-1 flex flex-col">
-      <!-- Navigation Header -->
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col">
+    <!-- Sticky Header -->
+    <div class="sticky top-0 z-10 bg-slate-100">
       <PageHeader title="Phản ánh" />
-
-      <div class="flex-1 flex flex-col py-3 gap-3">
-        <!-- Tabs -->
+      <!-- Sticky Tabs -->
+      <div class="pt-3">
         <TabNav v-model="activeTab" :tabs="tabs" />
+      </div>
+    </div>
 
+    <!-- Scrollable Content -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="flex flex-col py-3 gap-3">
         <!-- Feedback List Content -->
-        <div class="flex-1 overflow-y-auto text-black">
+        <div class="flex-1 text-black">
           <!-- Skeleton Loading State -->
-          <div v-if="is_loading" class="flex flex-col gap-2.5 px-2">
+          <div v-if="is_loading" class="flex flex-col gap-3 px-2">
             <div
               v-for="i in 3"
               :key="i"
@@ -62,7 +65,7 @@
           </div>
 
           <!-- Feedback List -->
-          <div v-else class="flex flex-col gap-2.5 px-2">
+          <div v-else class="flex flex-col gap-3 px-2">
             <div
               v-for="item in filteredFeedbackList"
               :key="item.id"
@@ -103,17 +106,17 @@
             </div>
           </div>
         </div>
-
-        <!-- Footer Button -->
-        <div class="p-3 bg-white mt-auto">
-          <button
-            @click="navigateToCreate"
-            class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg"
-          >
-            Tạo mới phản ánh
-          </button>
-        </div>
       </div>
+    </div>
+
+    <!-- Sticky Footer Button -->
+    <div class="sticky bottom-0 z-10 p-3 bg-white">
+      <button
+        @click="navigateToCreate"
+        class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg"
+      >
+        Tạo mới phản ánh
+      </button>
     </div>
   </div>
 </template>
