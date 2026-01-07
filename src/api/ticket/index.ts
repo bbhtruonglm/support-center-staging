@@ -17,9 +17,11 @@ import type {
 /**
  * API: Lấy danh sách ticket theo stage filter
  * @param tab_key - Key của tab để filter (optional)
- * @returns Promise chứa danh sách FeedbackItem đã transform
+ * @returns Promise chứa object với feedbackList và ticketList
  */
-export async function getTicketList(tab_key?: TabKey): Promise<FeedbackItem[]> {
+export async function getTicketList(
+  tab_key?: TabKey,
+): Promise<{ feedbackList: FeedbackItem[]; ticketList: TicketItem[] }> {
   try {
     /** Map tab key sang stage filter */
     const STAGE_FILTER = tab_key ? mapTabToStageFilter(tab_key) : undefined
@@ -37,7 +39,10 @@ export async function getTicketList(tab_key?: TabKey): Promise<FeedbackItem[]> {
     /** Transform data từ TicketItem sang FeedbackItem */
     const TRANSFORMED_DATA = FILTERED_TICKETS.map(transformTicketToFeedback)
 
-    return TRANSFORMED_DATA
+    return {
+      feedbackList: TRANSFORMED_DATA,
+      ticketList: FILTERED_TICKETS,
+    }
   } catch (error: any) {
     console.error('Error loading ticket list:', error)
 

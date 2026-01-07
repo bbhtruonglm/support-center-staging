@@ -312,28 +312,26 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
 import PageHeader from '@/components/PageHeader.vue'
-import { getTicketDetail, getWorkflowList, type TicketItem, type WorkflowItem } from '@/api/ticket'
+import { getTicketDetail, type TicketItem } from '@/api/ticket'
 import { mapStageToStatus } from '@/api/ticket/transform'
 import type { TicketStage } from '@/types/ticket'
 import { mock_comments, type CommentItem } from '@/data/mockComments'
 
 /** Router instance */
 const route = useRoute()
+const router = useRouter()
 
 /** i18n instance */
 const { t } = useI18n()
 
-/** Chi tiết ticket từ API */
+/** Chi tiết ticket từ router state hoặc API */
 const ticket_detail = ref<TicketItem | null>(null)
-
-/** Danh sách workflow */
-const workflow_list = ref<WorkflowItem[]>([])
 
 /** Trạng thái loading */
 const is_loading = ref(false)
@@ -502,15 +500,13 @@ function formatCommentDate(iso_date: string): string {
 
 /**
  * Get label cho category từ workflow_id
- * @param workflow_id - ID của workflow
+ * @param workflow_id - ID của workflow từ ticket detail
  * @returns Label string
  */
 function getCategoryLabel(workflow_id: number): string {
-  /** Tìm workflow trong danh sách */
-  const WORKFLOW = workflow_list.value.find((w) => w.workflow_id === workflow_id)
-
-  /** Trả về tên workflow nếu tìm thấy, nếu không thì trả về chuỗi mặc định */
-  return WORKFLOW?.name || 'Không xác định'
+  /** Workflow ID được lấy trực tiếp từ ticket detail */
+  /** Tạm thời hiển thị workflow_id, có thể cập nhật sau nếu API cung cấp thêm thông tin */
+  return `Workflow ${workflow_id}`
 }
 
 /**
@@ -544,21 +540,7 @@ function getStatusLabel(stage: TicketStage): string {
 }
 
 /**
- * Load danh sách workflow từ API
- */
-async function loadWorkflowList() {
-  try {
-    /** Gọi API để lấy danh sách workflow */
-    const DATA = await getWorkflowList()
-    workflow_list.value = DATA
-  } catch (e: any) {
-    console.error('Error loading workflow list:', e)
-    /** Không hiển thị toast error vì đây là dữ liệu phụ */
-  }
-}
-
-/**
- * Load chi tiết ticket từ API
+ * Load chi tiết ticket từ router state hoặc API
  */
 async function loadTicketDetail() {
   /** Lấy ticket ID từ route params */
@@ -569,6 +551,17 @@ async function loadTicketDetail() {
     return
   }
 
+  /** Kiểm tra xem có ticket trong router state không */
+  const HISTORY_STATE = window.history.state as { ticket?: TicketItem } | null
+  const STATE_TICKET = HISTORY_STATE?.ticket
+
+  if (STATE_TICKET && STATE_TICKET.id === TICKET_ID) {
+    /** Sử dụng ticket từ router state, không cần gọi API */
+    ticket_detail.value = STATE_TICKET
+    return
+  }
+
+  /** Nếu không có trong state, gọi API (fallback) */
   /** Set loading state */
   is_loading.value = true
   error_message.value = null
@@ -589,8 +582,6 @@ async function loadTicketDetail() {
 
 /** Load data khi component mounted */
 onMounted(() => {
-  /** Load workflow list và ticket detail song song */
-  loadWorkflowList()
   loadTicketDetail()
 })
 </script>

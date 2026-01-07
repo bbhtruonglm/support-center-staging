@@ -135,7 +135,7 @@ import TabNav from '@/components/TabNav.vue'
 import MailIcon from '@/assets/MailIcon.png'
 
 import { useApiContext } from '@/composables/useApiContext'
-import { getTicketList, type FeedbackItem } from '@/api/ticket'
+import { getTicketList, type FeedbackItem, type TicketItem } from '@/api/ticket'
 
 /** Router instance */
 const router = useRouter()
@@ -159,6 +159,9 @@ const tabs = [
 
 /** Danh sách feedback từ API */
 const feedbackList = ref<FeedbackItem[]>([])
+
+/** Map lưu TicketItem theo ID để truyền qua router state */
+const ticketMap = ref<Map<string, TicketItem>>(new Map())
 
 /** Trạng thái loading */
 const is_loading = ref(false)
@@ -184,6 +187,7 @@ async function loadFeedbackList() {
   // Kiểm tra context hợp lệ
   if (!is_valid.value) {
     feedbackList.value = []
+    ticketMap.value.clear()
     return
   }
 
@@ -193,11 +197,18 @@ async function loadFeedbackList() {
   try {
     /** Gọi Ticket API để lấy danh sách ticket */
     const DATA = await getTicketList(activeTab.value)
-    feedbackList.value = DATA
+    feedbackList.value = DATA.feedbackList
+
+    /** Lưu TicketItem vào map để truyền qua router state */
+    ticketMap.value.clear()
+    DATA.ticketList.forEach((ticket) => {
+      ticketMap.value.set(ticket.id, ticket)
+    })
   } catch (e: any) {
     console.error('Error loading feedback list:', e)
     toast.error(e.message || 'Có lỗi xảy ra khi tải danh sách phản ánh')
     feedbackList.value = []
+    ticketMap.value.clear()
   } finally {
     is_loading.value = false
   }
@@ -243,7 +254,20 @@ function navigateToCreate() {
  * @param ticket_id - ID của ticket
  */
 function navigateToDetail(ticket_id: string) {
-  router.push(`/feedback-detail/${ticket_id}`)
+  /** Lấy TicketItem từ map */
+  const TICKET = ticketMap.value.get(ticket_id)
+
+  if (TICKET) {
+    /** Truyền TicketItem qua router state */
+    router.push({
+      name: 'Feedback-detail',
+      params: { id: ticket_id },
+      state: { ticket: TICKET },
+    })
+  } else {
+    /** Fallback: nếu không tìm thấy trong map thì vẫn navigate với ID */
+    router.push(`/feedback-detail/${ticket_id}`)
+  }
 }
 
 /** Load data khi component mounted */
