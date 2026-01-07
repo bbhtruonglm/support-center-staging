@@ -106,7 +106,7 @@
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
             <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.category') }}</h3>
             <p class="text-sm font-medium text-black">
-              {{ getCategoryLabel(ticket_detail.category_id) }}
+              {{ getCategoryLabel(ticket_detail.workflow_id) }}
             </p>
           </section>
 
@@ -313,7 +313,7 @@ import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
 import PageHeader from '@/components/PageHeader.vue'
-import { getTicketDetail, type TicketItem } from '@/api/ticket'
+import { getTicketDetail, getWorkflowList, type TicketItem, type WorkflowItem } from '@/api/ticket'
 import { mapStageToStatus } from '@/api/ticket/transform'
 import type { TicketStage } from '@/types/ticket'
 import { mock_comments, type CommentItem } from '@/data/mockComments'
@@ -326,6 +326,9 @@ const { t } = useI18n()
 
 /** Chi tiết ticket từ API */
 const ticket_detail = ref<TicketItem | null>(null)
+
+/** Danh sách workflow */
+const workflow_list = ref<WorkflowItem[]>([])
 
 /** Trạng thái loading */
 const is_loading = ref(false)
@@ -493,13 +496,16 @@ function formatCommentDate(iso_date: string): string {
 }
 
 /**
- * Get label cho category
- * @param category_id - ID của category
+ * Get label cho category từ workflow_id
+ * @param workflow_id - ID của workflow
  * @returns Label string
  */
-function getCategoryLabel(category_id: number): string {
-  // Tạm thời fix cứng, có thể map từ API sau
-  return 'Phản ánh lỗi sản phẩm'
+function getCategoryLabel(workflow_id: number): string {
+  /** Tìm workflow trong danh sách */
+  const WORKFLOW = workflow_list.value.find((w) => w.workflow_id === workflow_id)
+
+  /** Trả về tên workflow nếu tìm thấy, nếu không thì trả về chuỗi mặc định */
+  return WORKFLOW?.name || 'Không xác định'
 }
 
 /**
@@ -530,6 +536,20 @@ function getStatusLabel(stage: TicketStage): string {
     completed: 'Hoàn thành',
   }
   return LABELS[STATUS] || 'Gửi yêu cầu'
+}
+
+/**
+ * Load danh sách workflow từ API
+ */
+async function loadWorkflowList() {
+  try {
+    /** Gọi API để lấy danh sách workflow */
+    const DATA = await getWorkflowList()
+    workflow_list.value = DATA
+  } catch (e: any) {
+    console.error('Error loading workflow list:', e)
+    /** Không hiển thị toast error vì đây là dữ liệu phụ */
+  }
 }
 
 /**
@@ -564,6 +584,8 @@ async function loadTicketDetail() {
 
 /** Load data khi component mounted */
 onMounted(() => {
+  /** Load workflow list và ticket detail song song */
+  loadWorkflowList()
   loadTicketDetail()
 })
 </script>
