@@ -50,17 +50,19 @@
             </div>
           </div>
 
-          <!-- Empty State -->
+          <!-- Empty State: No feedback or Invalid client_id -->
           <div
             v-else-if="!is_valid || filteredFeedbackList.length === 0"
-            class="flex flex-col items-center justify-center py-8 px-4"
+            class="flex-1 flex flex-col items-center pt-10 gap-3"
           >
-            <p class="text-sm text-gray-500 text-center">
-              {{
-                !is_valid
-                  ? 'Vui lòng cung cấp client_id trong query parameters'
-                  : 'Không có phản ánh nào'
-              }}
+            <!-- Empty State Image -->
+            <div class="flex items-center justify-center">
+              <!-- Mail Icon Placeholder -->
+              <img :src="MailIcon" alt="No Feedback" class="w-25 h-25 object-contain z-10" />
+            </div>
+            <p class="text-xs text-gray-600 text-center px-4 whitespace-nowrap">
+              Chúng tôi luôn lắng nghe các phản hồi của <br />
+              Quý Khách hàng để liên tục cải thiện Chất lượng - Dịch vụ.
             </p>
           </div>
 
@@ -130,6 +132,7 @@ import { useI18n } from 'vue-i18n'
 
 import PageHeader from '@/components/PageHeader.vue'
 import TabNav from '@/components/TabNav.vue'
+import MailIcon from '@/assets/MailIcon.png'
 
 import { useApiContext } from '@/composables/useApiContext'
 import { getTicketList, type FeedbackItem } from '@/api/ticket'
@@ -242,19 +245,6 @@ function navigateToCreate() {
 function navigateToDetail(ticket_id: string) {
   router.push(`/feedback-detail/${ticket_id}`)
 }
-
-/**
- * Watch is_valid để redirect sang FeedbackListEmpty nếu không có client_id
- */
-watch(
-  is_valid,
-  (valid) => {
-    if (!valid) {
-      router.replace('/feedback-list-empty')
-    }
-  },
-  { immediate: true },
-)
 
 /** Load data khi component mounted */
 onMounted(() => {
