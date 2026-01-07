@@ -1,5 +1,5 @@
 <template>
-  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto gap-2.5">
+  <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
     <!-- Header -->
     <PageHeader :title="t('feedback.detailTitle')" />
 
@@ -167,122 +167,117 @@
 
         <!-- Comments List -->
         <div class="flex flex-col gap-2">
-          <!-- Comment Card 1 -->
-          <div class="bg-white rounded-xl p-3 shadow-sm">
+          <!-- Comment Card -->
+          <div
+            v-for="comment in paginated_comments"
+            :key="comment.id"
+            class="bg-white rounded-xl p-3 shadow-sm"
+          >
             <!-- Avatar, Tên, vị trí, ngày -->
             <div class="flex items-start justify-between gap-2">
               <!--Avatar, Tên, vị trí -->
               <div class="flex gap-2 flex-1">
                 <!-- avatar -->
                 <img
-                  src="/src/assets/Avatar.png"
-                  alt="Avatar"
-                  class="w-8 h-8 object-cover shrink-0"
+                  :src="comment.avatar"
+                  :alt="comment.name"
+                  class="w-8 h-8 object-cover shrink-0 rounded-full"
                 />
                 <!-- Tên, vị trí -->
                 <div class="flex flex-col gap-0.5 flex-1">
-                  <p class="text-sm font-medium text-black">Hoàng Đức Mạnh</p>
-                  <p class="text-xs text-slate-500">Dev - BU Hà Nội</p>
+                  <p :class="['text-sm text-black', comment.is_bold ? 'font-bold' : 'font-medium']">
+                    {{ comment.name }}
+                  </p>
+                  <p class="text-xs text-slate-500">{{ comment.position }}</p>
                 </div>
               </div>
               <!-- Ngày -->
               <div class="flex flex-col items-end shrink-0">
                 <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
-                <p class="text-xs text-gray-500 whitespace-nowrap">17:04:43 - 26/04/2024</p>
+                <p class="text-xs text-gray-500 whitespace-nowrap">{{ comment.date }}</p>
               </div>
             </div>
             <!-- Nội dung bình luận -->
-            <div class="py-1 text-black font-medium text-base">Nội dung bình luận</div>
-          </div>
-
-          <!-- Comment Card 2 -->
-          <div class="bg-white rounded-xl p-3 shadow-sm">
-            <!-- Avatar, Tên, vị trí, ngày -->
-            <div class="flex items-start justify-between gap-2">
-              <!--Avatar, Tên, vị trí -->
-              <div class="flex gap-2 flex-1">
-                <!-- avatar -->
-                <img
-                  src="/src/assets/Avatar.png"
-                  alt="Avatar"
-                  class="w-8 h-8 object-cover shrink-0"
-                />
-                <!-- Tên, vị trí -->
-                <div class="flex flex-col gap-0.5 flex-1">
-                  <p class="text-sm font-bold text-black">Hoàng Đức Mạnh</p>
-                  <p class="text-xs text-slate-500">Dev - BU Hà Nội</p>
-                </div>
-              </div>
-              <!-- Ngày -->
-              <div class="flex flex-col items-end shrink-0">
-                <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
-                <p class="text-xs text-gray-500 whitespace-nowrap">17:04:43 - 26/04/2024</p>
-              </div>
-            </div>
-            <!-- Nội dung bình luận -->
-            <div class="py-1 text-black font-medium text-base">Nội dung bình luận</div>
-          </div>
-
-          <!-- Comment Card 3 -->
-          <div class="bg-white rounded-xl p-3 shadow-sm">
-            <!-- Avatar, Tên, vị trí, ngày -->
-            <div class="flex items-start justify-between gap-2">
-              <!--Avatar, Tên, vị trí -->
-              <div class="flex gap-2 flex-1">
-                <!-- avatar -->
-                <img
-                  src="/src/assets/Avatar.png"
-                  alt="Avatar"
-                  class="w-8 h-8 object-cover shrink-0"
-                />
-                <!-- Tên, vị trí -->
-                <div class="flex flex-col gap-0.5 flex-1">
-                  <p class="text-sm font-bold text-black">Hoàng Đức Mạnh</p>
-                  <p class="text-xs text-slate-500">Dev - BU Hà Nội</p>
-                </div>
-              </div>
-              <!-- Ngày -->
-              <div class="flex flex-col items-end shrink-0">
-                <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
-                <p class="text-xs text-gray-500 whitespace-nowrap">17:04:43 - 26/04/2024</p>
-              </div>
-            </div>
-            <!-- Nội dung bình luận -->
-            <div class="py-1 text-black font-medium text-base">Nội dung bình luận</div>
+            <div class="py-1 text-black font-medium text-base">{{ comment.content }}</div>
           </div>
         </div>
 
         <!-- Pagination -->
-        <div class="flex items-center justify-between gap-1">
+        <div v-if="total_pages > 1" class="flex items-center justify-between gap-1">
           <!-- Previous Button -->
-          <button class="flex items-center gap-1 text-sm text-gray-700">
-            <ChevronLeft :size="16" :stroke-width="2" />
+          <button
+            @click="goToPreviousPage"
+            :disabled="current_page === 1"
+            :class="[
+              'flex items-center gap-1 text-sm font-medium',
+              current_page === 1
+                ? 'text-slate-500 cursor-not-allowed'
+                : 'text-slate-950 cursor-pointer',
+            ]"
+          >
+            <ChevronLeft :size="16" class="text-slate-950" />
             <span>Lùi</span>
           </button>
 
           <!-- Page Numbers -->
           <div class="flex items-center gap-1">
-            <button class="w-8 h-8 flex items-center justify-center text-sm text-gray-700 rounded">
-              1
-            </button>
-            <button
-              class="w-8 h-8 flex items-center justify-center text-sm text-white bg-gray-300 border border-gray-400 rounded"
-            >
-              2
-            </button>
-            <button class="w-8 h-8 flex items-center justify-center text-sm text-gray-700 rounded">
-              3
-            </button>
-            <span class="text-sm text-gray-700 px-1">...</span>
-            <button class="w-8 h-8 flex items-center justify-center text-sm text-gray-700 rounded">
-              4
-            </button>
+            <template v-for="(page, index) in visible_pages" :key="page">
+              <button
+                @click="goToPage(page)"
+                :class="[
+                  'w-10 h-10 flex items-center justify-center text-sm rounded-lg',
+                  page === current_page
+                    ? 'text-slate-950 bg-white border border-gray-200'
+                    : 'text-slate-950',
+                ]"
+              >
+                {{ page }}
+              </button>
+              <!-- Hiển thị ellipsis sau số 1 khi trang hiện tại >= 4 -->
+              <span
+                v-if="
+                  show_ellipsis_after_first &&
+                  index === 0 &&
+                  page === 1 &&
+                  (() => {
+                    const NEXT_PAGE = visible_pages[index + 1]
+                    return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
+                  })()
+                "
+                class="text-sm text-gray-700 px-1"
+              >
+                ...
+              </span>
+              <!-- Hiển thị ellipsis trước trang cuối nếu có khoảng cách -->
+              <span
+                v-if="
+                  show_ellipsis_before_last &&
+                  index === visible_pages.length - 2 &&
+                  (() => {
+                    const NEXT_PAGE = visible_pages[index + 1]
+                    return NEXT_PAGE ? NEXT_PAGE - page > 1 : false
+                  })()
+                "
+                class="text-sm text-gray-700 px-1"
+              >
+                ...
+              </span>
+            </template>
           </div>
 
           <!-- Next Button -->
-          <button class="flex items-center gap-1 text-sm text-gray-700">
+          <button
+            @click="goToNextPage"
+            :disabled="current_page === total_pages"
+            :class="[
+              'flex items-center gap-1 text-sm font-medium',
+              current_page === total_pages
+                ? 'text-slate-500 cursor-not-allowed'
+                : 'text-slate-950 cursor-pointer',
+            ]"
+          >
             <span>Tiếp</span>
-            <ChevronRight :size="16" :stroke-width="2" />
+            <ChevronRight :size="16" class="text-slate-950" />
           </button>
         </div>
 
@@ -301,7 +296,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -311,6 +306,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import { getTicketDetail, type TicketItem } from '@/api/ticket'
 import { mapStageToStatus } from '@/api/ticket/transform'
 import type { TicketStage } from '@/types/ticket'
+import { mock_comments, type CommentItem } from '@/data/mockComments'
 
 /** Router instance */
 const route = useRoute()
@@ -326,6 +322,145 @@ const is_loading = ref(false)
 
 /** Thông báo lỗi */
 const error_message = ref<string | null>(null)
+
+/** Số lượng comments mỗi trang */
+const ITEMS_PER_PAGE = 20
+
+/** Trang hiện tại */
+const current_page = ref(1)
+
+/**
+ * Computed property: Tổng số trang
+ */
+const total_pages = computed(() => {
+  return Math.ceil(mock_comments.length / ITEMS_PER_PAGE)
+})
+
+/**
+ * Computed property: Danh sách comments của trang hiện tại
+ */
+const paginated_comments = computed(() => {
+  const START_INDEX = (current_page.value - 1) * ITEMS_PER_PAGE
+  const END_INDEX = START_INDEX + ITEMS_PER_PAGE
+  return mock_comments.slice(START_INDEX, END_INDEX)
+})
+
+/**
+ * Computed property: Danh sách số trang hiển thị
+ */
+const visible_pages = computed(() => {
+  const PAGES: number[] = []
+  const TOTAL = total_pages.value
+  const CURRENT = current_page.value
+
+  if (TOTAL <= 3) {
+    // Nếu tổng số trang <= 3, hiển thị tất cả
+    for (let i = 1; i <= TOTAL; i++) {
+      PAGES.push(i)
+    }
+  } else {
+    // Nếu tổng số trang >= 4, luôn hiển thị ellipsis trước trang cuối
+    if (CURRENT <= 2) {
+      // Trang đầu: hiển thị 1, 2, 3, ..., TOTAL
+      for (let i = 1; i <= 3; i++) {
+        PAGES.push(i)
+      }
+      PAGES.push(TOTAL)
+    } else if (CURRENT >= TOTAL - 1) {
+      // Trang cuối: hiển thị 1, ..., TOTAL-2, TOTAL-1, TOTAL
+      PAGES.push(1)
+      for (let i = TOTAL - 2; i <= TOTAL; i++) {
+        PAGES.push(i)
+      }
+    } else {
+      // Trang giữa: hiển thị 1, ..., CURRENT-1, CURRENT, CURRENT+1, ..., TOTAL
+      PAGES.push(1)
+      for (let i = CURRENT - 1; i <= CURRENT + 1; i++) {
+        PAGES.push(i)
+      }
+      PAGES.push(TOTAL)
+    }
+  }
+
+  return PAGES
+})
+
+/**
+ * Computed property: Có hiển thị ellipsis sau số 1 không
+ * Hiển thị ellipsis sau số 1 khi trang hiện tại >= 4
+ */
+const show_ellipsis_after_first = computed(() => {
+  const CURRENT = current_page.value
+  const TOTAL = total_pages.value
+
+  if (TOTAL < 4 || CURRENT < 4) {
+    return false
+  }
+
+  const PAGES = visible_pages.value
+  if (PAGES.length === 0 || PAGES[0] !== 1) {
+    return false
+  }
+
+  // Kiểm tra xem có khoảng cách giữa số 1 và trang tiếp theo không
+  const SECOND_PAGE = PAGES[1]
+  return SECOND_PAGE ? SECOND_PAGE - 1 > 1 : false
+})
+
+/**
+ * Computed property: Có hiển thị ellipsis trước trang cuối không
+ * Hiển thị ellipsis trước trang cuối nếu tổng số trang >= 4
+ */
+const show_ellipsis_before_last = computed(() => {
+  const TOTAL = total_pages.value
+  if (TOTAL < 4) {
+    return false
+  }
+
+  const PAGES = visible_pages.value
+  if (PAGES.length === 0) {
+    return false
+  }
+
+  const LAST_PAGE = PAGES[PAGES.length - 1]
+  const SECOND_LAST_PAGE = PAGES[PAGES.length - 2]
+
+  // Kiểm tra xem có khoảng cách giữa trang gần cuối và trang cuối không
+  if (!LAST_PAGE || !SECOND_LAST_PAGE) {
+    return false
+  }
+
+  // Luôn hiển thị ellipsis trước trang cuối nếu có khoảng cách
+  return LAST_PAGE - SECOND_LAST_PAGE > 1
+})
+
+/**
+ * Chuyển đến trang trước
+ */
+function goToPreviousPage() {
+  if (current_page.value > 1) {
+    current_page.value--
+  }
+}
+
+/**
+ * Chuyển đến trang tiếp theo
+ */
+function goToNextPage() {
+  if (current_page.value < total_pages.value) {
+    current_page.value++
+  }
+}
+
+/**
+ * Chuyển đến trang cụ thể
+ * @param page - Số trang cần chuyển đến
+ */
+function goToPage(page: number) {
+  if (page >= 1 && page <= total_pages.value) {
+    current_page.value = page
+  }
+}
 
 /**
  * Format date cho comment (HH:mm:ss - DD/MM/YYYY)
