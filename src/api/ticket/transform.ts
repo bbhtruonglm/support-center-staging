@@ -63,6 +63,7 @@ export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
   const DATE = formatDate(ticket.created_at)
 
   return {
+    id: ticket.id,
     title: TITLE,
     date: DATE,
     status: STATUS,

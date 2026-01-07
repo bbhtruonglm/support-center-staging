@@ -291,6 +291,9 @@ export interface TicketItem {
  * Interface định nghĩa feedback item cho component
  */
 export interface FeedbackItem {
+  /** ID ticket (UUID) */
+  id: string
+
   /** Tiêu đề feedback */
   title: string
 

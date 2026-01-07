@@ -133,6 +133,44 @@ export async function createTicket(request: CreateTicketRequest): Promise<Create
 }
 
 /**
+ * API: Lấy chi tiết ticket theo ID
+ * @param ticket_id - ID của ticket (UUID)
+ * @returns Promise chứa TicketItem
+ */
+export async function getTicketDetail(ticket_id: string): Promise<TicketItem> {
+  try {
+    /** Gọi API POST để lấy danh sách ticket */
+    const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', {})
+
+    /** Tìm ticket theo ID */
+    const TICKET = RESPONSE.data.find((ticket) => ticket.id === ticket_id)
+
+    if (!TICKET) {
+      throw new Error('Không tìm thấy phản ánh')
+    }
+
+    return TICKET
+  } catch (error: any) {
+    console.error('Error loading ticket detail:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể tải chi tiết phản ánh'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi không tìm thấy */
+    if (error.message === 'Không tìm thấy phản ánh') {
+      throw error
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
  * Export types để sử dụng ở các component
  */
 export type {

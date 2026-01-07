@@ -65,8 +65,9 @@
           <div v-else class="flex flex-col gap-2.5 px-2">
             <div
               v-for="item in filteredFeedbackList"
-              :key="item.title + item.date"
-              class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)]"
+              :key="item.id"
+              @click="navigateToDetail(item.id)"
+              class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <!-- Title & Status Row -->
               <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
@@ -229,6 +230,14 @@ function getStatusLabel(status: string) {
  */
 function navigateToCreate() {
   router.push('/feedback-create')
+}
+
+/**
+ * Navigate đến trang chi tiết feedback
+ * @param ticket_id - ID của ticket
+ */
+function navigateToDetail(ticket_id: string) {
+  router.push(`/feedback-detail/${ticket_id}`)
 }
 
 /**

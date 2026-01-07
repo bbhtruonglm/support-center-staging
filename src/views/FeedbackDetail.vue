@@ -5,49 +5,79 @@
 
     <!-- Content -->
     <div class="flex-1 flex flex-col p-2">
+      <!-- Loading State -->
+      <div v-if="is_loading" class="flex items-center justify-center py-10">
+        <p class="text-sm text-gray-500">{{ t('common.loading') }}</p>
+      </div>
+
+      <!-- Error State -->
+      <div v-else-if="error_message" class="flex items-center justify-center py-10">
+        <p class="text-sm text-red-500">{{ error_message }}</p>
+      </div>
+
       <!-- Chi tiết phản ánh -->
-      <div class="flex flex-col gap-1">
+      <div v-else-if="ticket_detail" class="flex flex-col gap-1">
         <!-- Tiêu đề -->
         <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">Tiêu đề</h3>
-          <p class="text-sm font-medium text-black">Tôi ko thể chat được với khách</p>
+          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.title') }}</h3>
+          <p class="text-sm font-medium text-black">
+            {{ ticket_detail.title || t('feedback.noTitle') }}
+          </p>
         </section>
 
         <!-- Danh mục -->
         <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">Danh mục</h3>
-          <p class="text-sm font-medium text-black">Phản ánh lỗi sản phẩm</p>
+          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.category') }}</h3>
+          <p class="text-sm font-medium text-black">
+            {{ getCategoryLabel(ticket_detail.category_id) }}
+          </p>
         </section>
 
         <!-- Trạng thái -->
         <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">Trạng thái</h3>
+          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.status') }}</h3>
           <span
-            class="inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap bg-blue-500 text-white"
+            :class="[
+              'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
+              getStatusBadgeClass(ticket_detail.stage),
+            ]"
           >
-            Đang xử lý
+            {{ getStatusLabel(ticket_detail.stage) }}
           </span>
         </section>
 
         <!-- Nội dung -->
         <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">Nội dung</h3>
+          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.content') }}</h3>
           <p class="text-sm font-medium text-black whitespace-pre-wrap">
-            Khi tôi ấn vào input chat xong ấn gửi mà ko có đc
+            {{ ticket_detail.content || t('feedback.noContent') }}
           </p>
         </section>
 
         <!-- Ảnh đính kèm -->
         <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-          <h3 class="text-xs font-medium text-slate-700">Ảnh đính kèm</h3>
+          <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
           <div class="flex flex-wrap gap-2.5">
             <!-- Empty State: Dashed Box -->
             <div
+              v-if="
+                !ticket_detail.attachments ||
+                (Array.isArray(ticket_detail.attachments) && ticket_detail.attachments.length === 0)
+              "
               class="w-20 h-20 py-5 px-3 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white"
             >
               <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
-              <span class="text-xs text-gray-500">Chụp ảnh</span>
+              <span class="text-xs text-gray-500">{{ t('feedback.takePhoto') }}</span>
             </div>
+            <!-- Attachments -->
+            <img
+              v-else-if="Array.isArray(ticket_detail.attachments)"
+              v-for="(attachment, index) in ticket_detail.attachments"
+              :key="index"
+              :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
+              :alt="`Attachment ${String(index + 1)}`"
+              class="w-20 h-20 object-cover rounded-xl"
+            />
           </div>
         </section>
       </div>
@@ -185,7 +215,6 @@
         <!-- Bình luận -->
         <div class="flex flex-col gap-1.5">
           <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
-
           <textarea
             placeholder="Nhập nội dung bình luận của bạn"
             class="w-full px-4 py-3 text-sm rounded-md border border-gray-200 resize-none focus:outline-none text-black placeholder:text-gray-500"
@@ -198,11 +227,124 @@
 </template>
 
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Camera, ChevronLeft, ChevronRight, Paperclip } from 'lucide-vue-next'
+import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
+import { toast } from 'vue3-toastify'
 
 import PageHeader from '@/components/PageHeader.vue'
+import { getTicketDetail, type TicketItem } from '@/api/ticket'
+import { mapStageToStatus } from '@/api/ticket/transform'
+import type { TicketStage } from '@/types/ticket'
+
+/** Router instance */
+const route = useRoute()
 
 /** i18n instance */
 const { t } = useI18n()
+
+/** Chi tiết ticket từ API */
+const ticket_detail = ref<TicketItem | null>(null)
+
+/** Trạng thái loading */
+const is_loading = ref(false)
+
+/** Thông báo lỗi */
+const error_message = ref<string | null>(null)
+
+/**
+ * Format date cho comment (HH:mm:ss - DD/MM/YYYY)
+ * @param iso_date - ISO date string
+ * @returns Date string định dạng HH:mm:ss - DD/MM/YYYY
+ */
+function formatCommentDate(iso_date: string): string {
+  try {
+    const DATE = new Date(iso_date)
+    const HOURS = String(DATE.getHours()).padStart(2, '0')
+    const MINUTES = String(DATE.getMinutes()).padStart(2, '0')
+    const SECONDS = String(DATE.getSeconds()).padStart(2, '0')
+    const DAY = String(DATE.getDate()).padStart(2, '0')
+    const MONTH = String(DATE.getMonth() + 1).padStart(2, '0')
+    const YEAR = DATE.getFullYear()
+    return `${HOURS}:${MINUTES}:${SECONDS} - ${DAY}/${MONTH}/${YEAR}`
+  } catch (e) {
+    return iso_date
+  }
+}
+
+/**
+ * Get label cho category
+ * @param category_id - ID của category
+ * @returns Label string
+ */
+function getCategoryLabel(category_id: number): string {
+  // Tạm thời fix cứng, có thể map từ API sau
+  return 'Phản ánh lỗi sản phẩm'
+}
+
+/**
+ * Get CSS class cho status badge
+ * @param stage - Stage từ API
+ * @returns CSS class string
+ */
+function getStatusBadgeClass(stage: TicketStage): string {
+  const STATUS = mapStageToStatus(stage)
+  const CLASSES = {
+    pending: 'bg-orange-500',
+    processing: 'bg-blue-500',
+    completed: 'bg-green-600',
+  }
+  return CLASSES[STATUS] || CLASSES.pending
+}
+
+/**
+ * Get label cho status
+ * @param stage - Stage từ API
+ * @returns Label string
+ */
+function getStatusLabel(stage: TicketStage): string {
+  const STATUS = mapStageToStatus(stage)
+  const LABELS = {
+    pending: 'Gửi yêu cầu',
+    processing: 'Đang xử lý',
+    completed: 'Hoàn thành',
+  }
+  return LABELS[STATUS] || 'Gửi yêu cầu'
+}
+
+/**
+ * Load chi tiết ticket từ API
+ */
+async function loadTicketDetail() {
+  /** Lấy ticket ID từ route params */
+  const TICKET_ID = route.params.id as string
+
+  if (!TICKET_ID) {
+    error_message.value = 'Không tìm thấy ID phản ánh'
+    return
+  }
+
+  /** Set loading state */
+  is_loading.value = true
+  error_message.value = null
+
+  try {
+    /** Gọi API để lấy chi tiết ticket */
+    const DATA = await getTicketDetail(TICKET_ID)
+    ticket_detail.value = DATA
+  } catch (e: any) {
+    console.error('Error loading ticket detail:', e)
+    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải chi tiết phản ánh'
+    error_message.value = ERROR_MSG
+    toast.error(ERROR_MSG)
+  } finally {
+    is_loading.value = false
+  }
+}
+
+/** Load data khi component mounted */
+onMounted(() => {
+  loadTicketDetail()
+})
 </script>

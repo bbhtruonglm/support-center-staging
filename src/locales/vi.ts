@@ -61,6 +61,9 @@ export default {
     sendInfo: 'Gửi thông tin',
     note: 'Sau khi gửi phản ánh, chúng tôi sẽ tiếp nhận và liên lạc đến Quý khách hàng sớm nhất và không quá 24 tiếng.',
     required: '*',
+    title: 'Tiêu đề',
+    noTitle: 'Không có tiêu đề',
+    noContent: 'Không có nội dung',
   },
 
   // Chat
