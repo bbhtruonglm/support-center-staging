@@ -313,6 +313,20 @@ export interface FeedbackItem {
 export type TabKey = 'all' | 'pending' | 'processing' | 'completed'
 
 /**
+ * Interface định nghĩa request để lấy danh sách ticket
+ */
+export interface GetTicketRequest {
+  /** Số lượng bản ghi bỏ qua (skip) */
+  skip: number
+
+  /** Số lượng bản ghi lấy (take) */
+  take: number
+
+  /** Danh sách stage để filter */
+  stage?: TicketStage[]
+}
+
+/**
  * Interface định nghĩa workflow item từ API get_workflow
  */
 export interface WorkflowItem {

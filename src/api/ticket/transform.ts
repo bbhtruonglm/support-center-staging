@@ -81,7 +81,7 @@ export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
 /**
  * Map tab key sang stage filter cho API
  * @param tab_key - Key của tab
- * @returns Stage filter hoặc undefined
+ * @returns Stage filter array (undefined cho tab "Tất cả" sẽ không gửi stage trong request)
  */
 export function mapTabToStageFilter(tab_key: TabKey): TicketStage[] | undefined {
   switch (tab_key) {
@@ -96,7 +96,7 @@ export function mapTabToStageFilter(tab_key: TabKey): TicketStage[] | undefined 
       return ['CLOSED']
     case 'all':
     default:
-      // Tab "Tất cả" không filter - hiển thị toàn bộ ticket
+      // Tab "Tất cả" không filter - trả về undefined để không gửi stage trong request
       return undefined
   }
 }

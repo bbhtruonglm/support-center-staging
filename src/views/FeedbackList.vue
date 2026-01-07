@@ -52,7 +52,7 @@
 
           <!-- Empty State: No feedback or Invalid client_id -->
           <div
-            v-else-if="!is_valid || filteredFeedbackList?.length === 0"
+            v-else-if="!is_valid || feedbackList.length === 0"
             class="flex-1 flex flex-col items-center pt-10 gap-3"
           >
             <!-- Empty State Image -->
@@ -69,7 +69,7 @@
           <!-- Feedback List -->
           <div v-else class="flex flex-col gap-3 px-2">
             <div
-              v-for="item in filteredFeedbackList"
+              v-for="item in feedbackList"
               :key="item.id"
               @click="navigateToDetail(item.id)"
               class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
@@ -165,13 +165,6 @@ const ticketMap = ref<Map<string, TicketItem>>(new Map())
 
 /** Trạng thái loading */
 const is_loading = ref(false)
-
-/**
- * Computed property: Danh sách feedback đã được filter theo tab
- */
-const filteredFeedbackList = computed(() => {
-  return feedbackList.value
-})
 
 /**
  * Watch activeTab để reload data khi tab thay đổi

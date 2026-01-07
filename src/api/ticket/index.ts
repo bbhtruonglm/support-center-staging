@@ -13,36 +13,45 @@ import type {
   CreateTicketRequest,
   CreateTicketResponse,
   GetCommentResponse,
+  GetTicketRequest,
 } from '@/types/ticket'
 
 /**
  * API: Lấy danh sách ticket theo stage filter
  * @param tab_key - Key của tab để filter (optional)
+ * @param skip - Số lượng bản ghi bỏ qua (mặc định 0)
+ * @param take - Số lượng bản ghi lấy (mặc định 10)
  * @returns Promise chứa object với feedbackList và ticketList
  */
 export async function getTicketList(
   tab_key?: TabKey,
+  skip: number = 0,
+  take: number = 10,
 ): Promise<{ feedbackList: FeedbackItem[]; ticketList: TicketItem[] }> {
   try {
     /** Map tab key sang stage filter */
     const STAGE_FILTER = tab_key ? mapTabToStageFilter(tab_key) : undefined
 
-    /** Gọi API POST để lấy danh sách ticket (luôn lấy tất cả, filter ở client) */
-    const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', {})
-
-    /** Filter tickets theo stage trước khi transform */
-    let FILTERED_TICKETS = RESPONSE.data
-
-    if (STAGE_FILTER && STAGE_FILTER.length > 0) {
-      FILTERED_TICKETS = RESPONSE.data.filter((ticket) => STAGE_FILTER.includes(ticket.stage))
+    /** Tạo payload request */
+    const PAYLOAD: GetTicketRequest = {
+      skip,
+      take,
     }
 
+    /** Chỉ thêm stage vào payload nếu có filter */
+    if (STAGE_FILTER && STAGE_FILTER.length > 0) {
+      PAYLOAD.stage = STAGE_FILTER
+    }
+
+    /** Gọi API POST để lấy danh sách ticket với filter */
+    const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', PAYLOAD)
+
     /** Transform data từ TicketItem sang FeedbackItem */
-    const TRANSFORMED_DATA = FILTERED_TICKETS.map(transformTicketToFeedback)
+    const TRANSFORMED_DATA = RESPONSE.data.map(transformTicketToFeedback)
 
     return {
       feedbackList: TRANSFORMED_DATA,
-      ticketList: FILTERED_TICKETS,
+      ticketList: RESPONSE.data,
     }
   } catch (error: any) {
     console.error('Error loading ticket list:', error)
@@ -223,4 +232,5 @@ export type {
   CreateTicketResponse,
   GetCommentResponse,
   CommentItem,
+  GetTicketRequest,
 } from '@/types/ticket'
