@@ -110,7 +110,7 @@
     </div>
 
     <!-- Sticky Footer Button -->
-    <div class="sticky bottom-0 z-10 p-3 bg-white">
+    <div class="sticky bottom-0 z-10 px-3 py-2 bg-white">
       <button
         @click="navigateToCreate"
         class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg"
