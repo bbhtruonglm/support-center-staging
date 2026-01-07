@@ -7,7 +7,7 @@
       class="flex-1 px-3 py-1 text-sm font-medium whitespace-nowrap rounded-sm"
       :class="[
         modelValue === tab.key
-          ? 'bg-white shadow-sm text-zinc-950 border border-gray-100'
+          ? 'bg-white shadow-sm text-zinc-950'
           : 'text-zinc-500 hover:text-zinc-700',
       ]"
     >

@@ -52,7 +52,7 @@
 
           <!-- Empty State: No feedback or Invalid client_id -->
           <div
-            v-else-if="!is_valid || filteredFeedbackList.length === 0"
+            v-else-if="!is_valid || filteredFeedbackList?.length === 0"
             class="flex-1 flex flex-col items-center pt-10 gap-3"
           >
             <!-- Empty State Image -->
