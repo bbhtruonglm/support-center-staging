@@ -5,14 +5,88 @@
 
     <!-- Content -->
     <div class="flex-1 flex flex-col p-2">
-      <!-- Loading State -->
-      <div v-if="is_loading" class="flex items-center justify-center py-10">
-        <p class="text-sm text-gray-500">{{ t('common.loading') }}</p>
+      <!-- Error State -->
+      <div v-if="error_message && !is_loading" class="flex items-center justify-center py-10">
+        <p class="text-sm text-red-500">{{ error_message }}</p>
       </div>
 
-      <!-- Error State -->
-      <div v-else-if="error_message" class="flex items-center justify-center py-10">
-        <p class="text-sm text-red-500">{{ error_message }}</p>
+      <!-- Skeleton Loading State -->
+      <div v-if="is_loading" class="flex flex-col gap-1">
+        <!-- Chi tiết phản ánh Skeleton -->
+        <div class="flex flex-col gap-1">
+          <!-- Tiêu đề Skeleton -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+          </section>
+
+          <!-- Danh mục Skeleton -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="h-4 bg-gray-200 rounded w-1/2"></div>
+          </section>
+
+          <!-- Trạng thái Skeleton -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="h-5 bg-gray-200 rounded w-20"></div>
+          </section>
+
+          <!-- Nội dung Skeleton -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
+            <div class="space-y-2">
+              <div class="h-3 bg-gray-200 rounded w-full"></div>
+              <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+              <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+            </div>
+          </section>
+
+          <!-- Ảnh đính kèm Skeleton -->
+          <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
+            <div class="h-3 bg-gray-200 rounded w-20 mb-2"></div>
+            <div class="flex flex-wrap gap-2.5">
+              <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
+              <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
+            </div>
+          </section>
+        </div>
+
+        <!-- Tình trạng xử lý Skeleton -->
+        <div class="flex flex-col gap-2 mt-2">
+          <!-- Tiêu đề Skeleton -->
+          <div class="py-3 border-b-2 border-gray-200 flex justify-center animate-pulse">
+            <div class="h-4 bg-gray-200 rounded w-32"></div>
+          </div>
+
+          <!-- Comments List Skeleton -->
+          <div class="flex flex-col gap-2">
+            <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
+              <!-- Avatar, Tên, vị trí, ngày Skeleton -->
+              <div class="flex items-start justify-between gap-2 mb-2">
+                <div class="flex gap-2 flex-1">
+                  <!-- Avatar Skeleton -->
+                  <div class="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
+                  <!-- Tên, vị trí Skeleton -->
+                  <div class="flex flex-col gap-1 flex-1">
+                    <div class="h-4 bg-gray-200 rounded w-24"></div>
+                    <div class="h-3 bg-gray-200 rounded w-32"></div>
+                  </div>
+                </div>
+                <!-- Ngày Skeleton -->
+                <div class="flex flex-col items-end gap-1 shrink-0">
+                  <div class="h-3 bg-gray-200 rounded w-20"></div>
+                  <div class="h-3 bg-gray-200 rounded w-28"></div>
+                </div>
+              </div>
+              <!-- Nội dung bình luận Skeleton -->
+              <div class="space-y-2">
+                <div class="h-4 bg-gray-200 rounded w-full"></div>
+                <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- Chi tiết phản ánh -->

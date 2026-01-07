@@ -34,10 +34,7 @@
             class="w-full px-6 py-3 rounded-xl border border-gray-200 bg-white flex items-center justify-between cursor-pointer"
           >
             <span
-              :class="[
-                'text-sm',
-                selected_workflow ? 'font-semibold text-black' : 'text-gray-400',
-              ]"
+              :class="['text-sm', selected_workflow ? 'font-semibold text-black' : 'text-gray-400']"
             >
               {{ selected_workflow?.name || 'Chọn loại dịch vụ' }}
             </span>
@@ -241,7 +238,7 @@ async function loadWorkflowList() {
     workflow_list.value = DATA
 
     // Tự động chọn workflow đầu tiên nếu có
-    if (DATA.length > 0 && !selected_workflow.value) {
+    if (DATA.length > 0 && !selected_workflow.value && DATA[0]) {
       selected_workflow.value = DATA[0]
     }
   } catch (e: any) {
@@ -283,6 +280,11 @@ function handleImageSelect(event: Event) {
   /** Duyệt qua từng file và convert sang base64 */
   for (let i = 0; i < FILES_TO_ADD; i++) {
     const FILE = FILES[i]
+
+    // Kiểm tra file có tồn tại không
+    if (!FILE) {
+      continue
+    }
 
     // Kiểm tra file có phải là ảnh không
     if (!FILE.type.startsWith('image/')) {
@@ -379,6 +381,12 @@ async function handleSubmit() {
   is_submitting.value = true
 
   try {
+    // Kiểm tra lại selected_workflow (đã validate nhưng để chắc chắn)
+    if (!selected_workflow.value) {
+      toast.error('Vui lòng chọn loại dịch vụ')
+      return
+    }
+
     // Bước 1: Tạo form với form_data
     const FORM_DATA = {
       title: form_title.value.trim(),
