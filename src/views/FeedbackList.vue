@@ -4,14 +4,14 @@
     <div class="sticky top-0 z-10 bg-slate-100">
       <PageHeader title="Phản ánh" />
       <!-- Sticky Tabs -->
-      <div class="pt-3">
+      <div class="py-3">
         <TabNav v-model="activeTab" :tabs="tabs" />
       </div>
     </div>
 
     <!-- Scrollable Content -->
     <div class="flex-1 overflow-y-auto">
-      <div class="flex flex-col py-3 gap-3">
+      <div class="flex flex-col pb-3 gap-3">
         <!-- Feedback List Content -->
         <div class="flex-1 text-black">
           <!-- Skeleton Loading State -->
