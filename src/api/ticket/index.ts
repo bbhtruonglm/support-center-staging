@@ -26,7 +26,7 @@ import type {
 export async function getTicketList(
   tab_key?: TabKey,
   skip: number = 0,
-  take: number = 10,
+  take: number = 20,
 ): Promise<{ feedbackList: FeedbackItem[]; ticketList: TicketItem[] }> {
   try {
     /** Map tab key sang stage filter */
