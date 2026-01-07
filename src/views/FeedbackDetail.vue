@@ -69,7 +69,7 @@
                 <div class="flex items-start justify-between gap-2 mb-2">
                   <div class="flex gap-2 flex-1">
                     <!-- Avatar Skeleton -->
-                    <div class="w-8 h-8 bg-gray-200 rounded-full shrink-0"></div>
+                    <div class="w-8 h-8 bg-gray-200 rounded-xl shrink-0"></div>
                     <!-- Tên, vị trí Skeleton -->
                     <div class="flex flex-col gap-1 flex-1">
                       <div class="h-4 bg-gray-200 rounded w-24"></div>
@@ -179,12 +179,12 @@
                 <!-- Avatar, Tên, vị trí, ngày -->
                 <div class="flex items-start justify-between gap-2">
                   <!--Avatar, Tên, vị trí -->
-                  <div class="flex gap-2 flex-1">
+                  <div class="flex items-center gap-2 flex-1">
                     <!-- avatar -->
                     <img
                       :src="comment.avatar"
                       :alt="comment.name"
-                      class="w-8 h-8 object-cover shrink-0 rounded-full"
+                      class="w-8 h-8 object-cover shrink-0 rounded-xl"
                     />
                     <!-- Tên, vị trí -->
                     <div class="flex flex-col gap-0.5 flex-1">
