@@ -168,7 +168,40 @@
             </div>
 
             <!-- Comments List -->
-            <div class="flex flex-col gap-2">
+            <div v-if="is_loading_comments" class="flex flex-col gap-2">
+              <!-- Comment Skeleton -->
+              <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
+                <!-- Avatar, Tên, vị trí, ngày Skeleton -->
+                <div class="flex items-start justify-between gap-2 mb-2">
+                  <div class="flex gap-2 flex-1">
+                    <!-- Avatar Skeleton -->
+                    <div class="w-8 h-8 bg-gray-200 rounded-xl shrink-0"></div>
+                    <!-- Tên, vị trí Skeleton -->
+                    <div class="flex flex-col gap-1 flex-1">
+                      <div class="h-4 bg-gray-200 rounded w-24"></div>
+                      <div class="h-3 bg-gray-200 rounded w-32"></div>
+                    </div>
+                  </div>
+                  <!-- Ngày Skeleton -->
+                  <div class="flex flex-col items-end gap-1 shrink-0">
+                    <div class="h-3 bg-gray-200 rounded w-20"></div>
+                    <div class="h-3 bg-gray-200 rounded w-28"></div>
+                  </div>
+                </div>
+                <!-- Nội dung bình luận Skeleton -->
+                <div class="space-y-2">
+                  <div class="h-4 bg-gray-200 rounded w-full"></div>
+                  <div class="h-4 bg-gray-200 rounded w-5/6"></div>
+                </div>
+              </div>
+            </div>
+            <div
+              v-else-if="paginated_comments.length === 0"
+              class="flex items-center justify-center py-10"
+            >
+              <p class="text-sm text-gray-500">Chưa có bình luận nào</p>
+            </div>
+            <div v-else class="flex flex-col gap-2">
               <!-- Comment Card -->
               <div
                 v-for="comment in paginated_comments"
@@ -317,10 +350,9 @@ import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
 import PageHeader from '@/components/PageHeader.vue'
-import { getTicketDetail, type TicketItem } from '@/api/ticket'
-import { mapStageToStatus } from '@/api/ticket/transform'
-import type { TicketStage } from '@/types/ticket'
-import { mock_comments, type CommentItem } from '@/data/mockComments'
+import { getTicketDetail, getComments, type TicketItem } from '@/api/ticket'
+import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
+import type { TicketStage, CommentItem } from '@/types/ticket'
 
 /** Router instance */
 const route = useRoute()
@@ -338,6 +370,12 @@ const is_loading = ref(false)
 /** Thông báo lỗi */
 const error_message = ref<string | null>(null)
 
+/** Danh sách comments từ API */
+const comments_list = ref<CommentItem[]>([])
+
+/** Trạng thái loading comments */
+const is_loading_comments = ref(false)
+
 /** Số lượng comments mỗi trang */
 const ITEMS_PER_PAGE = 20
 
@@ -348,7 +386,7 @@ const current_page = ref(1)
  * Computed property: Tổng số trang
  */
 const total_pages = computed(() => {
-  return Math.ceil(mock_comments.length / ITEMS_PER_PAGE)
+  return Math.ceil(comments_list.value.length / ITEMS_PER_PAGE)
 })
 
 /**
@@ -357,7 +395,7 @@ const total_pages = computed(() => {
 const paginated_comments = computed(() => {
   const START_INDEX = (current_page.value - 1) * ITEMS_PER_PAGE
   const END_INDEX = START_INDEX + ITEMS_PER_PAGE
-  return mock_comments.slice(START_INDEX, END_INDEX)
+  return comments_list.value.slice(START_INDEX, END_INDEX)
 })
 
 /**
@@ -478,26 +516,6 @@ function goToPage(page: number) {
 }
 
 /**
- * Format date cho comment (HH:mm:ss - DD/MM/YYYY)
- * @param iso_date - ISO date string
- * @returns Date string định dạng HH:mm:ss - DD/MM/YYYY
- */
-function formatCommentDate(iso_date: string): string {
-  try {
-    const DATE = new Date(iso_date)
-    const HOURS = String(DATE.getHours()).padStart(2, '0')
-    const MINUTES = String(DATE.getMinutes()).padStart(2, '0')
-    const SECONDS = String(DATE.getSeconds()).padStart(2, '0')
-    const DAY = String(DATE.getDate()).padStart(2, '0')
-    const MONTH = String(DATE.getMonth() + 1).padStart(2, '0')
-    const YEAR = DATE.getFullYear()
-    return `${HOURS}:${MINUTES}:${SECONDS} - ${DAY}/${MONTH}/${YEAR}`
-  } catch (e) {
-    return iso_date
-  }
-}
-
-/**
  * Get label cho category từ workflow_id
  * @param workflow_id - ID của workflow từ ticket detail
  * @returns Label string
@@ -539,6 +557,37 @@ function getStatusLabel(stage: TicketStage): string {
 }
 
 /**
+ * Load comments từ API
+ * @param ticket_id - Ticket ID (số) để lấy comments
+ */
+async function loadComments(ticket_id: number) {
+  /** Set loading state */
+  is_loading_comments.value = true
+
+  try {
+    /** Gọi API để lấy danh sách comments */
+    const RESPONSE = await getComments(ticket_id)
+
+    /** Transform comments từ API sang format CommentItem */
+    const TRANSFORMED_COMMENTS = RESPONSE.comments.map(transformCommentToItem)
+
+    /** Cập nhật danh sách comments */
+    comments_list.value = TRANSFORMED_COMMENTS
+
+    /** Reset về trang đầu tiên */
+    current_page.value = 1
+  } catch (e: any) {
+    console.error('Error loading comments:', e)
+    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải danh sách bình luận'
+    toast.error(ERROR_MSG)
+    /** Set empty array nếu có lỗi */
+    comments_list.value = []
+  } finally {
+    is_loading_comments.value = false
+  }
+}
+
+/**
  * Load chi tiết ticket từ router state hoặc API
  */
 async function loadTicketDetail() {
@@ -557,6 +606,10 @@ async function loadTicketDetail() {
   if (STATE_TICKET && STATE_TICKET.id === TICKET_ID) {
     /** Sử dụng ticket từ router state, không cần gọi API */
     ticket_detail.value = STATE_TICKET
+    /** Load comments cho ticket này */
+    if (STATE_TICKET.ticket_id) {
+      await loadComments(STATE_TICKET.ticket_id)
+    }
     return
   }
 
@@ -569,6 +622,11 @@ async function loadTicketDetail() {
     /** Gọi API để lấy chi tiết ticket */
     const DATA = await getTicketDetail(TICKET_ID)
     ticket_detail.value = DATA
+
+    /** Load comments cho ticket này */
+    if (DATA.ticket_id) {
+      await loadComments(DATA.ticket_id)
+    }
   } catch (e: any) {
     console.error('Error loading ticket detail:', e)
     const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải chi tiết phản ánh'

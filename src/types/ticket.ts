@@ -450,3 +450,40 @@ export interface CreateTicketResponse extends TicketItem {
   ticket_form_info: TicketFormInfo
 }
 
+/**
+ * Interface định nghĩa response từ API get_comment
+ */
+export interface GetCommentResponse {
+  /** Tổng số trang */
+  total_page: number
+
+  /** Danh sách comments */
+  comments: TicketComment[]
+}
+
+/**
+ * Interface định nghĩa comment item cho UI
+ */
+export interface CommentItem {
+  /** ID comment */
+  id: string
+
+  /** Tên người comment */
+  name: string
+
+  /** Vị trí/chức vụ */
+  position: string
+
+  /** Avatar URL */
+  avatar: string
+
+  /** Nội dung comment */
+  content: string
+
+  /** Ngày comment */
+  date: string
+
+  /** Có in đậm tên không */
+  is_bold: boolean
+}
+

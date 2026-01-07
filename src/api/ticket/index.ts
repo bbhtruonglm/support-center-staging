@@ -12,6 +12,7 @@ import type {
   CreateFormResponse,
   CreateTicketRequest,
   CreateTicketResponse,
+  GetCommentResponse,
 } from '@/types/ticket'
 
 /**
@@ -176,6 +177,34 @@ export async function getTicketDetail(ticket_id: string): Promise<TicketItem> {
 }
 
 /**
+ * API: Lấy danh sách comments theo ticket_id
+ * @param ticket_id - ID của ticket (số)
+ * @returns Promise chứa GetCommentResponse
+ */
+export async function getComments(ticket_id: number): Promise<GetCommentResponse> {
+  try {
+    /** Gọi API POST để lấy danh sách comments */
+    const RESPONSE = await ticketApiClient.post<GetCommentResponse>('get_comment', {
+      ticket_id,
+    })
+
+    return RESPONSE.data
+  } catch (error: any) {
+    console.error('Error loading comments:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể tải danh sách bình luận'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
  * Export types để sử dụng ở các component
  */
 export type {
@@ -192,4 +221,6 @@ export type {
   CreateFormResponse,
   CreateTicketRequest,
   CreateTicketResponse,
+  GetCommentResponse,
+  CommentItem,
 } from '@/types/ticket'

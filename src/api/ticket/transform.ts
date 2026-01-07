@@ -1,7 +1,14 @@
 /**
  * Transform functions cho Ticket API
  */
-import type { TicketItem, FeedbackItem, TicketStage, TabKey } from '@/types/ticket'
+import type {
+  TicketItem,
+  FeedbackItem,
+  TicketStage,
+  TabKey,
+  TicketComment,
+  CommentItem,
+} from '@/types/ticket'
 
 /**
  * Map stage từ API sang status cho UI
@@ -91,5 +98,81 @@ export function mapTabToStageFilter(tab_key: TabKey): TicketStage[] | undefined 
     default:
       // Tab "Tất cả" không filter - hiển thị toàn bộ ticket
       return undefined
+  }
+}
+
+/**
+ * Format date cho comment (HH:mm:ss - DD/MM/YYYY)
+ * @param iso_date - ISO date string
+ * @returns Date string định dạng HH:mm:ss - DD/MM/YYYY
+ */
+export function formatCommentDate(iso_date: string): string {
+  try {
+    const DATE = new Date(iso_date)
+    const HOURS = String(DATE.getHours()).padStart(2, '0')
+    const MINUTES = String(DATE.getMinutes()).padStart(2, '0')
+    const SECONDS = String(DATE.getSeconds()).padStart(2, '0')
+    const DAY = String(DATE.getDate()).padStart(2, '0')
+    const MONTH = String(DATE.getMonth() + 1).padStart(2, '0')
+    const YEAR = DATE.getFullYear()
+    return `${HOURS}:${MINUTES}:${SECONDS} - ${DAY}/${MONTH}/${YEAR}`
+  } catch (e) {
+    return iso_date
+  }
+}
+
+/**
+ * Transform TicketComment sang CommentItem format
+ * @param comment - Ticket comment từ API
+ * @returns CommentItem
+ */
+export function transformCommentToItem(comment: TicketComment): CommentItem {
+  /** Lấy thông tin từ contact_info hoặc employee_info */
+  const CONTACT_INFO = comment.contact_info
+  const EMPLOYEE_INFO = comment.employee_info
+
+  /** Xác định tên người comment */
+  let NAME = 'Không xác định'
+  if (CONTACT_INFO) {
+    const FIRST_NAME = CONTACT_INFO.first_name || ''
+    const LAST_NAME = CONTACT_INFO.last_name || ''
+    NAME = `${FIRST_NAME} ${LAST_NAME}`.trim() || 'Không xác định'
+  } else if (EMPLOYEE_INFO) {
+    /** Nếu có employee_info, có thể lấy tên từ đây */
+    NAME = EMPLOYEE_INFO.name || 'Nhân viên'
+  }
+
+  /** Xác định avatar */
+  let AVATAR = '/src/assets/systemAvatar.png'
+  if (CONTACT_INFO?.avatar) {
+    AVATAR = CONTACT_INFO.avatar
+  } else if (EMPLOYEE_INFO?.avatar) {
+    AVATAR = EMPLOYEE_INFO.avatar
+  }
+
+  /** Xác định vị trí/chức vụ */
+  let POSITION = ''
+  if (EMPLOYEE_INFO) {
+    /** Nếu là employee, có thể lấy position từ employee_info */
+    POSITION = EMPLOYEE_INFO.position || EMPLOYEE_INFO.department || ''
+  } else if (CONTACT_INFO) {
+    /** Nếu là customer, hiển thị "Khách hàng" */
+    POSITION = 'Khách hàng'
+  }
+
+  /** Format date */
+  const DATE = formatCommentDate(comment.created_at)
+
+  /** Xác định is_bold: employee comments sẽ in đậm */
+  const IS_BOLD = !!EMPLOYEE_INFO
+
+  return {
+    id: comment.id,
+    name: NAME,
+    position: POSITION,
+    avatar: AVATAR,
+    content: comment.content,
+    date: DATE,
+    is_bold: IS_BOLD,
   }
 }
