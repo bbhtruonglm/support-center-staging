@@ -298,6 +298,11 @@
                 rows="4"
               ></textarea>
             </div>
+
+            <!-- Footer Button -->
+            <button class="w-full bg-orange-500 text-white font-medium p-3 rounded-lg">
+              Gửi bình luận
+            </button>
           </div>
         </div>
       </div>
