@@ -373,6 +373,9 @@ const error_message = ref<string | null>(null)
 /** Danh sách comments từ API */
 const comments_list = ref<CommentItem[]>([])
 
+/** Tổng số trang từ API */
+const total_pages = ref(0)
+
 /** Trạng thái loading comments */
 const is_loading_comments = ref(false)
 
@@ -381,13 +384,6 @@ const ITEMS_PER_PAGE = 20
 
 /** Trang hiện tại */
 const current_page = ref(1)
-
-/**
- * Computed property: Tổng số trang
- */
-const total_pages = computed(() => {
-  return Math.ceil(comments_list.value.length / ITEMS_PER_PAGE)
-})
 
 /**
  * Computed property: Danh sách comments của trang hiện tại
@@ -574,14 +570,18 @@ async function loadComments(ticket_id: number) {
     /** Cập nhật danh sách comments */
     comments_list.value = TRANSFORMED_COMMENTS
 
+    /** Cập nhật total_page từ API */
+    total_pages.value = RESPONSE.total_page
+
     /** Reset về trang đầu tiên */
     current_page.value = 1
   } catch (e: any) {
     console.error('Error loading comments:', e)
     const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải danh sách bình luận'
     toast.error(ERROR_MSG)
-    /** Set empty array nếu có lỗi */
+    /** Set empty array và reset total_page nếu có lỗi */
     comments_list.value = []
+    total_pages.value = 0
   } finally {
     is_loading_comments.value = false
   }
