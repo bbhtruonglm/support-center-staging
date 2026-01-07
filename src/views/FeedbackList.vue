@@ -19,7 +19,7 @@
             <div
               v-for="i in 3"
               :key="i"
-              class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)] animate-pulse"
+              class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
             >
               <!-- Title & Status Row Skeleton -->
               <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
@@ -70,7 +70,7 @@
               v-for="item in filteredFeedbackList"
               :key="item.id"
               @click="navigateToDetail(item.id)"
-              class="bg-white rounded-lg px-4 py-1 shadow-[0_1px_2px_0_rgba(16,24,40,0.05)] cursor-pointer hover:bg-gray-50 transition-colors"
+              class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <!-- Title & Status Row -->
               <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
