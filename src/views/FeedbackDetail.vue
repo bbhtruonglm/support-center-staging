@@ -135,17 +135,19 @@
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
             <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
             <div class="flex flex-wrap gap-2.5">
-              <!-- Empty State: Text khi không có attachments -->
-              <p
+              <!-- Empty State: Giữ height để đồng bộ với skeleton -->
+              <div
                 v-if="
                   !ticket_detail.attachments ||
                   (Array.isArray(ticket_detail.attachments) &&
                     ticket_detail.attachments.length === 0)
                 "
-                class="text-sm font-medium text-black"
+                class="w-20 h-20 flex items-center"
               >
-                {{ t('feedback.noAttachments') }}
-              </p>
+                <p class="text-sm font-medium text-black whitespace-nowrap">
+                  {{ t('feedback.noAttachments') }}
+                </p>
+              </div>
               <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
               <img
                 v-else-if="Array.isArray(ticket_detail.attachments)"
