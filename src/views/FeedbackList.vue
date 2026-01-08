@@ -221,12 +221,20 @@ const scrollContainer = ref<HTMLElement | null>(null)
 
 /**
  * Watch activeTab để reload data khi tab thay đổi
+ * immediate: false để tránh trigger khi component mount (đã có onMounted)
  */
-watch(activeTab, () => {
-  /** Reset pagination khi đổi tab */
-  resetPagination()
-  loadFeedbackList(true)
-})
+watch(
+  activeTab,
+  (new_value, old_value) => {
+    /** Chỉ reload nếu giá trị thực sự thay đổi (không phải lần đầu mount) */
+    if (old_value !== undefined && new_value !== old_value) {
+      /** Reset pagination khi đổi tab */
+      resetPagination()
+      loadFeedbackList(true)
+    }
+  },
+  { immediate: false },
+)
 
 /**
  * Reset pagination về trạng thái ban đầu
@@ -246,6 +254,11 @@ async function loadFeedbackList(is_reset: boolean = false) {
   // Kiểm tra context hợp lệ
   if (!is_valid.value) {
     resetPagination()
+    return
+  }
+
+  // Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls)
+  if (is_reset && is_loading.value) {
     return
   }
 
