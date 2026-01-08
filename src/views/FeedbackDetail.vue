@@ -351,7 +351,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -571,6 +571,11 @@ function getStatusLabel(stage: TicketStage): string {
  * @param ticket_id - Ticket ID (số) để lấy comments
  */
 async function loadComments(ticket_id: number) {
+  /** Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls) */
+  if (is_loading_comments.value) {
+    return
+  }
+
   /** Set loading state */
   is_loading_comments.value = true
 
@@ -643,6 +648,11 @@ async function handleSendComment() {
  * Load chi tiết ticket từ router state hoặc API
  */
 async function loadTicketDetail() {
+  /** Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls) */
+  if (is_loading.value) {
+    return
+  }
+
   /** Lấy ticket ID từ route params */
   const TICKET_ID = route.params.id as string
 
@@ -688,6 +698,19 @@ async function loadTicketDetail() {
     is_loading.value = false
   }
 }
+
+/**
+ * Watch route params để reload khi ID thay đổi (khi navigate giữa các ticket khác nhau)
+ */
+watch(
+  () => route.params.id,
+  (new_id, old_id) => {
+    /** Chỉ reload nếu ID thực sự thay đổi (không phải lần đầu mount) */
+    if (old_id !== undefined && new_id !== old_id) {
+      loadTicketDetail()
+    }
+  },
+)
 
 /** Load data khi component mounted */
 onMounted(() => {

@@ -213,6 +213,9 @@ const is_loading = ref(false)
 /** Trạng thái loading more */
 const is_loading_more = ref(false)
 
+/** Flag để track khi đang đổi tab */
+const is_changing_tab = ref(false)
+
 /** Số lượng bản ghi đã skip */
 const skip = ref(0)
 
@@ -234,9 +237,14 @@ watch(
   (new_value, old_value) => {
     /** Chỉ reload nếu giá trị thực sự thay đổi (không phải lần đầu mount) */
     if (old_value !== undefined && new_value !== old_value) {
+      /** Set flag đang đổi tab */
+      is_changing_tab.value = true
       /** Reset pagination khi đổi tab */
       resetPagination()
-      loadFeedbackList(true)
+      loadFeedbackList(true).finally(() => {
+        /** Reset flag sau khi load xong */
+        is_changing_tab.value = false
+      })
     }
   },
   { immediate: false },
@@ -251,6 +259,7 @@ function resetPagination() {
   feedbackList.value = []
   ticketMap.value.clear()
   /** Reset loading states để cancel các request đang chạy */
+  is_loading.value = false
   is_loading_more.value = false
 }
 
@@ -345,8 +354,14 @@ async function loadFeedbackList(is_reset: boolean = false) {
  * Handle scroll event để detect khi scroll gần cuối
  */
 function handleScroll() {
-  /** Không load more nếu đang loading (reset hoặc load more) */
-  if (!scrollContainer.value || is_loading_more.value || is_loading.value || !has_more.value) {
+  /** Không load more nếu đang loading (reset hoặc load more) hoặc đang đổi tab */
+  if (
+    !scrollContainer.value ||
+    is_loading_more.value ||
+    is_loading.value ||
+    !has_more.value ||
+    is_changing_tab.value
+  ) {
     return
   }
 
