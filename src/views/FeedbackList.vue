@@ -250,6 +250,8 @@ function resetPagination() {
   has_more.value = true
   feedbackList.value = []
   ticketMap.value.clear()
+  /** Reset loading states để cancel các request đang chạy */
+  is_loading_more.value = false
 }
 
 /**
@@ -338,7 +340,8 @@ async function loadFeedbackList(is_reset: boolean = false) {
  * Handle scroll event để detect khi scroll gần cuối
  */
 function handleScroll() {
-  if (!scrollContainer.value || is_loading_more.value || !has_more.value) {
+  /** Không load more nếu đang loading (reset hoặc load more) */
+  if (!scrollContainer.value || is_loading_more.value || is_loading.value || !has_more.value) {
     return
   }
 
