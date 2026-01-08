@@ -22,30 +22,32 @@
               class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
             >
               <!-- Title & Status Row Skeleton -->
-              <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
+              <div class="flex items-start justify-between border-b border-gray-200 py-2">
                 <div class="flex-1">
                   <div class="h-4 bg-gray-200 rounded w-3/4"></div>
                 </div>
                 <div class="h-5 bg-gray-200 rounded w-20"></div>
               </div>
 
-              <!-- Date & Support Row Skeleton -->
-              <div class="flex items-center justify-between gap-1 py-2">
-                <div class="flex items-center gap-1">
-                  <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                  <div class="h-3 bg-gray-200 rounded w-24"></div>
+              <div class="flex flex-col py-2">
+                <!-- Date & Support Row Skeleton -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1">
+                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                    <div class="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
                 </div>
-                <div class="flex items-center gap-1">
-                  <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                  <div class="h-3 bg-gray-200 rounded w-16"></div>
-                </div>
-              </div>
 
-              <!-- Content Description Skeleton -->
-              <div class="py-1 space-y-2">
-                <div class="h-3 bg-gray-200 rounded w-full"></div>
-                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-                <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+                <!-- Content Description Skeleton -->
+                <div class="space-y-2 mt-2">
+                  <div class="h-3 bg-gray-200 rounded w-full"></div>
+                  <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                  <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+                </div>
               </div>
             </div>
           </div>
@@ -75,7 +77,7 @@
               class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <!-- Title & Status Row -->
-              <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
+              <div class="flex items-start justify-between border-b border-gray-200 py-2">
                 <h3 class="text-sm font-semibold flex-1 line-clamp-1">
                   {{ item.title }}
                 </h3>
@@ -89,22 +91,24 @@
                 </span>
               </div>
 
-              <!-- Date & Support Row -->
-              <div class="flex items-center justify-between gap-1 py-2">
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                  <Calendar :size="12" class="text-gray-500" />
-                  <span>Ngày : {{ item.date }}</span>
+              <div class="flex flex-col py-2">
+                <!-- Date & Support Row -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <Calendar :size="12" class="text-gray-500" />
+                    <span>Ngày : {{ item.date }}</span>
+                  </div>
+                  <div class="flex items-center gap-1 text-xs text-gray-500">
+                    <Bookmark :size="12" class="text-gray-500" />
+                    <span>Hỗ trợ</span>
+                  </div>
                 </div>
-                <div class="flex items-center gap-1 text-xs text-gray-500">
-                  <Bookmark :size="12" class="text-gray-500" />
-                  <span>Hỗ trợ</span>
-                </div>
-              </div>
 
-              <!-- Content Description -->
-              <p class="text-sm line-clamp-3">
-                {{ item.content }}
-              </p>
+                <!-- Content Description -->
+                <p class="text-sm line-clamp-3">
+                  {{ item.content }}
+                </p>
+              </div>
             </div>
 
             <!-- Loading More Skeleton -->
@@ -115,30 +119,32 @@
                 class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
               >
                 <!-- Title & Status Row Skeleton -->
-                <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
+                <div class="flex items-start justify-between border-b border-gray-200 py-2">
                   <div class="flex-1">
                     <div class="h-4 bg-gray-200 rounded w-3/4"></div>
                   </div>
                   <div class="h-5 bg-gray-200 rounded w-20"></div>
                 </div>
 
-                <!-- Date & Support Row Skeleton -->
-                <div class="flex items-center justify-between gap-1 py-2">
-                  <div class="flex items-center gap-1">
-                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                <div class="flex flex-col py-2">
+                  <!-- Date & Support Row Skeleton -->
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1">
+                      <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                      <div class="h-3 bg-gray-200 rounded w-24"></div>
+                    </div>
+                    <div class="flex items-center gap-1">
+                      <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                      <div class="h-3 bg-gray-200 rounded w-16"></div>
+                    </div>
                   </div>
-                  <div class="flex items-center gap-1">
-                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                    <div class="h-3 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
 
-                <!-- Content Description Skeleton -->
-                <div class="py-1 space-y-2">
-                  <div class="h-3 bg-gray-200 rounded w-full"></div>
-                  <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-                  <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+                  <!-- Content Description Skeleton -->
+                  <div class="space-y-2 mt-2">
+                    <div class="h-3 bg-gray-200 rounded w-full"></div>
+                    <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                    <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+                  </div>
                 </div>
               </div>
             </div>
