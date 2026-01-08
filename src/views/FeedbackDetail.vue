@@ -328,7 +328,7 @@
               <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
               <textarea
                 placeholder="Nhập nội dung bình luận của bạn"
-                class="w-full px-4 py-3 text-sm rounded-md border border-gray-200 resize-none focus:outline-none text-black placeholder:text-gray-500"
+                class="w-full resize-y px-4 py-3 text-sm rounded-md bg-white border border-gray-200 focus:outline-none text-black placeholder:text-gray-500 shadow-sm"
                 rows="4"
               ></textarea>
             </div>
