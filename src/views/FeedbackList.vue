@@ -111,8 +111,8 @@
               </div>
             </div>
 
-            <!-- Loading More Skeleton -->
-            <div v-if="is_loading_more" class="flex flex-col gap-3">
+            <!-- Loading More Skeleton - chỉ hiện khi còn data -->
+            <div v-if="is_loading_more && has_more" class="flex flex-col gap-3">
               <div
                 v-for="i in 2"
                 :key="`skeleton-${i}`"
@@ -325,12 +325,7 @@ async function loadFeedbackList(is_reset: boolean = false) {
 
     /** Kiểm tra has_more: nếu số lượng trả về ít hơn TAKE thì không còn dữ liệu */
     if (TICKET_LIST.length < TAKE) {
-      const PREV_HAS_MORE = has_more.value
       has_more.value = false
-      /** Hiển thị toast khi scroll đến cuối, load more nhưng hết dữ liệu */
-      if (!is_reset && PREV_HAS_MORE && feedbackList.value.length > 0) {
-        toast.info('Đã hiển thị tất cả phản ánh')
-      }
     } else {
       /** Nếu số lượng bằng TAKE thì có thể còn dữ liệu */
       has_more.value = true
