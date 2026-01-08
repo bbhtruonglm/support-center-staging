@@ -12,6 +12,8 @@ import type {
   CreateTicketRequest,
   CreateTicketResponse,
   GetCommentResponse,
+  CreateCommentRequest,
+  CreateCommentResponse,
   GetTicketRequest,
 } from '@/types/ticket'
 
@@ -207,6 +209,32 @@ export async function getComments(ticket_id: number): Promise<GetCommentResponse
 }
 
 /**
+ * API: Tạo comment mới
+ * @param request - Request chứa ticket_id và content
+ * @returns Promise chứa CreateCommentResponse
+ */
+export async function createComment(request: CreateCommentRequest): Promise<CreateCommentResponse> {
+  try {
+    /** Gọi API POST để tạo comment */
+    const RESPONSE = await ticketApiClient.post<CreateCommentResponse>('create_comment', request)
+
+    return RESPONSE.data
+  } catch (error: any) {
+    console.error('Error creating comment:', error)
+
+    /** Xử lý lỗi từ response */
+    if (error.response) {
+      const STATUS = error.response.status
+      const MESSAGE = error.response.data?.message || 'Không thể gửi bình luận'
+      throw new Error(MESSAGE)
+    }
+
+    /** Xử lý lỗi network */
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
+/**
  * Export types để sử dụng ở các component
  */
 export type {
@@ -224,6 +252,8 @@ export type {
   CreateTicketRequest,
   CreateTicketResponse,
   GetCommentResponse,
+  CreateCommentRequest,
+  CreateCommentResponse,
   CommentItem,
   GetTicketRequest,
 } from '@/types/ticket'

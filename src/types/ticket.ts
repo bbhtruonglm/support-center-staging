@@ -500,3 +500,19 @@ export interface CommentItem {
   /** Có in đậm tên không */
   is_bold: boolean
 }
+
+/**
+ * Interface định nghĩa request để tạo comment
+ */
+export interface CreateCommentRequest {
+  /** Ticket ID (số) */
+  ticket_id: number
+
+  /** Nội dung comment */
+  content: string
+}
+
+/**
+ * Interface định nghĩa response từ API create_comment
+ */
+export interface CreateCommentResponse extends TicketComment {}

@@ -327,15 +327,21 @@
             <div class="flex flex-col gap-1.5">
               <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
               <textarea
+                v-model="comment_content"
                 placeholder="Nhập nội dung bình luận của bạn"
                 class="w-full resize-y px-4 py-3 text-sm rounded-md bg-white border border-gray-200 focus:outline-none text-black placeholder:text-gray-500 shadow-sm"
                 rows="4"
+                :disabled="is_sending_comment"
               ></textarea>
             </div>
 
             <!-- Footer Button -->
-            <button class="w-full bg-orange-500 text-white font-medium p-3 rounded-lg">
-              Gửi bình luận
+            <button
+              @click="handleSendComment"
+              :disabled="is_sending_comment || !comment_content.trim()"
+              class="w-full bg-orange-500 cursor-pointer text-white font-medium p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {{ is_sending_comment ? 'Đang gửi...' : 'Gửi bình luận' }}
             </button>
           </div>
         </div>
@@ -352,7 +358,7 @@ import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
 import PageHeader from '@/components/PageHeader.vue'
-import { getTicketDetail, getComments, type TicketItem } from '@/api/ticket'
+import { getTicketDetail, getComments, createComment, type TicketItem } from '@/api/ticket'
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
 import type { TicketStage, CommentItem } from '@/types/ticket'
 
@@ -386,6 +392,12 @@ const ITEMS_PER_PAGE = 20
 
 /** Trang hiện tại */
 const current_page = ref(1)
+
+/** Nội dung comment đang nhập */
+const comment_content = ref('')
+
+/** Trạng thái đang gửi comment */
+const is_sending_comment = ref(false)
 
 /**
  * Computed property: Danh sách comments của trang hiện tại
@@ -586,6 +598,44 @@ async function loadComments(ticket_id: number) {
     total_pages.value = 0
   } finally {
     is_loading_comments.value = false
+  }
+}
+
+/**
+ * Gửi comment mới
+ */
+async function handleSendComment() {
+  /** Kiểm tra ticket detail và content */
+  if (!ticket_detail.value || !comment_content.value.trim()) {
+    return
+  }
+
+  /** Set loading state */
+  is_sending_comment.value = true
+
+  try {
+    /** Gọi API để tạo comment */
+    await createComment({
+      ticket_id: ticket_detail.value.ticket_id,
+      content: comment_content.value.trim(),
+    })
+
+    /** Clear input */
+    comment_content.value = ''
+
+    /** Reload comments để hiển thị comment mới */
+    if (ticket_detail.value.ticket_id) {
+      await loadComments(ticket_detail.value.ticket_id)
+    }
+
+    /** Hiển thị thông báo thành công */
+    toast.success('Gửi bình luận thành công')
+  } catch (e: any) {
+    console.error('Error sending comment:', e)
+    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi gửi bình luận'
+    toast.error(ERROR_MSG)
+  } finally {
+    is_sending_comment.value = false
   }
 }
 
