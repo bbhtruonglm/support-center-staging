@@ -2,10 +2,9 @@
  * Ticket API - Main entry point
  */
 import { ticketApiClient } from './client'
-import { transformTicketToFeedback, mapTabToStageFilter } from './transform'
+import { mapTabToStageFilter } from './transform'
 import type {
   TicketItem,
-  FeedbackItem,
   TabKey,
   WorkflowItem,
   FormData,
@@ -21,13 +20,13 @@ import type {
  * @param tab_key - Key của tab để filter (optional)
  * @param skip - Số lượng bản ghi bỏ qua (mặc định 0)
  * @param take - Số lượng bản ghi lấy (mặc định 10)
- * @returns Promise chứa object với feedbackList và ticketList
+ * @returns Promise chứa danh sách TicketItem
  */
 export async function getTicketList(
   tab_key?: TabKey,
   skip: number = 0,
-  take: number = 20,
-): Promise<{ feedbackList: FeedbackItem[]; ticketList: TicketItem[] }> {
+  take: number = 10,
+): Promise<TicketItem[]> {
   try {
     /** Map tab key sang stage filter */
     const STAGE_FILTER = tab_key ? mapTabToStageFilter(tab_key) : undefined
@@ -46,13 +45,7 @@ export async function getTicketList(
     /** Gọi API POST để lấy danh sách ticket với filter */
     const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', PAYLOAD)
 
-    /** Transform data từ TicketItem sang FeedbackItem */
-    const TRANSFORMED_DATA = RESPONSE.data.map(transformTicketToFeedback)
-
-    return {
-      feedbackList: TRANSFORMED_DATA,
-      ticketList: RESPONSE.data,
-    }
+    return RESPONSE.data
   } catch (error: any) {
     console.error('Error loading ticket list:', error)
 

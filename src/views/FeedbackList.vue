@@ -10,7 +10,7 @@
     </div>
 
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto">
+    <div ref="scrollContainer" class="flex-1 overflow-y-auto" @scroll="handleScroll">
       <div class="flex flex-col pb-3 gap-3">
         <!-- Feedback List Content -->
         <div class="flex-1 text-black">
@@ -106,6 +106,42 @@
                 {{ item.content }}
               </p>
             </div>
+
+            <!-- Loading More Skeleton -->
+            <div v-if="is_loading_more" class="flex flex-col gap-3">
+              <div
+                v-for="i in 2"
+                :key="`skeleton-${i}`"
+                class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
+              >
+                <!-- Title & Status Row Skeleton -->
+                <div class="flex items-start justify-between gap-2 border-b border-gray-200 py-2">
+                  <div class="flex-1">
+                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
+                  </div>
+                  <div class="h-5 bg-gray-200 rounded w-20"></div>
+                </div>
+
+                <!-- Date & Support Row Skeleton -->
+                <div class="flex items-center justify-between gap-1 py-2">
+                  <div class="flex items-center gap-1">
+                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                    <div class="h-3 bg-gray-200 rounded w-24"></div>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
+                    <div class="h-3 bg-gray-200 rounded w-16"></div>
+                  </div>
+                </div>
+
+                <!-- Content Description Skeleton -->
+                <div class="py-1 space-y-2">
+                  <div class="h-3 bg-gray-200 rounded w-full"></div>
+                  <div class="h-3 bg-gray-200 rounded w-5/6"></div>
+                  <div class="h-3 bg-gray-200 rounded w-4/6"></div>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -124,7 +160,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Calendar, Bookmark } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
@@ -135,7 +171,9 @@ import TabNav from '@/components/TabNav.vue'
 import MailIcon from '@/assets/MailIcon.png'
 
 import { useApiContext } from '@/composables/useApiContext'
-import { getTicketList, type FeedbackItem, type TicketItem } from '@/api/ticket'
+import { getTicketList, type TicketItem } from '@/api/ticket'
+import { transformTicketToFeedback } from '@/api/ticket/transform'
+import type { FeedbackItem } from '@/types/ticket'
 
 /** Router instance */
 const router = useRouter()
@@ -166,44 +204,134 @@ const ticketMap = ref<Map<string, TicketItem>>(new Map())
 /** Trạng thái loading */
 const is_loading = ref(false)
 
+/** Trạng thái loading more */
+const is_loading_more = ref(false)
+
+/** Số lượng bản ghi đã skip */
+const skip = ref(0)
+
+/** Số lượng bản ghi mỗi lần load */
+const TAKE = 10
+
+/** Còn dữ liệu để load không */
+const has_more = ref(true)
+
+/** Ref đến scroll container */
+const scrollContainer = ref<HTMLElement | null>(null)
+
 /**
  * Watch activeTab để reload data khi tab thay đổi
  */
 watch(activeTab, () => {
-  loadFeedbackList()
+  /** Reset pagination khi đổi tab */
+  resetPagination()
+  loadFeedbackList(true)
 })
 
 /**
- * Load danh sách feedback từ Ticket API
+ * Reset pagination về trạng thái ban đầu
  */
-async function loadFeedbackList() {
+function resetPagination() {
+  skip.value = 0
+  has_more.value = true
+  feedbackList.value = []
+  ticketMap.value.clear()
+}
+
+/**
+ * Load danh sách feedback từ Ticket API
+ * @param is_reset - Nếu true thì reset danh sách, nếu false thì append vào danh sách hiện tại
+ */
+async function loadFeedbackList(is_reset: boolean = false) {
   // Kiểm tra context hợp lệ
   if (!is_valid.value) {
-    feedbackList.value = []
-    ticketMap.value.clear()
+    resetPagination()
     return
   }
 
+  // Kiểm tra nếu không còn dữ liệu để load
+  if (!is_reset && !has_more.value) {
+    return
+  }
+
+  // Kiểm tra nếu đang load more thì không load tiếp
+  if (!is_reset && is_loading_more.value) {
+    return
+  }
+
+  // Nếu reset thì set skip về 0
+  const CURRENT_SKIP = is_reset ? 0 : skip.value
+
   // Set loading state
-  is_loading.value = true
+  if (is_reset) {
+    is_loading.value = true
+  } else {
+    is_loading_more.value = true
+  }
 
   try {
-    /** Gọi Ticket API để lấy danh sách ticket */
-    const DATA = await getTicketList(activeTab.value)
-    feedbackList.value = DATA.feedbackList
+    /** Gọi Ticket API để lấy danh sách ticket với skip và take */
+    const TICKET_LIST = await getTicketList(activeTab.value, CURRENT_SKIP, TAKE)
+
+    /** Transform TicketItem sang FeedbackItem để hiển thị */
+    const TRANSFORMED_LIST = TICKET_LIST.map(transformTicketToFeedback)
+
+    /** Nếu reset thì thay thế, nếu không thì append */
+    if (is_reset) {
+      feedbackList.value = TRANSFORMED_LIST
+      ticketMap.value.clear()
+      /** Reset skip về số lượng đã load */
+      skip.value = TICKET_LIST.length
+    } else {
+      feedbackList.value = [...feedbackList.value, ...TRANSFORMED_LIST]
+      /** Cập nhật skip bằng cách cộng thêm số lượng vừa load */
+      skip.value += TICKET_LIST.length
+    }
 
     /** Lưu TicketItem vào map để truyền qua router state */
-    ticketMap.value.clear()
-    DATA.ticketList.forEach((ticket) => {
+    TICKET_LIST.forEach((ticket) => {
       ticketMap.value.set(ticket.id, ticket)
     })
+
+    /** Kiểm tra has_more: nếu số lượng trả về ít hơn TAKE thì không còn dữ liệu */
+    if (TICKET_LIST.length < TAKE) {
+      has_more.value = false
+    } else {
+      /** Nếu số lượng bằng TAKE thì có thể còn dữ liệu */
+      has_more.value = true
+    }
   } catch (e: any) {
     console.error('Error loading feedback list:', e)
     toast.error(e.message || 'Có lỗi xảy ra khi tải danh sách phản ánh')
-    feedbackList.value = []
-    ticketMap.value.clear()
+    if (is_reset) {
+      resetPagination()
+    }
   } finally {
-    is_loading.value = false
+    if (is_reset) {
+      is_loading.value = false
+    } else {
+      is_loading_more.value = false
+    }
+  }
+}
+
+/**
+ * Handle scroll event để detect khi scroll gần cuối
+ */
+function handleScroll() {
+  if (!scrollContainer.value || is_loading_more.value || !has_more.value) {
+    return
+  }
+
+  const CONTAINER = scrollContainer.value
+  const SCROLL_TOP = CONTAINER.scrollTop
+  const SCROLL_HEIGHT = CONTAINER.scrollHeight
+  const CLIENT_HEIGHT = CONTAINER.clientHeight
+
+  /** Khi scroll đến gần cuối (còn 100px) thì load more */
+  const THRESHOLD = 100
+  if (SCROLL_TOP + CLIENT_HEIGHT >= SCROLL_HEIGHT - THRESHOLD) {
+    loadFeedbackList(false)
   }
 }
 
@@ -269,7 +397,7 @@ onMounted(() => {
   if (!is_valid.value) {
     return
   }
-  loadFeedbackList()
+  loadFeedbackList(true)
 })
 </script>
 
