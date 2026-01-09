@@ -138,8 +138,10 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
     const LAST_NAME = CONTACT_INFO.last_name || ''
     NAME = `${FIRST_NAME} ${LAST_NAME}`.trim() || 'Không xác định'
   } else if (EMPLOYEE_INFO) {
-    /** Nếu có employee_info, có thể lấy tên từ đây */
-    NAME = EMPLOYEE_INFO.name || 'Nhân viên'
+    /** Nếu có employee_info, lấy tên từ first_name và last_name */
+    const FIRST_NAME = EMPLOYEE_INFO.first_name || ''
+    const LAST_NAME = EMPLOYEE_INFO.last_name || ''
+    NAME = `${FIRST_NAME} ${LAST_NAME}`.trim() || 'Nhân viên'
   }
 
   /** Xác định avatar */
@@ -153,8 +155,18 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
   /** Xác định vị trí/chức vụ */
   let POSITION = ''
   if (EMPLOYEE_INFO) {
-    /** Nếu là employee, có thể lấy position từ employee_info */
-    POSITION = EMPLOYEE_INFO.position || EMPLOYEE_INFO.department || ''
+    /** Nếu là employee, lấy position từ employee_info */
+    /** Nếu có position field, dùng nó, nếu không thì lấy tên department */
+    if (EMPLOYEE_INFO.position) {
+      POSITION = EMPLOYEE_INFO.position
+    } else if (EMPLOYEE_INFO.department) {
+      /** Nếu department là object, lấy name từ object */
+      if (typeof EMPLOYEE_INFO.department === 'object' && EMPLOYEE_INFO.department.name) {
+        POSITION = EMPLOYEE_INFO.department.name
+      } else if (typeof EMPLOYEE_INFO.department === 'string') {
+        POSITION = EMPLOYEE_INFO.department
+      }
+    }
   } else if (CONTACT_INFO) {
     /** Nếu là customer, hiển thị "Khách hàng" */
     POSITION = 'Khách hàng'
