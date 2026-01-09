@@ -6,7 +6,7 @@
     </div>
 
     <!-- Scrollable Content -->
-    <div class="flex-1 overflow-y-auto">
+    <div ref="scrollable_content_ref" class="flex-1 overflow-y-auto">
       <div class="flex flex-col p-2">
         <!-- Error State -->
         <div v-if="error_message && !is_loading" class="flex items-center justify-center py-10">
@@ -198,7 +198,7 @@
               </div>
             </div>
             <div
-              v-else-if="paginated_comments.length === 0"
+              v-else-if="comments_list.length === 0"
               class="flex items-center justify-center py-10"
             >
               <p class="text-sm text-gray-500">Chưa có bình luận nào</p>
@@ -206,7 +206,7 @@
             <div v-else class="flex flex-col gap-2">
               <!-- Comment Card -->
               <div
-                v-for="comment in paginated_comments"
+                v-for="comment in comments_list"
                 :key="comment.id"
                 class="bg-white rounded-xl p-3 shadow-sm"
               >
@@ -351,7 +351,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
@@ -378,7 +378,7 @@ const is_loading = ref(false)
 /** Thông báo lỗi */
 const error_message = ref<string | null>(null)
 
-/** Danh sách comments từ API */
+/** Danh sách comments từ API (của trang hiện tại) */
 const comments_list = ref<CommentItem[]>([])
 
 /** Tổng số trang từ API */
@@ -386,9 +386,6 @@ const total_pages = ref(0)
 
 /** Trạng thái loading comments */
 const is_loading_comments = ref(false)
-
-/** Số lượng comments mỗi trang */
-const ITEMS_PER_PAGE = 20
 
 /** Trang hiện tại */
 const current_page = ref(1)
@@ -399,14 +396,8 @@ const comment_content = ref('')
 /** Trạng thái đang gửi comment */
 const is_sending_comment = ref(false)
 
-/**
- * Computed property: Danh sách comments của trang hiện tại
- */
-const paginated_comments = computed(() => {
-  const START_INDEX = (current_page.value - 1) * ITEMS_PER_PAGE
-  const END_INDEX = START_INDEX + ITEMS_PER_PAGE
-  return comments_list.value.slice(START_INDEX, END_INDEX)
-})
+/** Ref đến scrollable content container */
+const scrollable_content_ref = ref<HTMLElement | null>(null)
 
 /**
  * Computed property: Danh sách số trang hiển thị
@@ -500,18 +491,26 @@ const show_ellipsis_before_last = computed(() => {
 /**
  * Chuyển đến trang trước
  */
-function goToPreviousPage() {
-  if (current_page.value > 1) {
-    current_page.value--
+async function goToPreviousPage() {
+  if (current_page.value > 1 && ticket_detail.value?.ticket_id && total_pages.value > 0) {
+    const NEW_PAGE = current_page.value - 1
+    /** Load comments cho trang mới */
+    await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
   }
 }
 
 /**
  * Chuyển đến trang tiếp theo
  */
-function goToNextPage() {
-  if (current_page.value < total_pages.value) {
-    current_page.value++
+async function goToNextPage() {
+  if (
+    current_page.value < total_pages.value &&
+    ticket_detail.value?.ticket_id &&
+    total_pages.value > 0
+  ) {
+    const NEW_PAGE = current_page.value + 1
+    /** Load comments cho trang mới */
+    await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
   }
 }
 
@@ -519,9 +518,15 @@ function goToNextPage() {
  * Chuyển đến trang cụ thể
  * @param page - Số trang cần chuyển đến
  */
-function goToPage(page: number) {
-  if (page >= 1 && page <= total_pages.value) {
-    current_page.value = page
+async function goToPage(page: number) {
+  if (
+    page >= 1 &&
+    page <= total_pages.value &&
+    ticket_detail.value?.ticket_id &&
+    total_pages.value > 0
+  ) {
+    /** Load comments cho trang mới */
+    await loadComments(ticket_detail.value.ticket_id, page)
   }
 }
 
@@ -567,21 +572,43 @@ function getStatusLabel(stage: TicketStage): string {
 }
 
 /**
+ * Scroll lên đầu trang scrollable content
+ */
+function scrollToTop() {
+  /** Sử dụng nextTick để đảm bảo DOM đã được cập nhật trước khi scroll */
+  nextTick(() => {
+    if (scrollable_content_ref.value) {
+      scrollable_content_ref.value.scrollTo({
+        top: 0,
+        behavior: 'smooth',
+      })
+    }
+  })
+}
+
+/**
  * Load comments từ API
  * @param ticket_id - Ticket ID (số) để lấy comments
+ * @param page - Số trang cần lấy (mặc định 1)
  */
-async function loadComments(ticket_id: number) {
+async function loadComments(ticket_id: number, page: number = 1) {
   /** Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls) */
   if (is_loading_comments.value) {
     return
   }
 
+  /** Đảm bảo page là số nguyên dương hợp lệ */
+  const VALID_PAGE = Math.max(1, Math.floor(page))
+
   /** Set loading state */
   is_loading_comments.value = true
 
+  /** Scroll lên đầu trang khi chuyển trang */
+  scrollToTop()
+
   try {
-    /** Gọi API để lấy danh sách comments */
-    const RESPONSE = await getComments(ticket_id)
+    /** Gọi API để lấy danh sách comments với page */
+    const RESPONSE = await getComments(ticket_id, VALID_PAGE)
 
     /** Transform comments từ API sang format CommentItem */
     const TRANSFORMED_COMMENTS = RESPONSE.comments.map(transformCommentToItem)
@@ -592,15 +619,26 @@ async function loadComments(ticket_id: number) {
     /** Cập nhật total_page từ API */
     total_pages.value = RESPONSE.total_page
 
-    /** Reset về trang đầu tiên */
-    current_page.value = 1
+    /** Cập nhật current_page để đồng bộ với page đã gọi */
+    current_page.value = VALID_PAGE
   } catch (e: any) {
     console.error('Error loading comments:', e)
     const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải danh sách bình luận'
-    toast.error(ERROR_MSG)
-    /** Set empty array và reset total_page nếu có lỗi */
-    comments_list.value = []
-    total_pages.value = 0
+
+    /** Xử lý đặc biệt cho lỗi PAGE_NOT_FOUND - không hiển thị toast error */
+    if (ERROR_MSG === 'PAGE_NOT_FOUND' || ERROR_MSG.includes('PAGE_NOT_FOUND')) {
+      /** Set empty array và reset total_page */
+      comments_list.value = []
+      total_pages.value = 0
+      current_page.value = 1
+    } else {
+      /** Hiển thị toast error cho các lỗi khác */
+      toast.error(ERROR_MSG)
+      /** Set empty array và reset total_page nếu có lỗi */
+      comments_list.value = []
+      total_pages.value = 0
+      current_page.value = 1
+    }
   } finally {
     is_loading_comments.value = false
   }
@@ -628,9 +666,10 @@ async function handleSendComment() {
     /** Clear input */
     comment_content.value = ''
 
-    /** Reload comments để hiển thị comment mới */
+    /** Reload comments để hiển thị comment mới (reset về trang 1) */
     if (ticket_detail.value.ticket_id) {
-      await loadComments(ticket_detail.value.ticket_id)
+      current_page.value = 1
+      await loadComments(ticket_detail.value.ticket_id, 1)
     }
 
     /** Hiển thị thông báo thành công */

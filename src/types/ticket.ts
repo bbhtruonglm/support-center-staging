@@ -468,6 +468,9 @@ export interface CreateTicketResponse extends TicketItem {
  * Interface định nghĩa response từ API get_comment
  */
 export interface GetCommentResponse {
+  /** Tổng số comments */
+  total_comments: number
+
   /** Tổng số trang */
   total_page: number
 

@@ -181,15 +181,20 @@ export async function getTicketDetail(ticket_id: string): Promise<TicketItem> {
 }
 
 /**
- * API: Lấy danh sách comments theo ticket_id
+ * API: Lấy danh sách comments theo ticket_id và page
  * @param ticket_id - ID của ticket (số)
+ * @param page - Số trang cần lấy (mặc định 1)
  * @returns Promise chứa GetCommentResponse
  */
-export async function getComments(ticket_id: number): Promise<GetCommentResponse> {
+export async function getComments(
+  ticket_id: number,
+  page: number = 1,
+): Promise<GetCommentResponse> {
   try {
     /** Gọi API POST để lấy danh sách comments */
     const RESPONSE = await ticketApiClient.post<GetCommentResponse>('get_comment', {
       ticket_id,
+      page,
     })
 
     return RESPONSE.data
