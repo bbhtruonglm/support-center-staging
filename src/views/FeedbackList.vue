@@ -180,6 +180,7 @@ import { useApiContext } from '@/composables/useApiContext'
 import { getTicketList, type TicketItem } from '@/api/ticket'
 import { transformTicketToFeedback } from '@/api/ticket/transform'
 import type { FeedbackItem } from '@/types/ticket'
+import { useTicketStore } from '@/stores/ticket'
 
 /** Router instance */
 const router = useRouter()
@@ -189,6 +190,9 @@ const { t } = useI18n()
 
 /** API context từ composable */
 const { is_valid } = useApiContext()
+
+/** Ticket store để cache ticket data */
+const ticket_store = useTicketStore()
 
 /** Tab đang active */
 const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
@@ -415,17 +419,18 @@ function navigateToDetail(ticket_id: string) {
   /** Lấy TicketItem từ map */
   const TICKET = ticketMap.value.get(ticket_id)
 
+  /** Nếu có ticket trong map, lưu vào Pinia store để cache
+   * FeedbackDetail sẽ đọc từ store trước, fallback về API nếu không có
+   */
   if (TICKET) {
-    /** Truyền TicketItem qua router state */
-    router.push({
-      name: 'Feedback-detail',
-      params: { id: ticket_id },
-      state: { ticket: TICKET },
-    })
-  } else {
-    /** Fallback: nếu không tìm thấy trong map thì vẫn navigate với ID */
-    router.push(`/feedback-detail/${ticket_id}`)
+    ticket_store.setTicket(TICKET)
   }
+
+  /** Navigate với params, không truyền state để tránh DataCloneError */
+  router.push({
+    name: 'Feedback-detail',
+    params: { id: ticket_id },
+  })
 }
 
 /** Load data khi component mounted */

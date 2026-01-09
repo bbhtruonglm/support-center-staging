@@ -361,6 +361,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import { getTicketDetail, getComments, createComment, type TicketItem } from '@/api/ticket'
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
 import type { TicketStage, CommentItem } from '@/types/ticket'
+import { useTicketStore } from '@/stores/ticket'
 
 /** Router instance */
 const route = useRoute()
@@ -368,6 +369,9 @@ const router = useRouter()
 
 /** i18n instance */
 const { t } = useI18n()
+
+/** Ticket store để lấy ticket từ cache */
+const ticket_store = useTicketStore()
 
 /** Chi tiết ticket từ router state hoặc API */
 const ticket_detail = ref<TicketItem | null>(null)
@@ -700,21 +704,23 @@ async function loadTicketDetail() {
     return
   }
 
-  /** Kiểm tra xem có ticket trong router state không */
-  const HISTORY_STATE = window.history.state as { ticket?: TicketItem } | null
-  const STATE_TICKET = HISTORY_STATE?.ticket
+  /** Kiểm tra xem có ticket trong Pinia store không
+   * Nếu có thì dùng luôn để tránh gọi API không cần thiết
+   * Nếu không có thì gọi API và lưu vào store
+   */
+  const CACHED_TICKET = ticket_store.getTicket(TICKET_ID)
 
-  if (STATE_TICKET && STATE_TICKET.id === TICKET_ID) {
-    /** Sử dụng ticket từ router state, không cần gọi API */
-    ticket_detail.value = STATE_TICKET
+  if (CACHED_TICKET && CACHED_TICKET.id === TICKET_ID) {
+    /** Sử dụng ticket từ store, không cần gọi API */
+    ticket_detail.value = CACHED_TICKET
     /** Load comments cho ticket này */
-    if (STATE_TICKET.ticket_id) {
-      await loadComments(STATE_TICKET.ticket_id)
+    if (CACHED_TICKET.ticket_id) {
+      await loadComments(CACHED_TICKET.ticket_id)
     }
     return
   }
 
-  /** Nếu không có trong state, gọi API (fallback) */
+  /** Nếu không có trong store, gọi API để load */
   /** Set loading state */
   is_loading.value = true
   error_message.value = null
@@ -723,6 +729,9 @@ async function loadTicketDetail() {
     /** Gọi API để lấy chi tiết ticket */
     const DATA = await getTicketDetail(TICKET_ID)
     ticket_detail.value = DATA
+
+    /** Lưu ticket vào store để cache cho lần sau */
+    ticket_store.setTicket(DATA)
 
     /** Load comments cho ticket này */
     if (DATA.ticket_id) {
