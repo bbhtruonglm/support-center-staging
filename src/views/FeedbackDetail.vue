@@ -9,12 +9,15 @@
     <div ref="scrollable_content_ref" class="flex-1 overflow-y-auto">
       <div class="flex flex-col p-2">
         <!-- Error State -->
-        <div v-if="error_message && !is_loading" class="flex items-center justify-center py-10">
+        <div
+          v-if="error_message && !is_loading_initial"
+          class="flex items-center justify-center py-10"
+        >
           <p class="text-sm text-red-500">{{ error_message }}</p>
         </div>
 
         <!-- Skeleton Loading State -->
-        <div v-if="is_loading" class="flex flex-col gap-1">
+        <div v-if="is_loading_initial" class="flex flex-col gap-1">
           <!-- Chi tiết phản ánh Skeleton -->
           <div class="flex flex-col gap-1">
             <!-- Tiêu đề Skeleton -->
@@ -362,6 +365,7 @@ import { getTicketDetail, getComments, createComment, type TicketItem } from '@/
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
 import type { TicketStage, CommentItem } from '@/types/ticket'
 import { useTicketStore } from '@/stores/ticket'
+import { useWorkflowStore } from '@/stores/workflow'
 
 /** Router instance */
 const route = useRoute()
@@ -372,6 +376,9 @@ const { t } = useI18n()
 
 /** Ticket store để lấy ticket từ cache */
 const ticket_store = useTicketStore()
+
+/** Workflow store để lấy workflow list từ cache */
+const workflow_store = useWorkflowStore()
 
 /** Chi tiết ticket từ router state hoặc API */
 const ticket_detail = ref<TicketItem | null>(null)
@@ -402,6 +409,20 @@ const is_sending_comment = ref(false)
 
 /** Ref đến scrollable content container */
 const scrollable_content_ref = ref<HTMLElement | null>(null)
+
+/**
+ * Computed property: Có đang loading không (bao gồm cả workflow và ticket)
+ */
+const is_loading_initial = computed(() => {
+  /** Hiển thị skeleton nếu:
+   * - Đang load workflow HOẶC
+   * - Đang load ticket detail HOẶC
+   * - Ticket detail chưa có và chưa có error (đang chờ load)
+   */
+  return (
+    workflow_store.is_loading || is_loading.value || (!ticket_detail.value && !error_message.value)
+  )
+})
 
 /**
  * Computed property: Danh sách số trang hiển thị
@@ -540,9 +561,8 @@ async function goToPage(page: number) {
  * @returns Label string
  */
 function getCategoryLabel(workflow_id: number): string {
-  /** Workflow ID được lấy trực tiếp từ ticket detail */
-  /** Tạm thời hiển thị workflow_id, có thể cập nhật sau nếu API cung cấp thêm thông tin */
-  return `Workflow ${workflow_id}`
+  /** Sử dụng workflow store để lấy tên workflow */
+  return workflow_store.getWorkflowName(workflow_id)
 }
 
 /**
@@ -761,7 +781,11 @@ watch(
 )
 
 /** Load data khi component mounted */
-onMounted(() => {
+onMounted(async () => {
+  /** Load workflow list từ store trước (chỉ gọi API nếu chưa load) */
+  /** Đợi workflow list load xong để đảm bảo có data khi render category */
+  await workflow_store.loadWorkflowList()
+  /** Sau đó mới load ticket detail */
   loadTicketDetail()
 })
 </script>

@@ -162,7 +162,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { Camera, ChevronDown, X } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
@@ -170,10 +170,14 @@ import { toast } from 'vue3-toastify'
 import AppHeader from '@/components/AppHeader.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
-import { getWorkflowList, createForm, createTicket, type WorkflowItem } from '@/api/ticket'
+import { createForm, createTicket, type WorkflowItem } from '@/api/ticket'
+import { useWorkflowStore } from '@/stores/workflow'
 
 /** Router instance */
 const router = useRouter()
+
+/** Workflow store để lấy workflow list từ cache */
+const workflow_store = useWorkflowStore()
 
 /** Ref cho dropdown container */
 const dropdownRef = ref<HTMLElement | null>(null)
@@ -181,8 +185,8 @@ const dropdownRef = ref<HTMLElement | null>(null)
 /** Ref cho file input */
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
-/** Danh sách workflow từ API */
-const workflow_list = ref<WorkflowItem[]>([])
+/** Danh sách workflow từ store (computed để reactive) */
+const workflow_list = computed(() => workflow_store.workflow_list)
 
 /** Workflow đã chọn */
 const selected_workflow = ref<WorkflowItem | null>(null)
@@ -190,8 +194,8 @@ const selected_workflow = ref<WorkflowItem | null>(null)
 /** Trạng thái dropdown mở/đóng */
 const is_dropdown_open = ref(false)
 
-/** Trạng thái loading workflow */
-const is_loading_workflow = ref(false)
+/** Trạng thái loading workflow từ store (computed để reactive) */
+const is_loading_workflow = computed(() => workflow_store.is_loading)
 
 /** Form title */
 const form_title = ref('')
@@ -228,26 +232,30 @@ function selectWorkflow(workflow: WorkflowItem) {
 }
 
 /**
- * Load danh sách workflow từ API
+ * Load danh sách workflow từ store (chỉ gọi API nếu chưa load)
  */
 async function loadWorkflowList() {
-  is_loading_workflow.value = true
-
   try {
-    const DATA = await getWorkflowList()
-    workflow_list.value = DATA
-
-    // Tự động chọn workflow đầu tiên nếu có
-    if (DATA.length > 0 && !selected_workflow.value && DATA[0]) {
-      selected_workflow.value = DATA[0]
-    }
+    await workflow_store.loadWorkflowList()
   } catch (e: any) {
     console.error('Error loading workflow list:', e)
     toast.error(e.message || 'Không thể tải danh sách dịch vụ')
-  } finally {
-    is_loading_workflow.value = false
   }
 }
+
+/**
+ * Watch workflow list để tự động chọn workflow đầu tiên khi load xong
+ */
+watch(
+  () => workflow_list.value,
+  (new_list) => {
+    /** Tự động chọn workflow đầu tiên nếu có và chưa chọn workflow nào */
+    if (new_list.length > 0 && !selected_workflow.value && new_list[0]) {
+      selected_workflow.value = new_list[0]
+    }
+  },
+  { immediate: true },
+)
 
 /**
  * Trigger file input để chọn/chụp ảnh
@@ -437,3 +445,4 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
+
