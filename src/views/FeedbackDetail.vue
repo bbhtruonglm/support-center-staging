@@ -266,7 +266,7 @@
                 v-model="comment_content"
                 :placeholder="t('feedback.commentPlaceholder')"
                 class="w-full resize-y px-4 py-3 text-sm rounded-md bg-white border border-gray-200 focus:outline-none text-black placeholder:text-gray-500 shadow-sm"
-                rows="4"
+                rows="3"
                 :disabled="is_sending_comment"
               ></textarea>
             </div>
