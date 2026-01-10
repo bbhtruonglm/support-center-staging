@@ -27,81 +27,83 @@
 
         <!-- Chi tiết phản ánh -->
         <div v-else-if="ticket_detail" class="flex flex-col flex-1 min-h-full">
-          <!-- Tiêu đề -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">
-              {{ t('feedback.title') }}
-            </h3>
-            <p class="text-sm font-medium text-black">
-              {{ ticket_detail.title || t('feedback.noTitle') }}
-            </p>
-          </section>
+          <div class="flex flex-col gap-1">
+            <!-- Tiêu đề -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+              <h3 class="text-xs font-medium text-slate-700">
+                {{ t('feedback.title') }}
+              </h3>
+              <p class="text-sm font-medium text-black">
+                {{ ticket_detail.title || t('feedback.noTitle') }}
+              </p>
+            </section>
 
-          <!-- Danh mục -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">
-              {{ t('feedback.category') }}
-            </h3>
-            <p class="text-sm font-medium text-black">
-              {{ getCategoryLabel(ticket_detail.workflow_id) }}
-            </p>
-          </section>
+            <!-- Danh mục -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+              <h3 class="text-xs font-medium text-slate-700">
+                {{ t('feedback.category') }}
+              </h3>
+              <p class="text-sm font-medium text-black">
+                {{ getCategoryLabel(ticket_detail.workflow_id) }}
+              </p>
+            </section>
 
-          <!-- Trạng thái -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">
-              {{ t('feedback.status') }}
-            </h3>
-            <span
-              :class="[
-                'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
-                getStatusBadgeClass(ticket_detail.stage),
-              ]"
-            >
-              {{ getStatusLabel(ticket_detail.stage) }}
-            </span>
-          </section>
-
-          <!-- Nội dung -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">
-              {{ t('feedback.content') }}
-            </h3>
-            <p class="text-sm font-medium text-black whitespace-pre-wrap">
-              {{ ticket_detail.content || t('feedback.noContent') }}
-            </p>
-          </section>
-
-          <!-- Ảnh đính kèm -->
-          <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">
-              {{ t('feedback.attachImages') }}
-            </h3>
-            <div class="flex flex-wrap gap-2.5">
-              <!-- Empty State: Giữ height để đồng bộ với skeleton -->
-              <div
-                v-if="
-                  !ticket_detail.attachments ||
-                  (Array.isArray(ticket_detail.attachments) &&
-                    ticket_detail.attachments.length === 0)
-                "
-                class="w-20 h-20 flex items-center"
+            <!-- Trạng thái -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+              <h3 class="text-xs font-medium text-slate-700">
+                {{ t('feedback.status') }}
+              </h3>
+              <span
+                :class="[
+                  'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
+                  getStatusBadgeClass(ticket_detail.stage),
+                ]"
               >
-                <p class="text-sm font-medium text-black whitespace-nowrap">
-                  {{ t('feedback.noAttachments') }}
-                </p>
+                {{ getStatusLabel(ticket_detail.stage) }}
+              </span>
+            </section>
+
+            <!-- Nội dung -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+              <h3 class="text-xs font-medium text-slate-700">
+                {{ t('feedback.content') }}
+              </h3>
+              <p class="text-sm font-medium text-black whitespace-pre-wrap">
+                {{ ticket_detail.content || t('feedback.noContent') }}
+              </p>
+            </section>
+
+            <!-- Ảnh đính kèm -->
+            <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
+              <h3 class="text-xs font-medium text-slate-700">
+                {{ t('feedback.attachImages') }}
+              </h3>
+              <div class="flex flex-wrap gap-2.5">
+                <!-- Empty State: Giữ height để đồng bộ với skeleton -->
+                <div
+                  v-if="
+                    !ticket_detail.attachments ||
+                    (Array.isArray(ticket_detail.attachments) &&
+                      ticket_detail.attachments.length === 0)
+                  "
+                  class="w-20 h-20 flex items-center"
+                >
+                  <p class="text-sm font-medium text-black whitespace-nowrap">
+                    {{ t('feedback.noAttachments') }}
+                  </p>
+                </div>
+                <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
+                <img
+                  v-else-if="Array.isArray(ticket_detail.attachments)"
+                  v-for="(attachment, index) in ticket_detail.attachments"
+                  :key="index"
+                  :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
+                  :alt="`Attachment ${String(index + 1)}`"
+                  class="w-20 h-20 object-cover rounded-xl"
+                />
               </div>
-              <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
-              <img
-                v-else-if="Array.isArray(ticket_detail.attachments)"
-                v-for="(attachment, index) in ticket_detail.attachments"
-                :key="index"
-                :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
-                :alt="`Attachment ${String(index + 1)}`"
-                class="w-20 h-20 object-cover rounded-xl"
-              />
-            </div>
-          </section>
+            </section>
+          </div>
 
           <!-- Spacer để đẩy phần Tình trạng xử lý xuống cuối khi không có comments -->
           <div v-if="comments_list.length === 0 && !is_loading_comments" class="flex-1"></div>
