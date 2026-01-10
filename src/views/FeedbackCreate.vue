@@ -340,7 +340,9 @@ function handleImageSelect(event: Event) {
 
   // Nếu không còn slot thì hiển thị error và return
   if (REMAINING_SLOTS <= 0) {
+    // Hiển thị error toast khi đã đạt số lượng ảnh tối đa
     toast.error(t('feedback.maxImagesExceeded', { count: MAX_IMAGES.toString() }))
+    // Return sớm vì không thể thêm ảnh nữa
     return
   }
 
@@ -359,7 +361,9 @@ function handleImageSelect(event: Event) {
 
     // Kiểm tra file có phải là ảnh không
     if (!FILE.type.startsWith('image/')) {
+      // Hiển thị error toast nếu file không phải là ảnh
       toast.error(t('feedback.selectImageFile'))
+      // Bỏ qua file này và tiếp tục với file tiếp theo
       continue
     }
 
@@ -367,7 +371,9 @@ function handleImageSelect(event: Event) {
     const MAX_SIZE = 5 * 1024 * 1024
     // Kiểm tra kích thước file có vượt quá MAX_SIZE không
     if (FILE.size > MAX_SIZE) {
+      // Hiển thị error toast nếu file quá lớn
       toast.error(t('feedback.imageSizeExceeded', { name: FILE.name }))
+      // Bỏ qua file này và tiếp tục với file tiếp theo
       continue
     }
 
@@ -381,13 +387,16 @@ function handleImageSelect(event: Event) {
 
       // Nếu có kết quả thì thêm vào previews và attachments
       if (RESULT) {
+        // Thêm base64 string vào danh sách previews
         image_previews.value.push(RESULT)
+        // Thêm base64 string vào danh sách attachments
         form_attachments.value.push(RESULT)
       }
     }
 
     // Callback khi đọc file thất bại
     READER.onerror = () => {
+      // Hiển thị error toast khi không thể đọc file
       toast.error(t('feedback.cannotReadFile', { name: FILE.name }))
     }
 
@@ -397,12 +406,13 @@ function handleImageSelect(event: Event) {
 
   // Reset input để có thể chọn lại file giống nhau
   if (TARGET) {
+    // Clear giá trị input để có thể chọn lại file giống nhau
     TARGET.value = ''
   }
 
   // Nếu có file bị bỏ qua do vượt quá số lượng
   if (FILES.length > FILES_TO_ADD) {
-    // Hiển thị warning về số file đã thêm
+    // Hiển thị warning về số file đã thêm và số file bị bỏ qua
     toast.warning(
       t('feedback.onlyAddedImages', {
         added: FILES_TO_ADD.toString(),
@@ -430,23 +440,30 @@ function removeImage(index: number) {
 function validateForm(): boolean {
   // Kiểm tra title có tồn tại và không rỗng không
   if (!form_title.value || form_title.value.trim() === '') {
+    // Hiển thị error toast nếu title rỗng
     toast.error(t('feedback.enterTitle'))
+    // Trả về false vì form không hợp lệ
     return false
   }
 
   // Kiểm tra content có tồn tại và không rỗng không
   if (!form_content.value || form_content.value.trim() === '') {
+    // Hiển thị error toast nếu content rỗng
     toast.error(t('feedback.enterContent'))
+    // Trả về false vì form không hợp lệ
     return false
   }
 
   // Kiểm tra workflow đã được chọn chưa
   if (!selected_workflow.value) {
+    // Hiển thị error toast nếu chưa chọn workflow
     toast.error(t('feedback.selectService'))
+    // Trả về false vì form không hợp lệ
     return false
   }
 
   // Form hợp lệ
+  // Trả về true vì form đã pass tất cả validation
   return true
 }
 
@@ -470,7 +487,9 @@ async function handleSubmit() {
   try {
     // Kiểm tra lại selected_workflow (đã validate nhưng để chắc chắn)
     if (!selected_workflow.value) {
+      // Hiển thị error toast nếu không có workflow
       toast.error(t('feedback.selectService'))
+      // Return sớm nếu không có workflow
       return
     }
 
@@ -498,13 +517,15 @@ async function handleSubmit() {
 
     // Hiển thị thông báo thành công
     toast.success(t('feedback.submitSuccess'))
-    // Navigate đến trang danh sách feedback
+    // Navigate đến trang danh sách feedback sau khi submit thành công
     router.push('/feedback-list')
   } catch (e: any) {
     // Log error ra console để debug
     console.error('Error submitting feedback:', e)
-    // Hiển thị toast error với message từ error hoặc message mặc định
-    toast.error(e.message || t('feedback.submitError'))
+    /** Lấy error message từ exception hoặc dùng message mặc định từ i18n */
+    const ERROR_MSG = e.message || t('feedback.submitError')
+    // Hiển thị toast error với message lỗi
+    toast.error(ERROR_MSG)
   } finally {
     // Luôn set trạng thái submitting thành false sau khi hoàn thành
     is_submitting.value = false

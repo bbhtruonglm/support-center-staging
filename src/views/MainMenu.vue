@@ -312,6 +312,7 @@ async function copyCustomerId() {
   if (!CUSTOMER_ID || CUSTOMER_ID === '---' || is_copy_loading.value) {
     // Hiển thị error toast nếu không có customer ID
     toast.error(t('mainMenu.not_found_customer_id'))
+    // Return sớm vì không có customer ID hợp lệ hoặc đang loading
     return
   }
 

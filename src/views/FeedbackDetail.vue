@@ -459,6 +459,7 @@ const show_ellipsis_after_first = computed(() => {
 
   // Nếu tổng số trang < 4 hoặc trang hiện tại < 4, không cần ellipsis
   if (TOTAL < 4 || CURRENT < 4) {
+    // Trả về false vì không cần hiển thị ellipsis
     return false
   }
 
@@ -466,6 +467,7 @@ const show_ellipsis_after_first = computed(() => {
   const PAGES = visible_pages.value
   // Nếu không có trang nào hoặc trang đầu không phải là 1, không hiển thị ellipsis
   if (PAGES.length === 0 || PAGES[0] !== 1) {
+    // Trả về false vì không cần hiển thị ellipsis
     return false
   }
 
@@ -484,6 +486,7 @@ const show_ellipsis_before_last = computed(() => {
   const TOTAL = total_pages.value
   // Nếu tổng số trang < 4, không cần ellipsis
   if (TOTAL < 4) {
+    // Trả về false vì không cần hiển thị ellipsis
     return false
   }
 
@@ -491,6 +494,7 @@ const show_ellipsis_before_last = computed(() => {
   const PAGES = visible_pages.value
   // Nếu không có trang nào, không hiển thị ellipsis
   if (PAGES.length === 0) {
+    // Trả về false vì không cần hiển thị ellipsis
     return false
   }
 
@@ -501,6 +505,7 @@ const show_ellipsis_before_last = computed(() => {
 
   // Nếu không có đủ 2 trang, không hiển thị ellipsis
   if (!LAST_PAGE || !SECOND_LAST_PAGE) {
+    // Trả về false vì không cần hiển thị ellipsis
     return false
   }
 
@@ -706,6 +711,7 @@ async function loadComments(ticket_id: number, page: number = 1) {
 async function handleSendComment() {
   // Kiểm tra ticket detail và content có tồn tại không
   if (!ticket_detail.value || !comment_content.value.trim()) {
+    // Return sớm nếu không có ticket detail hoặc content rỗng
     return
   }
 
@@ -755,6 +761,7 @@ async function handleSendComment() {
 async function loadTicketDetail() {
   // Kiểm tra nếu đang loading thì không gọi tiếp để tránh duplicate calls
   if (is_loading.value) {
+    // Return sớm để tránh duplicate calls
     return
   }
 
@@ -765,6 +772,7 @@ async function loadTicketDetail() {
   if (!TICKET_ID) {
     // Nếu không có thì set error message và return
     error_message.value = t('feedback.ticketIdNotFound')
+    // Return sớm vì không có ticket ID
     return
   }
 

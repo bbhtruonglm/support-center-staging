@@ -257,21 +257,25 @@ async function loadFeedbackList(is_reset: boolean = false) {
   if (!is_valid.value) {
     // Nếu không hợp lệ thì reset pagination và return
     resetPagination()
+    // Return sớm vì context không hợp lệ
     return
   }
 
   // Nếu đang reset và đang loading thì không gọi tiếp để tránh duplicate requests
   if (is_reset && is_loading.value) {
+    // Return sớm để tránh duplicate requests
     return
   }
 
   // Nếu không phải reset và không còn dữ liệu thì không load tiếp
   if (!is_reset && !has_more.value) {
+    // Return sớm vì không còn dữ liệu để load
     return
   }
 
   // Nếu không phải reset và đang load more thì không load tiếp để tránh duplicate requests
   if (!is_reset && is_loading_more.value) {
+    // Return sớm để tránh duplicate requests
     return
   }
 
