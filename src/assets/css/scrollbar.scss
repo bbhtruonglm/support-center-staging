@@ -40,3 +40,32 @@ $thumb-size: 6px;
     width: $thumb-size;
   }
 }
+
+// Class để áp dụng overlay scrollbar cho các element cụ thể
+.overlay-scrollbar {
+  // Sử dụng overflow: overlay (deprecated nhưng vẫn hoạt động trên WebKit)
+  overflow: auto;
+  overflow: overlay;
+
+  // Không để scrollbar chiếm không gian khi không cuộn
+  &::-webkit-scrollbar {
+    width: $thumb-size;
+    height: $thumb-size;
+    background: transparent;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: $thumb-size;
+    transition: background-color 0.2s;
+  }
+
+  // Chỉ hiện scrollbar khi hover
+  &:hover::-webkit-scrollbar-thumb {
+    background-color: $thumb-color;
+  }
+
+  &::-webkit-scrollbar-thumb:active {
+    background-color: $thumb-color-active;
+  }
+}
