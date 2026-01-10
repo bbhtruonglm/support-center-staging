@@ -17,7 +17,7 @@
         <input
           v-model="form_title"
           type="text"
-          :placeholder="t('feedback.feedbackTitlePlaceholder')"
+          :placeholder="t('feedback.enterTitle')"
           class="w-full px-6 py-3 text-sm rounded-xl border border-gray-200 bg-white"
         />
       </div>
@@ -25,7 +25,7 @@
       <!-- Service Type -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-black">
-          {{ t('feedback.serviceType') }}
+          {{ t('feedback.category') }}
           <span class="text-red-500">{{ t('feedback.required') }}</span>
         </label>
 
