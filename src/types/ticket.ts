@@ -291,6 +291,9 @@ export interface TicketItem {
  * Interface định nghĩa feedback item cho component
  */
 export interface FeedbackItem {
+  /** ID ticket (UUID) */
+  id: string
+
   /** Tiêu đề feedback */
   title: string
 
@@ -308,6 +311,20 @@ export interface FeedbackItem {
  * Tab key type
  */
 export type TabKey = 'all' | 'pending' | 'processing' | 'completed'
+
+/**
+ * Interface định nghĩa request để lấy danh sách ticket
+ */
+export interface GetTicketRequest {
+  /** Số lượng bản ghi bỏ qua (skip) */
+  skip: number
+
+  /** Số lượng bản ghi lấy (take) */
+  take: number
+
+  /** Danh sách stage để filter */
+  stage?: TicketStage[]
+}
 
 /**
  * Interface định nghĩa workflow item từ API get_workflow
@@ -447,3 +464,66 @@ export interface CreateTicketResponse extends TicketItem {
   ticket_form_info: TicketFormInfo
 }
 
+/**
+ * Interface định nghĩa response từ API get_comment
+ */
+export interface GetCommentResponse {
+  /** Tổng số comments */
+  total_comments: number
+
+  /** Tổng số trang */
+  total_page: number
+
+  /** Danh sách comments */
+  comments: TicketComment[]
+}
+
+/**
+ * Interface định nghĩa comment item cho UI
+ */
+export interface CommentItem {
+  /** ID comment */
+  id: string
+
+  /** Tên người comment */
+  name: string
+
+  /** Vị trí/chức vụ */
+  position: string
+
+  /** Avatar URL */
+  avatar: string
+
+  /** Nội dung comment */
+  content: string
+
+  /** Ngày comment */
+  date: string
+
+  /** Có in đậm tên không */
+  is_bold: boolean
+}
+
+/**
+ * Interface định nghĩa request để tạo comment
+ */
+export interface CreateCommentRequest {
+  /** Ticket ID (số) */
+  ticket_id: number
+
+  /** Nội dung comment */
+  content: string
+}
+
+/**
+ * Interface định nghĩa response từ API create_comment
+ */
+export interface CreateCommentResponse extends TicketComment {}
+
+/**
+ * Interface định nghĩa response từ API count_ticket
+ */
+export interface CountTicketResponse {
+  /** Số lượng ticket đang xử lý */
+  processing: number
+}
