@@ -506,10 +506,7 @@ const show_ellipsis_before_last = computed(() => {
   return LAST_PAGE - SECOND_LAST_PAGE > 1
 })
 
-/**
- * Watch route params: Theo dõi thay đổi của ticket ID trong URL
- * Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail
- */
+/** Watch route params: Theo dõi thay đổi của ticket ID trong URL - Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail */
 watch(
   // Theo dõi route.params.id
   () => route.params.id,
@@ -524,10 +521,7 @@ watch(
 )
 
 // H10: functions
-/**
- * Function: Chuyển đến trang trước trong pagination
- * Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới
- */
+/** Function: Chuyển đến trang trước trong pagination - Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới */
 async function goToPreviousPage() {
   // Kiểm tra: trang hiện tại > 1, có ticket_id, và có tổng số trang > 0
   if (current_page.value > 1 && ticket_detail.value?.ticket_id && total_pages.value > 0) {
@@ -538,10 +532,7 @@ async function goToPreviousPage() {
   }
 }
 
-/**
- * Function: Chuyển đến trang tiếp theo trong pagination
- * Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới
- */
+/** Function: Chuyển đến trang tiếp theo trong pagination - Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới */
 async function goToNextPage() {
   // Kiểm tra: trang hiện tại < tổng số trang, có ticket_id, và có tổng số trang > 0
   if (
@@ -628,10 +619,7 @@ function getStatusLabel(stage: TicketStage): string {
   return LABELS[STATUS] || t('feedback.pending')
 }
 
-/**
- * Function: Scroll lên đầu trang scrollable content
- * Sử dụng nextTick để đảm bảo DOM đã được cập nhật trước khi scroll
- */
+/** Function: Scroll lên đầu trang scrollable content - Sử dụng nextTick để đảm bảo DOM đã được cập nhật trước khi scroll */
 function scrollToTop() {
   // Sử dụng nextTick để đợi DOM được cập nhật trước khi scroll
   nextTick(() => {
@@ -712,10 +700,7 @@ async function loadComments(ticket_id: number, page: number = 1) {
   }
 }
 
-/**
- * Function: Gửi comment mới cho ticket
- * Validate input, gọi API, reload comments, và hiển thị thông báo
- */
+/** Function: Gửi comment mới cho ticket - Validate input, gọi API, reload comments, và hiển thị thông báo */
 async function handleSendComment() {
   // Kiểm tra ticket detail và content có tồn tại không
   if (!ticket_detail.value || !comment_content.value.trim()) {

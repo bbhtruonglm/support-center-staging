@@ -208,10 +208,7 @@ const tabs = computed(() => [
   { key: 'completed', label: t('feedback.completed') },
 ])
 
-/**
- * Watch activeTab để reload data khi tab thay đổi
- * immediate: false để tránh trigger khi component mount
- */
+/** Watch activeTab để reload data khi tab thay đổi - immediate: false để tránh trigger khi component mount */
 watch(
   // Theo dõi sự thay đổi của activeTab
   activeTab,
@@ -235,9 +232,7 @@ watch(
 )
 
 // H10: functions
-/**
- * Reset pagination về trạng thái ban đầu
- */
+/** Reset pagination về trạng thái ban đầu */
 function resetPagination() {
   // Reset skip về 0
   skip.value = 0
@@ -348,9 +343,7 @@ async function loadFeedbackList(is_reset: boolean = false) {
   }
 }
 
-/**
- * Handle scroll event để detect khi scroll gần cuối
- */
+/** Handle scroll event để detect khi scroll gần cuối */
 function handleScroll() {
   // Kiểm tra các điều kiện để không load more
   if (
@@ -424,9 +417,7 @@ function getStatusLabel(status: string) {
   return LABELS[status as keyof typeof LABELS] || t('feedback.pending')
 }
 
-/**
- * Navigate đến trang tạo feedback mới
- */
+/** Navigate đến trang tạo feedback mới */
 function navigateToCreate() {
   // Sử dụng router.push để điều hướng đến route '/feedback-create'
   router.push('/feedback-create')
