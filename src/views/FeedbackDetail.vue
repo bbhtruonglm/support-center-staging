@@ -99,7 +99,9 @@
         <div v-else-if="ticket_detail" class="flex flex-col flex-1 min-h-full">
           <!-- Tiêu đề -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.title') }}</h3>
+            <h3 class="text-xs font-medium text-slate-700">
+              {{ t('feedback.title') }}
+            </h3>
             <p class="text-sm font-medium text-black">
               {{ ticket_detail.title || t('feedback.noTitle') }}
             </p>
@@ -107,7 +109,9 @@
 
           <!-- Danh mục -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.category') }}</h3>
+            <h3 class="text-xs font-medium text-slate-700">
+              {{ t('feedback.category') }}
+            </h3>
             <p class="text-sm font-medium text-black">
               {{ getCategoryLabel(ticket_detail.workflow_id) }}
             </p>
@@ -115,7 +119,9 @@
 
           <!-- Trạng thái -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.status') }}</h3>
+            <h3 class="text-xs font-medium text-slate-700">
+              {{ t('feedback.status') }}
+            </h3>
             <span
               :class="[
                 'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
@@ -128,7 +134,9 @@
 
           <!-- Nội dung -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.content') }}</h3>
+            <h3 class="text-xs font-medium text-slate-700">
+              {{ t('feedback.content') }}
+            </h3>
             <p class="text-sm font-medium text-black whitespace-pre-wrap">
               {{ ticket_detail.content || t('feedback.noContent') }}
             </p>
@@ -136,7 +144,9 @@
 
           <!-- Ảnh đính kèm -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
-            <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.attachImages') }}</h3>
+            <h3 class="text-xs font-medium text-slate-700">
+              {{ t('feedback.attachImages') }}
+            </h3>
             <div class="flex flex-wrap gap-2.5">
               <!-- Empty State: Giữ height để đồng bộ với skeleton -->
               <div
@@ -207,7 +217,9 @@
               v-else-if="comments_list.length === 0"
               class="flex items-center justify-center py-10"
             >
-              <p class="text-sm text-gray-500">{{ t('feedback.noComments') }}</p>
+              <p class="text-sm text-gray-500">
+                {{ t('feedback.noComments') }}
+              </p>
             </div>
             <div v-else class="flex flex-col gap-2">
               <!-- Comment Card -->
@@ -236,7 +248,9 @@
                       >
                         {{ comment.name }}
                       </p>
-                      <p class="text-xs text-slate-500">{{ comment.position }}</p>
+                      <p class="text-xs text-slate-500">
+                        {{ comment.position }}
+                      </p>
                     </div>
                   </div>
                   <!-- Ngày -->
@@ -244,11 +258,15 @@
                     <p class="text-xs text-gray-500 whitespace-nowrap">
                       {{ t('feedback.addedAt') }}
                     </p>
-                    <p class="text-xs text-gray-500 whitespace-nowrap">{{ comment.date }}</p>
+                    <p class="text-xs text-gray-500 whitespace-nowrap">
+                      {{ comment.date }}
+                    </p>
                   </div>
                 </div>
                 <!-- Nội dung bình luận -->
-                <div class="py-1 text-black font-medium text-base">{{ comment.content }}</div>
+                <div class="py-1 text-black font-medium text-base">
+                  {{ comment.content }}
+                </div>
               </div>
             </div>
 
@@ -333,7 +351,9 @@
 
             <!-- Bình luận -->
             <div class="flex flex-col gap-1.5">
-              <h3 class="text-sm font-medium text-slate-950">{{ t('feedback.comment') }}</h3>
+              <h3 class="text-sm font-medium text-slate-950">
+                {{ t('feedback.comment') }}
+              </h3>
               <textarea
                 v-model="comment_content"
                 :placeholder="t('feedback.commentPlaceholder')"
@@ -359,16 +379,27 @@
 </template>
 
 <script setup lang="ts">
+// H1: import runtime functions
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Camera, ChevronLeft, ChevronRight } from 'lucide-vue-next'
-import { toast } from 'vue3-toastify'
 
+// H2: import components
 import PageHeader from '@/components/PageHeader.vue'
+
+// H3: import icon components
+import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+
+// H4: import types
 import { getTicketDetail, getComments, createComment, type TicketItem } from '@/api/ticket'
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
 import type { TicketStage, CommentItem } from '@/types/ticket'
+
+// H5: props, emits
+// (none)
+
+// H6: i18n, store
+import { toast } from 'vue3-toastify'
 import { useTicketStore } from '@/stores/ticket'
 import { useWorkflowStore } from '@/stores/workflow'
 
@@ -385,6 +416,7 @@ const ticket_store = useTicketStore()
 /** Workflow store để lấy workflow list từ cache */
 const workflow_store = useWorkflowStore()
 
+// H7: variables
 /** Chi tiết ticket từ router state hoặc API */
 const ticket_detail = ref<TicketItem | null>(null)
 
@@ -415,6 +447,17 @@ const is_sending_comment = ref(false)
 /** Ref đến scrollable content container */
 const scrollable_content_ref = ref<HTMLElement | null>(null)
 
+// H8: lifecycle hooks
+/** Load data khi component mounted */
+onMounted(async () => {
+  /** Load workflow list từ store trước (chỉ gọi API nếu chưa load) */
+  /** Đợi workflow list load xong để đảm bảo có data khi render category */
+  await workflow_store.loadWorkflowList()
+  /** Sau đó mới load ticket detail */
+  loadTicketDetail()
+})
+
+// H9: watch, computed
 /**
  * Computed property: Có đang loading không (bao gồm cả workflow và ticket)
  */
@@ -518,6 +561,20 @@ const show_ellipsis_before_last = computed(() => {
   return LAST_PAGE - SECOND_LAST_PAGE > 1
 })
 
+/**
+ * Watch route params để reload khi ID thay đổi (khi navigate giữa các ticket khác nhau)
+ */
+watch(
+  () => route.params.id,
+  (new_id, old_id) => {
+    /** Chỉ reload nếu ID thực sự thay đổi (không phải lần đầu mount) */
+    if (old_id !== undefined && new_id !== old_id) {
+      loadTicketDetail()
+    }
+  },
+)
+
+// H10: functions
 /**
  * Chuyển đến trang trước
  */
@@ -771,26 +828,4 @@ async function loadTicketDetail() {
     is_loading.value = false
   }
 }
-
-/**
- * Watch route params để reload khi ID thay đổi (khi navigate giữa các ticket khác nhau)
- */
-watch(
-  () => route.params.id,
-  (new_id, old_id) => {
-    /** Chỉ reload nếu ID thực sự thay đổi (không phải lần đầu mount) */
-    if (old_id !== undefined && new_id !== old_id) {
-      loadTicketDetail()
-    }
-  },
-)
-
-/** Load data khi component mounted */
-onMounted(async () => {
-  /** Load workflow list từ store trước (chỉ gọi API nếu chưa load) */
-  /** Đợi workflow list load xong để đảm bảo có data khi render category */
-  await workflow_store.loadWorkflowList()
-  /** Sau đó mới load ticket detail */
-  loadTicketDetail()
-})
 </script>

@@ -63,7 +63,9 @@
                 'bg-blue-50': selected_workflow?.id === workflow.id,
               }"
             >
-              <div class="text-sm font-semibold text-black">{{ workflow.name }}</div>
+              <div class="text-sm font-semibold text-black">
+                {{ workflow.name }}
+              </div>
               <div v-if="workflow.description" class="text-xs text-gray-500 mt-0.5">
                 {{ workflow.description }}
               </div>
@@ -88,7 +90,8 @@
       <!-- Content -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-black">
-          {{ t('feedback.content') }} <span class="text-red-500">{{ t('feedback.required') }}</span>
+          {{ t('feedback.content') }}
+          <span class="text-red-500">{{ t('feedback.required') }}</span>
         </label>
         <textarea
           v-model="form_content"
@@ -100,7 +103,9 @@
 
       <!-- Images -->
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-black"> {{ t('feedback.attachImages') }} </label>
+        <label class="text-sm font-medium text-black">
+          {{ t('feedback.attachImages') }}
+        </label>
         <span class="text-sm text-gray-500">{{ t('feedback.maxImages') }}</span>
 
         <div class="flex flex-wrap gap-2.5">
@@ -163,16 +168,26 @@
 </template>
 
 <script setup lang="ts">
+// H1: import runtime functions
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { Camera, ChevronDown, X } from 'lucide-vue-next'
-import { toast } from 'vue3-toastify'
 
+// H2: import components
 import AppHeader from '@/components/AppHeader.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
+// H3: import icon components
+import { Camera, ChevronDown } from 'lucide-vue-next'
+
+// H4: import types
 import { createForm, createTicket, type WorkflowItem } from '@/api/ticket'
+
+// H5: props, emits
+// (none)
+
+// H6: i18n, store
+import { toast } from 'vue3-toastify'
 import { useWorkflowStore } from '@/stores/workflow'
 
 /** Router instance */
@@ -184,6 +199,7 @@ const { t } = useI18n()
 /** Workflow store để lấy workflow list từ cache */
 const workflow_store = useWorkflowStore()
 
+// H7: variables
 /** Ref cho dropdown container */
 const dropdownRef = ref<HTMLElement | null>(null)
 
@@ -220,6 +236,34 @@ const is_submitting = ref(false)
 /** Số lượng ảnh tối đa */
 const MAX_IMAGES = 6
 
+// H8: lifecycle hooks
+/** Load data khi component mounted */
+onMounted(() => {
+  loadWorkflowList()
+  document.addEventListener('click', handleClickOutside)
+})
+
+/** Cleanup khi component unmounted */
+onUnmounted(() => {
+  document.removeEventListener('click', handleClickOutside)
+})
+
+// H9: watch, computed
+/**
+ * Watch workflow list để tự động chọn workflow đầu tiên khi load xong
+ */
+watch(
+  () => workflow_list.value,
+  (new_list) => {
+    /** Tự động chọn workflow đầu tiên nếu có và chưa chọn workflow nào */
+    if (new_list.length > 0 && !selected_workflow.value && new_list[0]) {
+      selected_workflow.value = new_list[0]
+    }
+  },
+  { immediate: true },
+)
+
+// H10: functions
 /**
  * Toggle dropdown mở/đóng
  */
@@ -249,20 +293,6 @@ async function loadWorkflowList() {
 }
 
 /**
- * Watch workflow list để tự động chọn workflow đầu tiên khi load xong
- */
-watch(
-  () => workflow_list.value,
-  (new_list) => {
-    /** Tự động chọn workflow đầu tiên nếu có và chưa chọn workflow nào */
-    if (new_list.length > 0 && !selected_workflow.value && new_list[0]) {
-      selected_workflow.value = new_list[0]
-    }
-  },
-  { immediate: true },
-)
-
-/**
  * Trigger file input để chọn/chụp ảnh
  */
 function triggerFileInput() {
@@ -283,7 +313,7 @@ function handleImageSelect(event: Event) {
   const REMAINING_SLOTS = MAX_IMAGES - image_previews.value.length
 
   if (REMAINING_SLOTS <= 0) {
-    toast.error(`Chỉ được tải tối đa ${MAX_IMAGES} ảnh`)
+    toast.error(t('feedback.maxImagesExceeded', { count: MAX_IMAGES.toString() }))
     return
   }
 
@@ -308,7 +338,7 @@ function handleImageSelect(event: Event) {
     // Kiểm tra kích thước file (tối đa 5MB)
     const MAX_SIZE = 5 * 1024 * 1024 // 5MB
     if (FILE.size > MAX_SIZE) {
-      toast.error(`Ảnh ${FILE.name} vượt quá 5MB`)
+      toast.error(t('feedback.imageSizeExceeded', { name: FILE.name }))
       continue
     }
 
@@ -325,7 +355,7 @@ function handleImageSelect(event: Event) {
     }
 
     READER.onerror = () => {
-      toast.error(`Không thể đọc file ${FILE.name}`)
+      toast.error(t('feedback.cannotReadFile', { name: FILE.name }))
     }
 
     READER.readAsDataURL(FILE)
@@ -338,7 +368,12 @@ function handleImageSelect(event: Event) {
 
   // Nếu có file bị bỏ qua do vượt quá số lượng
   if (FILES.length > FILES_TO_ADD) {
-    toast.warning(`Chỉ thêm được ${FILES_TO_ADD} ảnh. Tối đa ${MAX_IMAGES} ảnh`)
+    toast.warning(
+      t('feedback.onlyAddedImages', {
+        added: FILES_TO_ADD.toString(),
+        max: MAX_IMAGES.toString(),
+      }),
+    )
   }
 }
 
@@ -438,15 +473,4 @@ function handleClickOutside(event: MouseEvent) {
     is_dropdown_open.value = false
   }
 }
-
-/** Load data khi component mounted */
-onMounted(() => {
-  loadWorkflowList()
-  document.addEventListener('click', handleClickOutside)
-})
-
-/** Cleanup khi component unmounted */
-onUnmounted(() => {
-  document.removeEventListener('click', handleClickOutside)
-})
 </script>

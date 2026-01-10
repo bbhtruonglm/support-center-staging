@@ -100,6 +100,10 @@ export default {
     ticketIdNotFound: 'Không tìm thấy ID phản ánh',
     emptyMessage:
       'Chúng tôi luôn lắng nghe các phản hồi của Quý Khách hàng để liên tục cải thiện Chất lượng - Dịch vụ.',
+    maxImagesExceeded: 'Chỉ được tải tối đa {count} ảnh',
+    imageSizeExceeded: 'Ảnh {name} vượt quá 5MB',
+    cannotReadFile: 'Không thể đọc file {name}',
+    onlyAddedImages: 'Chỉ thêm được {added} ảnh. Tối đa {max} ảnh',
   },
 
   // Chat

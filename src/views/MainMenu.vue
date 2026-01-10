@@ -24,9 +24,7 @@
                 <span class="font-medium text-blue-700">
                   {{ t('mainMenu.customerId') }}
                 </span>
-                <span class="font-medium">
-                  {{ customer_id }}
-                </span>
+                <span class="font-medium">{{ customer_id }}</span>
               </div>
               <button
                 @click="copyCustomerId"
@@ -79,8 +77,8 @@
 
             <MenuItem
               :icon="AlertIcon"
-              title="Khiếu nại & Báo lỗi"
-              subtitle="Tiếp nhận ý kiến khách hàng"
+              :title="t('mainMenu.complaints')"
+              :subtitle="t('mainMenu.complaintsDesc')"
               to="/feedback-list"
             >
               <template #right-icon>
@@ -135,25 +133,57 @@
     </section>
   </div>
 </template>
+
 <script setup lang="ts">
+// H1: import runtime functions
 import { computed, onMounted, ref } from 'vue'
 import { useRoute } from 'vue-router'
-import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 
+// H2: import components
 import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 
+// H3: import icon components
 import { Copy, Loader2 } from 'lucide-vue-next'
 
+// H4: import types
+// (none)
+
+// H5: props, emits
+// (none)
+
+// H6: i18n, store
+import { toast } from 'vue3-toastify'
+
+/** Avatar default asset */
 import avatarDefault from '@/assets/avt-default.jpg'
+
+/** Mail icon asset */
 import mailIcon from '@/assets/MailIcon.png'
+
+/** BBH icon asset */
 import bbhIcon from '@/assets/BBHIcon.png'
+
+/** Zalo icon asset */
 import zaloIcon from '@/assets/ZaloIcon.png'
+
+/** Mail small icon asset */
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
+
+/** Phone icon asset */
 import PhoneIcon from '@/assets/PhoneIcon.png'
+
+/** Alert icon asset */
 import AlertIcon from '@/assets/Alerticon.png'
 
+/** Router instance */
+const route = useRoute()
+
+/** i18n instance */
+const { t } = useI18n()
+
+// H7: variables
 /** CDN base URL từ env */
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL
 
@@ -166,31 +196,13 @@ const SUPPORT_EMAIL = import.meta.env.VITE_SUPPORT_EMAIL
 /** URL Zalo từ env */
 const ZALO_OA_URL = import.meta.env.VITE_ZALO_OA_URL
 
-/** Format số điện thoại hiển thị dạng XXXX.XXX.XXXX */
-const formatted_support_phone = computed(() => {
-  // Loại bỏ ký tự không phải số nếu có
-  const PHONE = SUPPORT_PHONE?.replace(/\D/g, '') || ''
+/** Trạng thái loading của nút copy */
+const is_copy_loading = ref(false)
 
-  // Format theo nhóm 4-3-4 nếu đủ 11 số
-  if (PHONE.length === 11) {
-    return PHONE.replace(/(\d{4})(\d{3})(\d{4})/, '$1.$2.$3')
-  }
+/** Thời gian delay giữa các lần click (ms) */
+const CLICK_DELAY = 500
 
-  // Format theo nhóm 4-3-3 nếu 10 số (dự phòng)
-  if (PHONE.length === 10) {
-    return PHONE.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3')
-  }
-
-  // Trả về nguyên gốc nếu không đúng định dạng
-  return SUPPORT_PHONE
-})
-
-/** router */
-const route = useRoute()
-
-/** i18n */
-const { t } = useI18n()
-
+// H8: lifecycle hooks
 /** Hook xử lý khi component được mounted */
 onMounted(() => {
   try {
@@ -212,6 +224,26 @@ onMounted(() => {
     // Ghi log nếu có lỗi xảy ra trong quá trình lưu storage
     console.error('Error saving params to localStorage:', error)
   }
+})
+
+// H9: watch, computed
+/** Format số điện thoại hiển thị dạng XXXX.XXX.XXXX */
+const formatted_support_phone = computed(() => {
+  // Loại bỏ ký tự không phải số nếu có
+  const PHONE = SUPPORT_PHONE?.replace(/\D/g, '') || ''
+
+  // Format theo nhóm 4-3-4 nếu đủ 11 số
+  if (PHONE.length === 11) {
+    return PHONE.replace(/(\d{4})(\d{3})(\d{4})/, '$1.$2.$3')
+  }
+
+  // Format theo nhóm 4-3-3 nếu 10 số (dự phòng)
+  if (PHONE.length === 10) {
+    return PHONE.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3')
+  }
+
+  // Trả về nguyên gốc nếu không đúng định dạng
+  return SUPPORT_PHONE
 })
 
 /** Avatar URL based on client_id */
@@ -250,12 +282,7 @@ const customer_id = computed<string>(() => {
   return CLIENT_ID || '---'
 })
 
-/** Trạng thái loading của nút copy */
-const is_copy_loading = ref(false)
-
-/** Thời gian delay giữa các lần click (ms) */
-const CLICK_DELAY = 500
-
+// H10: functions
 /** Copy mã khách hàng */
 async function copyCustomerId() {
   /** Lấy giá trị ID hiện tại */

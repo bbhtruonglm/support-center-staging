@@ -104,9 +104,7 @@
                 </div>
 
                 <!-- Content Description -->
-                <p class="text-sm line-clamp-3">
-                  {{ item.content }}
-                </p>
+                <p class="text-sm line-clamp-3">{{ item.content }}</p>
               </div>
             </div>
 
@@ -165,21 +163,33 @@
 </template>
 
 <script setup lang="ts">
+// H1: import runtime functions
 import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { Calendar, Bookmark } from 'lucide-vue-next'
-import { toast } from 'vue3-toastify'
 import { useI18n } from 'vue-i18n'
 
+// H2: import components
 import PageHeader from '@/components/PageHeader.vue'
 import TabNav from '@/components/TabNav.vue'
-import MailIcon from '@/assets/MailIcon.png'
 
-import { useApiContext } from '@/composables/useApiContext'
+// H3: import icon components
+import { Calendar, Bookmark } from 'lucide-vue-next'
+
+// H4: import types
 import { getTicketList, type TicketItem } from '@/api/ticket'
 import { transformTicketToFeedback } from '@/api/ticket/transform'
 import type { FeedbackItem } from '@/types/ticket'
+
+// H5: props, emits
+// (none)
+
+// H6: i18n, store
+import { toast } from 'vue3-toastify'
+import { useApiContext } from '@/composables/useApiContext'
 import { useTicketStore } from '@/stores/ticket'
+
+/** Mail icon asset */
+import MailIcon from '@/assets/MailIcon.png'
 
 /** Router instance */
 const router = useRouter()
@@ -193,16 +203,9 @@ const { is_valid } = useApiContext()
 /** Ticket store để cache ticket data */
 const ticket_store = useTicketStore()
 
+// H7: variables
 /** Tab đang active */
 const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
-
-/** Danh sách tabs */
-const tabs = computed(() => [
-  { key: 'all', label: t('feedback.all') },
-  { key: 'pending', label: t('feedback.pending') },
-  { key: 'processing', label: t('feedback.processing') },
-  { key: 'completed', label: t('feedback.completed') },
-])
 
 /** Danh sách feedback từ API */
 const feedbackList = ref<FeedbackItem[]>([])
@@ -231,6 +234,25 @@ const has_more = ref(true)
 /** Ref đến scroll container */
 const scrollContainer = ref<HTMLElement | null>(null)
 
+// H8: lifecycle hooks
+/** Load data khi component mounted */
+onMounted(() => {
+  // Nếu không có client_id thì không cần load data
+  if (!is_valid.value) {
+    return
+  }
+  loadFeedbackList(true)
+})
+
+// H9: watch, computed
+/** Danh sách tabs */
+const tabs = computed(() => [
+  { key: 'all', label: t('feedback.all') },
+  { key: 'pending', label: t('feedback.pending') },
+  { key: 'processing', label: t('feedback.processing') },
+  { key: 'completed', label: t('feedback.completed') },
+])
+
 /**
  * Watch activeTab để reload data khi tab thay đổi
  * immediate: false để tránh trigger khi component mount (đã có onMounted)
@@ -253,6 +275,7 @@ watch(
   { immediate: false },
 )
 
+// H10: functions
 /**
  * Reset pagination về trạng thái ban đầu
  */
@@ -431,15 +454,6 @@ function navigateToDetail(ticket_id: string) {
     params: { id: ticket_id },
   })
 }
-
-/** Load data khi component mounted */
-onMounted(() => {
-  // Nếu không có client_id thì không cần load data
-  if (!is_valid.value) {
-    return
-  }
-  loadFeedbackList(true)
-})
 </script>
 
 <style scoped>

@@ -98,6 +98,10 @@ export default {
     submitError: 'Error submitting feedback',
     ticketIdNotFound: 'Ticket ID not found',
     emptyMessage: 'We always listen to your feedback to continuously improve Quality - Service.',
+    maxImagesExceeded: 'Maximum {count} images allowed',
+    imageSizeExceeded: 'Image {name} exceeds 5MB',
+    cannotReadFile: 'Cannot read file {name}',
+    onlyAddedImages: 'Only {added} images added. Maximum {max} images',
   },
 
   // Chat
