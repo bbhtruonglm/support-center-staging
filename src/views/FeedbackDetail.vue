@@ -7,7 +7,7 @@
 
     <!-- Scrollable Content -->
     <div ref="scrollable_content_ref" class="flex-1 overflow-y-auto">
-      <div class="flex flex-col p-2">
+      <div class="flex flex-col p-2 min-h-full">
         <!-- Error State -->
         <div
           v-if="error_message && !is_loading_initial"
@@ -17,7 +17,7 @@
         </div>
 
         <!-- Skeleton Loading State -->
-        <div v-if="is_loading_initial" class="flex flex-col gap-1">
+        <div v-if="is_loading_initial" class="flex flex-col">
           <!-- Chi tiết phản ánh Skeleton -->
           <div class="flex flex-col gap-1">
             <!-- Tiêu đề Skeleton -->
@@ -59,7 +59,7 @@
           </div>
 
           <!-- Tình trạng xử lý Skeleton -->
-          <div class="flex flex-col gap-2 mt-2">
+          <div class="flex flex-col gap-2">
             <!-- Tiêu đề Skeleton -->
             <div class="py-3 border-b-2 border-gray-200 flex justify-center animate-pulse">
               <div class="h-4 bg-gray-200 rounded w-32"></div>
@@ -96,7 +96,7 @@
         </div>
 
         <!-- Chi tiết phản ánh -->
-        <div v-else-if="ticket_detail" class="flex flex-col gap-1">
+        <div v-else-if="ticket_detail" class="flex flex-col flex-1 min-h-full">
           <!-- Tiêu đề -->
           <section class="bg-white rounded-lg px-4 py-3 shadow-sm">
             <h3 class="text-xs font-medium text-slate-700">{{ t('feedback.title') }}</h3>
@@ -163,13 +163,16 @@
             </div>
           </section>
 
+          <!-- Spacer để đẩy phần Tình trạng xử lý xuống cuối khi không có comments -->
+          <div v-if="comments_list.length === 0 && !is_loading_comments" class="flex-1"></div>
+
           <!-- Tình trạng xử lý -->
           <div class="flex flex-col gap-2">
             <!-- Tiêu đề -->
             <div
               class="py-3 border-b-2 border-blue-700 flex justify-center text-sm text-blue-700 font-bold"
             >
-              Tình trạng xử lý
+              {{ t('feedback.processingStatus') }}
             </div>
 
             <!-- Comments List -->
@@ -204,7 +207,7 @@
               v-else-if="comments_list.length === 0"
               class="flex items-center justify-center py-10"
             >
-              <p class="text-sm text-gray-500">Chưa có bình luận nào</p>
+              <p class="text-sm text-gray-500">{{ t('feedback.noComments') }}</p>
             </div>
             <div v-else class="flex flex-col gap-2">
               <!-- Comment Card -->
@@ -238,7 +241,9 @@
                   </div>
                   <!-- Ngày -->
                   <div class="flex flex-col items-end shrink-0">
-                    <p class="text-xs text-gray-500 whitespace-nowrap">Thêm mới lúc</p>
+                    <p class="text-xs text-gray-500 whitespace-nowrap">
+                      {{ t('feedback.addedAt') }}
+                    </p>
                     <p class="text-xs text-gray-500 whitespace-nowrap">{{ comment.date }}</p>
                   </div>
                 </div>
@@ -261,7 +266,7 @@
                 ]"
               >
                 <ChevronLeft :size="16" class="text-slate-950" />
-                <span>Lùi</span>
+                <span>{{ t('feedback.previous') }}</span>
               </button>
 
               <!-- Page Numbers -->
@@ -321,17 +326,17 @@
                     : 'text-slate-950 cursor-pointer',
                 ]"
               >
-                <span>Tiếp</span>
+                <span>{{ t('feedback.next') }}</span>
                 <ChevronRight :size="16" class="text-slate-950" />
               </button>
             </div>
 
             <!-- Bình luận -->
             <div class="flex flex-col gap-1.5">
-              <h3 class="text-sm font-medium text-slate-950">Bình luận</h3>
+              <h3 class="text-sm font-medium text-slate-950">{{ t('feedback.comment') }}</h3>
               <textarea
                 v-model="comment_content"
-                placeholder="Nhập nội dung bình luận của bạn"
+                :placeholder="t('feedback.commentPlaceholder')"
                 class="w-full resize-y px-4 py-3 text-sm rounded-md bg-white border border-gray-200 focus:outline-none text-black placeholder:text-gray-500 shadow-sm"
                 rows="4"
                 :disabled="is_sending_comment"
@@ -344,7 +349,7 @@
               :disabled="is_sending_comment || !comment_content.trim()"
               class="w-full bg-orange-500 cursor-pointer text-white font-medium p-3 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {{ is_sending_comment ? 'Đang gửi...' : 'Gửi bình luận' }}
+              {{ is_sending_comment ? t('feedback.sendingComment') : t('feedback.sendComment') }}
             </button>
           </div>
         </div>
@@ -588,11 +593,11 @@ function getStatusBadgeClass(stage: TicketStage): string {
 function getStatusLabel(stage: TicketStage): string {
   const STATUS = mapStageToStatus(stage)
   const LABELS = {
-    pending: 'Gửi yêu cầu',
-    processing: 'Đang xử lý',
-    completed: 'Hoàn thành',
+    pending: t('feedback.pending'),
+    processing: t('feedback.processing'),
+    completed: t('feedback.completed'),
   }
-  return LABELS[STATUS] || 'Gửi yêu cầu'
+  return LABELS[STATUS] || t('feedback.pending')
 }
 
 /**
@@ -647,7 +652,7 @@ async function loadComments(ticket_id: number, page: number = 1) {
     current_page.value = VALID_PAGE
   } catch (e: any) {
     console.error('Error loading comments:', e)
-    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải danh sách bình luận'
+    const ERROR_MSG = e.message || t('feedback.loadCommentsError')
 
     /** Xử lý đặc biệt cho lỗi PAGE_NOT_FOUND - không hiển thị toast error */
     if (ERROR_MSG === 'PAGE_NOT_FOUND' || ERROR_MSG.includes('PAGE_NOT_FOUND')) {
@@ -697,10 +702,10 @@ async function handleSendComment() {
     }
 
     /** Hiển thị thông báo thành công */
-    toast.success('Gửi bình luận thành công')
+    toast.success(t('feedback.sendCommentSuccess'))
   } catch (e: any) {
     console.error('Error sending comment:', e)
-    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi gửi bình luận'
+    const ERROR_MSG = e.message || t('feedback.sendCommentError')
     toast.error(ERROR_MSG)
   } finally {
     is_sending_comment.value = false
@@ -720,7 +725,7 @@ async function loadTicketDetail() {
   const TICKET_ID = route.params.id as string
 
   if (!TICKET_ID) {
-    error_message.value = 'Không tìm thấy ID phản ánh'
+    error_message.value = t('feedback.ticketIdNotFound')
     return
   }
 
@@ -759,7 +764,7 @@ async function loadTicketDetail() {
     }
   } catch (e: any) {
     console.error('Error loading ticket detail:', e)
-    const ERROR_MSG = e.message || 'Có lỗi xảy ra khi tải chi tiết phản ánh'
+    const ERROR_MSG = e.message || t('feedback.loadDetailError')
     error_message.value = ERROR_MSG
     toast.error(ERROR_MSG)
   } finally {

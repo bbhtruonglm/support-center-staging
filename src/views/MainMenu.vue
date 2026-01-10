@@ -152,7 +152,7 @@ import bbhIcon from '@/assets/BBHIcon.png'
 import zaloIcon from '@/assets/ZaloIcon.png'
 import MailSmallIcon from '@/assets/MailSmallIcon.png'
 import PhoneIcon from '@/assets/PhoneIcon.png'
-import AlertIcon from '@/assets/AlertIcon.png'
+import AlertIcon from '@/assets/Alerticon.png'
 
 /** CDN base URL từ env */
 const CDN_BASE_URL = import.meta.env.VITE_CDN_BASE_URL

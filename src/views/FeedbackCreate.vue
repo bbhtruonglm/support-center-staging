@@ -4,19 +4,20 @@
     <AppHeader />
 
     <!-- Navigation -->
-    <PageHeader title="Tạo phản ánh" />
+    <PageHeader :title="t('feedback.createTitle')" />
 
     <!-- Form -->
     <div class="p-3 flex flex-col gap-3">
       <!-- Title -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-black">
-          Tiêu đề góp ý <span class="text-red-500">*</span>
+          {{ t('feedback.feedbackTitle') }}
+          <span class="text-red-500">{{ t('feedback.required') }}</span>
         </label>
         <input
           v-model="form_title"
           type="text"
-          placeholder="Vui lòng nhập tiêu đề"
+          :placeholder="t('feedback.feedbackTitlePlaceholder')"
           class="w-full px-6 py-3 text-sm rounded-xl border border-gray-200 bg-white"
         />
       </div>
@@ -24,7 +25,8 @@
       <!-- Service Type -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-black">
-          Loại dịch vụ <span class="text-red-500">*</span>
+          {{ t('feedback.serviceType') }}
+          <span class="text-red-500">{{ t('feedback.required') }}</span>
         </label>
 
         <!-- Select Dropdown -->
@@ -36,7 +38,7 @@
             <span
               :class="['text-sm', selected_workflow ? 'font-semibold text-black' : 'text-gray-400']"
             >
-              {{ selected_workflow?.name || 'Chọn loại dịch vụ' }}
+              {{ selected_workflow?.name || t('feedback.selectServiceType') }}
             </span>
 
             <ChevronDown
@@ -69,7 +71,7 @@
 
             <!-- Loading State -->
             <div v-if="is_loading_workflow" class="px-6 py-3 text-sm text-gray-500">
-              Đang tải...
+              {{ t('common.loading') }}
             </div>
 
             <!-- Empty State -->
@@ -77,7 +79,7 @@
               v-if="!is_loading_workflow && workflow_list.length === 0"
               class="px-6 py-3 text-sm text-gray-500"
             >
-              Không có dịch vụ nào
+              {{ t('feedback.noServiceAvailable') }}
             </div>
           </div>
         </div>
@@ -86,20 +88,20 @@
       <!-- Content -->
       <div class="flex flex-col gap-1">
         <label class="text-sm font-medium text-black">
-          Nội dung góp ý <span class="text-red-500">*</span>
+          {{ t('feedback.content') }} <span class="text-red-500">{{ t('feedback.required') }}</span>
         </label>
         <textarea
           v-model="form_content"
           rows="5"
-          placeholder="Quý khách vui lòng nhập nội dung phản ánh"
+          :placeholder="t('feedback.contentPlaceholder')"
           class="w-full px-6 py-3 text-sm rounded-xl border border-gray-200 resize-none bg-white"
         ></textarea>
       </div>
 
       <!-- Images -->
       <div class="flex flex-col gap-1">
-        <label class="text-sm font-medium text-black"> Ảnh đính kèm </label>
-        <span class="text-sm text-gray-500">Tối đa 6 ảnh</span>
+        <label class="text-sm font-medium text-black"> {{ t('feedback.attachImages') }} </label>
+        <span class="text-sm text-gray-500">{{ t('feedback.maxImages') }}</span>
 
         <div class="flex flex-wrap gap-2.5">
           <!-- Preview Images -->
@@ -124,7 +126,7 @@
             class="w-20 h-20 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white cursor-pointer hover:border-gray-400"
           >
             <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
-            <span class="text-xs mt-1">Chụp ảnh</span>
+            <span class="text-xs mt-1">{{ t('feedback.takePhoto') }}</span>
           </div>
 
           <!-- Hidden File Input -->
@@ -149,13 +151,12 @@
           is_submitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-700',
         ]"
       >
-        {{ is_submitting ? 'Đang gửi...' : 'Gửi thông tin' }}
+        {{ is_submitting ? t('feedback.sending') : t('feedback.sendInfo') }}
       </button>
 
       <!-- Note -->
       <p class="text-xs text-slate-500 text-center leading-relaxed">
-        Sau khi gửi phản ánh, chúng tôi sẽ tiếp nhận và liên lạc đến <br />
-        Quý khách hàng sớm nhất và không quá 24 tiếng.
+        {{ t('feedback.note') }}
       </p>
     </div>
   </div>
@@ -164,6 +165,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { Camera, ChevronDown, X } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
 
@@ -175,6 +177,9 @@ import { useWorkflowStore } from '@/stores/workflow'
 
 /** Router instance */
 const router = useRouter()
+
+/** i18n instance */
+const { t } = useI18n()
 
 /** Workflow store để lấy workflow list từ cache */
 const workflow_store = useWorkflowStore()
@@ -239,7 +244,7 @@ async function loadWorkflowList() {
     await workflow_store.loadWorkflowList()
   } catch (e: any) {
     console.error('Error loading workflow list:', e)
-    toast.error(e.message || 'Không thể tải danh sách dịch vụ')
+    toast.error(e.message || t('feedback.loadServiceError'))
   }
 }
 
@@ -296,7 +301,7 @@ function handleImageSelect(event: Event) {
 
     // Kiểm tra file có phải là ảnh không
     if (!FILE.type.startsWith('image/')) {
-      toast.error('Vui lòng chọn file ảnh')
+      toast.error(t('feedback.selectImageFile'))
       continue
     }
 
@@ -353,19 +358,19 @@ function removeImage(index: number) {
 function validateForm(): boolean {
   // Kiểm tra title
   if (!form_title.value || form_title.value.trim() === '') {
-    toast.error('Vui lòng nhập tiêu đề góp ý')
+    toast.error(t('feedback.enterTitle'))
     return false
   }
 
   // Kiểm tra content
   if (!form_content.value || form_content.value.trim() === '') {
-    toast.error('Vui lòng nhập nội dung góp ý')
+    toast.error(t('feedback.enterContent'))
     return false
   }
 
   // Kiểm tra workflow đã chọn
   if (!selected_workflow.value) {
-    toast.error('Vui lòng chọn loại dịch vụ')
+    toast.error(t('feedback.selectService'))
     return false
   }
 
@@ -391,7 +396,7 @@ async function handleSubmit() {
   try {
     // Kiểm tra lại selected_workflow (đã validate nhưng để chắc chắn)
     if (!selected_workflow.value) {
-      toast.error('Vui lòng chọn loại dịch vụ')
+      toast.error(t('feedback.selectService'))
       return
     }
 
@@ -413,11 +418,11 @@ async function handleSubmit() {
     await createTicket(TICKET_REQUEST)
 
     // Thành công: hiển thị thông báo và navigate
-    toast.success('Gửi phản ánh thành công!')
+    toast.success(t('feedback.submitSuccess'))
     router.push('/feedback-list')
   } catch (e: any) {
     console.error('Error submitting feedback:', e)
-    toast.error(e.message || 'Có lỗi xảy ra khi gửi phản ánh')
+    toast.error(e.message || t('feedback.submitError'))
   } finally {
     is_submitting.value = false
   }
@@ -445,4 +450,3 @@ onUnmounted(() => {
   document.removeEventListener('click', handleClickOutside)
 })
 </script>
-

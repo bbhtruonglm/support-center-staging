@@ -2,7 +2,7 @@
   <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col">
     <!-- Sticky Header -->
     <div class="sticky top-0 z-10 bg-slate-100">
-      <PageHeader title="Phản ánh" />
+      <PageHeader :title="t('feedback.listTitle')" />
       <!-- Sticky Tabs -->
       <div class="py-3">
         <TabNav v-model="activeTab" :tabs="tabs" />
@@ -63,8 +63,7 @@
               <img :src="MailIcon" alt="No Feedback" class="w-25 h-25 object-contain z-10" />
             </div>
             <p class="text-xs text-gray-600 text-center px-4 whitespace-nowrap">
-              Chúng tôi luôn lắng nghe các phản hồi của <br />
-              Quý Khách hàng để liên tục cải thiện Chất lượng - Dịch vụ.
+              {{ t('feedback.emptyMessage') }}
             </p>
           </div>
 
@@ -96,11 +95,11 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1 text-xs text-gray-500">
                     <Calendar :size="12" class="text-gray-500" />
-                    <span>Ngày : {{ item.date }}</span>
+                    <span>{{ t('feedback.date') }} : {{ item.date }}</span>
                   </div>
                   <div class="flex items-center gap-1 text-xs text-gray-500">
                     <Bookmark :size="12" class="text-gray-500" />
-                    <span>Hỗ trợ</span>
+                    <span>{{ t('feedback.support') }}</span>
                   </div>
                 </div>
 
@@ -159,14 +158,14 @@
         @click="navigateToCreate"
         class="w-full bg-orange-500 text-white font-medium py-3 rounded-lg"
       >
-        Tạo mới phản ánh
+        {{ t('feedback.createNew') }}
       </button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { Calendar, Bookmark } from 'lucide-vue-next'
 import { toast } from 'vue3-toastify'
@@ -198,12 +197,12 @@ const ticket_store = useTicketStore()
 const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
 
 /** Danh sách tabs */
-const tabs = [
-  { key: 'all', label: 'Tất cả' },
-  { key: 'pending', label: 'Gửi yêu cầu' },
-  { key: 'processing', label: 'Đang xử lý' },
-  { key: 'completed', label: 'Hoàn thành' },
-]
+const tabs = computed(() => [
+  { key: 'all', label: t('feedback.all') },
+  { key: 'pending', label: t('feedback.pending') },
+  { key: 'processing', label: t('feedback.processing') },
+  { key: 'completed', label: t('feedback.completed') },
+])
 
 /** Danh sách feedback từ API */
 const feedbackList = ref<FeedbackItem[]>([])
@@ -336,7 +335,7 @@ async function loadFeedbackList(is_reset: boolean = false) {
     }
   } catch (e: any) {
     console.error('Error loading feedback list:', e)
-    toast.error(e.message || 'Có lỗi xảy ra khi tải danh sách phản ánh')
+    toast.error(e.message || t('feedback.loadListError'))
     if (is_reset) {
       resetPagination()
     }
@@ -397,11 +396,11 @@ function getStatusClass(status: string) {
  */
 function getStatusLabel(status: string) {
   const LABELS = {
-    pending: 'Gửi yêu cầu',
-    processing: 'Đang xử lý',
-    completed: 'Hoàn thành',
+    pending: t('feedback.pending'),
+    processing: t('feedback.processing'),
+    completed: t('feedback.completed'),
   }
-  return LABELS[status as keyof typeof LABELS] || 'Gửi yêu cầu'
+  return LABELS[status as keyof typeof LABELS] || t('feedback.pending')
 }
 
 /**
