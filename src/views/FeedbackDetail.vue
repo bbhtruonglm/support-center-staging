@@ -515,7 +515,7 @@ const show_ellipsis_before_last = computed(() => {
 
 /** Watch route params: Theo dõi thay đổi của ticket ID trong URL - Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail */
 watch(
-  // Theo dõi route.params.id
+  // Theo dõi route.params.id (ticket_id dạng string)
   () => route.params.id,
   // Callback chạy khi ID thay đổi
   (new_id, old_id) => {
@@ -765,21 +765,32 @@ async function loadTicketDetail() {
     return
   }
 
-  /** Lấy ticket ID từ route params (từ URL) */
-  const TICKET_ID = route.params.id as string
+  /** Lấy ticket ID từ route params (từ URL) - là ticket_id dạng string */
+  const TICKET_ID_PARAM = route.params.id as string
 
   // Kiểm tra xem có ticket ID không
-  if (!TICKET_ID) {
+  if (!TICKET_ID_PARAM) {
     // Nếu không có thì set error message và return
     error_message.value = t('feedback.ticketIdNotFound')
     // Return sớm vì không có ticket ID
     return
   }
 
-  /** Kiểm tra xem có ticket trong Pinia store không */
-  const CACHED_TICKET = ticket_store.getTicket(TICKET_ID)
-  // Check tồn tại trong cache và id trùng khớp
-  if (CACHED_TICKET && CACHED_TICKET.id === TICKET_ID) {
+  /** Convert ticket_id từ string sang number */
+  const TICKET_ID_NUMBER = Number(TICKET_ID_PARAM)
+
+  // Kiểm tra xem ticket_id có hợp lệ không (phải là số)
+  if (isNaN(TICKET_ID_NUMBER)) {
+    // Nếu không phải số thì set error message và return
+    error_message.value = t('feedback.ticketIdNotFound')
+    // Return sớm vì ticket_id không hợp lệ
+    return
+  }
+
+  /** Kiểm tra xem có ticket trong Pinia store không - tìm theo ticket_id */
+  const CACHED_TICKET = ticket_store.getTicketByTicketId(TICKET_ID_NUMBER)
+  // Check tồn tại trong cache và ticket_id trùng khớp
+  if (CACHED_TICKET && CACHED_TICKET.ticket_id === TICKET_ID_NUMBER) {
     // Sử dụng ticket từ store, không cần gọi API
     ticket_detail.value = CACHED_TICKET
     // Load comments cho ticket này sau khi đã có ticket detail
@@ -798,8 +809,8 @@ async function loadTicketDetail() {
   error_message.value = null
 
   try {
-    /** Gọi API để lấy chi tiết ticket với TICKET_ID */
-    const DATA = await getTicketDetail(TICKET_ID)
+    /** Gọi API để lấy chi tiết ticket với TICKET_ID_NUMBER */
+    const DATA = await getTicketDetail(TICKET_ID_NUMBER)
     // Cập nhật ticket_detail với data từ API
     ticket_detail.value = DATA
 

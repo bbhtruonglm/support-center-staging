@@ -429,7 +429,7 @@ function navigateToCreate() {
 
 /**
  * Navigate đến trang chi tiết feedback
- * @param ticket_id - ID của ticket
+ * @param ticket_id - ID của ticket (UUID)
  */
 function navigateToDetail(ticket_id: string) {
   /** Lấy TicketItem từ ticketMap bằng ticket_id */
@@ -439,15 +439,18 @@ function navigateToDetail(ticket_id: string) {
   if (TICKET) {
     // Lưu ticket vào Pinia store để cache, FeedbackDetail sẽ đọc từ store
     ticket_store.setTicket(TICKET)
+    // Sử dụng router.push với name và params để điều hướng
+    // Truyền ticket_id (số) qua params thay vì id (UUID)
+    router.push({
+      // Tên route là 'Feedback-detail'
+      name: 'Feedback-detail',
+      // Truyền ticket_id (số) qua params, convert sang string
+      params: { id: String(TICKET.ticket_id) },
+    })
+  } else {
+    // Nếu không có ticket trong map thì không điều hướng
+    console.error('Ticket not found in map:', ticket_id)
   }
-
-  // Sử dụng router.push với name và params để điều hướng
-  router.push({
-    // Tên route là 'Feedback-detail'
-    name: 'Feedback-detail',
-    // Truyền id qua params
-    params: { id: ticket_id },
-  })
 }
 </script>
 

@@ -23,13 +23,30 @@ export const useTicketStore = defineStore('ticket', () => {
   }
 
   /**
-   * Lấy ticket từ cache theo ID
+   * Lấy ticket từ cache theo ID (UUID)
    * @param ticket_id - ID của ticket (UUID)
    * @returns TicketItem nếu có trong cache, null nếu không có
    */
   function getTicket(ticket_id: string): TicketItem | null {
     // Lấy ticket từ cache hoặc trả về null nếu không có
     return ticket_cache.value.get(ticket_id) || null
+  }
+
+  /**
+   * Lấy ticket từ cache theo ticket_id (số)
+   * @param ticket_id - Ticket ID số của ticket
+   * @returns TicketItem nếu có trong cache, null nếu không có
+   */
+  function getTicketByTicketId(ticket_id: number): TicketItem | null {
+    // Duyệt qua tất cả tickets trong cache để tìm theo ticket_id
+    for (const TICKET of ticket_cache.value.values()) {
+      // Nếu ticket_id trùng khớp thì trả về ticket đó
+      if (TICKET.ticket_id === ticket_id) {
+        return TICKET
+      }
+    }
+    // Trả về null nếu không tìm thấy
+    return null
   }
 
   /**
@@ -63,8 +80,10 @@ export const useTicketStore = defineStore('ticket', () => {
   return {
     // Function để lưu ticket vào cache
     setTicket,
-    // Function để lấy ticket từ cache
+    // Function để lấy ticket từ cache theo ID (UUID)
     getTicket,
+    // Function để lấy ticket từ cache theo ticket_id (số)
+    getTicketByTicketId,
     // Function để xóa ticket khỏi cache
     removeTicket,
     // Function để xóa toàn bộ cache
