@@ -7,6 +7,10 @@ $thumb-size: 6px;
 
 // sửa lại thanh cuộn cho toàn bộ trang web
 * {
+  // Scrollbar overlay - không chiếm layout space
+  scrollbar-width: thin;
+  scrollbar-color: $thumb-color transparent;
+
   // đặt màu nền của track thành trong suốt
   &::-webkit-scrollbar {
     background: transparent;
