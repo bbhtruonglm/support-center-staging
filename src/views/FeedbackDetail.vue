@@ -105,11 +105,8 @@
             </section>
           </div>
 
-          <!-- Spacer để đẩy phần Tình trạng xử lý xuống cuối khi không có comments -->
-          <div v-if="comments_list.length === 0 && !is_loading_comments" class="flex-1"></div>
-
           <!-- Tình trạng xử lý -->
-          <div class="flex flex-col gap-2">
+          <div class="flex flex-col gap-2 flex-1">
             <!-- Tiêu đề -->
             <div
               class="py-3 border-b-2 border-blue-700 flex justify-center text-sm text-blue-700 font-bold"
@@ -123,13 +120,13 @@
             <CommentsListSkeleton v-if="is_loading_comments" :show-title="false" />
             <div
               v-else-if="comments_list.length === 0"
-              class="flex items-center justify-center py-10"
+              class="flex items-center justify-center py-10 flex-1"
             >
               <p class="text-sm text-gray-500">
                 {{ t('feedback.noComments') }}
               </p>
             </div>
-            <div v-else class="flex flex-col gap-2">
+            <div v-else class="flex flex-col gap-2 flex-1">
               <!-- Comment Card -->
               <div
                 v-for="comment in comments_list"
@@ -176,6 +173,9 @@
                   {{ comment.content }}
                 </div>
               </div>
+
+              <!-- Spacer để đẩy phần gửi bình luận xuống cuối khi có ít comments -->
+              <div class="flex-1"></div>
             </div>
 
             <!-- Pagination -->
