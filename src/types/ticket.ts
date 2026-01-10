@@ -519,3 +519,11 @@ export interface CreateCommentRequest {
  * Interface định nghĩa response từ API create_comment
  */
 export interface CreateCommentResponse extends TicketComment {}
+
+/**
+ * Interface định nghĩa response từ API count_ticket
+ */
+export interface CountTicketResponse {
+  /** Số lượng ticket đang xử lý */
+  processing: number
+}

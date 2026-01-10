@@ -82,8 +82,11 @@
               to="/feedback-list"
             >
               <template #right-icon>
-                <div class="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center">
-                  <span class="text-xs font-medium text-white">2</span>
+                <div
+                  v-if="ticket_count > 0"
+                  class="w-5 h-5 rounded-full bg-red-600 flex items-center justify-center"
+                >
+                  <span class="text-xs font-medium text-white">{{ ticket_count }}</span>
                 </div>
               </template>
             </MenuItem>
@@ -148,6 +151,8 @@ import { useI18n } from 'vue-i18n'
 import InfoCard from '@/components/InfoCard.vue'
 // Import component MenuItem để hiển thị menu item
 import MenuItem from '@/components/MenuItem.vue'
+// Import API function để lấy số lượng ticket
+import { getTicketCount } from '@/api/ticket'
 
 // H3: import icon components
 // Import icon Copy và Loader2 từ lucide-vue-next
@@ -209,9 +214,12 @@ const is_copy_loading = ref(false)
 /** Thời gian delay giữa các lần click (ms) */
 const CLICK_DELAY = 500
 
+/** Số lượng ticket đang xử lý */
+const ticket_count = ref(0)
+
 // H8: lifecycle hooks
 /** Lifecycle hook chạy khi component được mount vào DOM */
-onMounted(() => {
+onMounted(async () => {
   try {
     /** Lấy object query parameters từ URL hiện tại */
     const QUERY = route.query
@@ -233,6 +241,19 @@ onMounted(() => {
   } catch (error) {
     // Log error ra console để debug
     console.error('Error saving params to localStorage:', error)
+  }
+
+  // Gọi API để lấy số lượng ticket đang xử lý
+  try {
+    /** Response từ API count ticket */
+    const RESPONSE = await getTicketCount()
+    // Cập nhật số lượng ticket từ response
+    ticket_count.value = RESPONSE.processing || 0
+  } catch (error) {
+    // Log error ra console để debug
+    console.error('Error loading ticket count:', error)
+    // Set về 0 nếu có lỗi
+    ticket_count.value = 0
   }
 })
 

@@ -16,6 +16,7 @@ import type {
   CreateCommentRequest,
   CreateCommentResponse,
   GetTicketRequest,
+  CountTicketResponse,
 } from '@/types/ticket'
 
 /**
@@ -278,6 +279,36 @@ export async function createComment(request: CreateCommentRequest): Promise<Crea
   }
 }
 
+/**
+ * API: Lấy số lượng ticket đang xử lý
+ * @returns Promise chứa CountTicketResponse
+ */
+export async function getTicketCount(): Promise<CountTicketResponse> {
+  try {
+    /** Gọi API POST để lấy số lượng ticket */
+    const RESPONSE = await ticketApiClient.post<CountTicketResponse>('/count_ticket', {})
+
+    // Trả về data từ response
+    return RESPONSE.data
+  } catch (error: any) {
+    // Log error ra console để debug
+    console.error('Error loading ticket count:', error)
+
+    // Xử lý lỗi từ response
+    if (error.response) {
+      /** Status code từ response */
+      const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
+      const MESSAGE = error.response.data?.message || 'Không thể tải số lượng khiếu nại'
+      // Throw error với message
+      throw new Error(MESSAGE)
+    }
+
+    // Throw error network nếu không có response
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
 /** Export types để sử dụng ở các component */
 export type {
   TicketItem,
@@ -298,4 +329,5 @@ export type {
   CreateCommentResponse,
   CommentItem,
   GetTicketRequest,
+  CountTicketResponse,
 } from '@/types/ticket'
