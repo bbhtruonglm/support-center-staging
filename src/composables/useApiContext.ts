@@ -1,12 +1,10 @@
-/**
- * Composable để sử dụng API context trong Vue components
- */
+/** Composable để sử dụng API context trong Vue components */
+// Import các reactive functions từ Vue
 import { computed, ref, watch } from 'vue'
+// Import router hook để lấy route query
 import { useRoute } from 'vue-router'
 
-/**
- * Interface định nghĩa client context
- */
+/** Interface định nghĩa client context */
 export interface ClientContext {
   /** Mã client ID từ query parameter */
   client_id: string | null
@@ -38,11 +36,14 @@ function getParamValue(key: string): string | null {
 
   // Nếu không có trong URL thì lấy từ localStorage
   try {
+    /** Lấy giá trị từ localStorage */
     const STORAGE_VALUE = localStorage.getItem(key)
+    // Trả về giá trị từ localStorage
     return STORAGE_VALUE
   } catch (e) {
-    // Nếu localStorage không khả dụng thì trả về null
+    // Log error nếu localStorage không khả dụng
     console.error(`Error reading localStorage for key "${key}":`, e)
+    // Trả về null nếu có lỗi
     return null
   }
 }
@@ -56,17 +57,23 @@ function getClientContext(): ClientContext {
   /** Lấy client_id từ URL hoặc localStorage */
   const CLIENT_ID = getParamValue('client_id')
 
-  /** Lấy user_name từ URL hoặc localStorage và decode */
+  /** Lấy user_name từ URL hoặc localStorage (chưa decode) */
   const USER_NAME_RAW = getParamValue('user_name')
+  /** Decode user_name nếu có, nếu không thì null */
   const USER_NAME = USER_NAME_RAW ? decodeURIComponent(USER_NAME_RAW) : null
 
-  /** Lấy locale từ URL hoặc localStorage, mặc định là 'vi' */
+  /** Lấy locale từ URL hoặc localStorage (chưa xử lý) */
   const LOCALE_RAW = getParamValue('locale')
+  /** Xác định locale: nếu là 'en' thì 'en', còn lại thì 'vi' */
   const LOCALE = LOCALE_RAW === 'en' ? 'en' : 'vi'
 
+  // Trả về ClientContext object
   return {
+    // Client ID đã được lấy
     client_id: CLIENT_ID,
+    // User name đã được decode
     user_name: USER_NAME,
+    // Locale đã được xác định
     locale: LOCALE,
   }
 }
@@ -82,14 +89,16 @@ export function useApiContext() {
   /** Client context được lấy từ query params */
   const context = ref<ClientContext>(getClientContext())
 
-  /**
-   * Watch route query để update context khi URL thay đổi
-   */
+  // Watch route query để update context khi URL thay đổi
   watch(
+    // Theo dõi sự thay đổi của route.query
     () => route.query,
+    // Callback chạy khi query thay đổi
     () => {
+      // Cập nhật context từ URL hiện tại
       context.value = getClientContext()
     },
+    // Options với deep: true để theo dõi nested properties
     { deep: true },
   )
 
@@ -98,6 +107,7 @@ export function useApiContext() {
    * Context hợp lệ khi có client_id
    */
   const is_valid = computed(() => {
+    // Trả về true nếu có client_id, false nếu không
     return !!context.value.client_id
   })
 
@@ -105,6 +115,7 @@ export function useApiContext() {
    * Computed property lấy client_id
    */
   const client_id = computed(() => {
+    // Trả về client_id từ context
     return context.value.client_id
   })
 
@@ -112,6 +123,7 @@ export function useApiContext() {
    * Computed property lấy user_name đã decode
    */
   const user_name = computed(() => {
+    // Trả về user_name từ context
     return context.value.user_name
   })
 
@@ -119,6 +131,7 @@ export function useApiContext() {
    * Computed property lấy locale hiện tại
    */
   const locale = computed(() => {
+    // Trả về locale từ context
     return context.value.locale
   })
 
@@ -126,26 +139,28 @@ export function useApiContext() {
    * Function để refresh context từ URL hiện tại
    */
   function refreshContext() {
+    // Cập nhật context từ URL hiện tại
     context.value = getClientContext()
   }
 
+  // Trả về object chứa context và các helper functions
   return {
-    /** Client context object */
+    // Client context object
     context,
 
-    /** Flag kiểm tra context hợp lệ */
+    // Flag kiểm tra context hợp lệ
     is_valid,
 
-    /** Client ID từ query params */
+    // Client ID từ query params
     client_id,
 
-    /** User name đã decode */
+    // User name đã decode
     user_name,
 
-    /** Locale hiện tại */
+    // Locale hiện tại
     locale,
 
-    /** Function refresh context */
+    // Function refresh context
     refreshContext,
   }
 }

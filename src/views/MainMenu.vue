@@ -136,24 +136,31 @@
 
 <script setup lang="ts">
 // H1: import runtime functions
+// Import các reactive functions từ Vue
 import { computed, onMounted, ref } from 'vue'
+// Import router hook để lấy route params
 import { useRoute } from 'vue-router'
+// Import i18n hook để sử dụng translation function
 import { useI18n } from 'vue-i18n'
 
 // H2: import components
+// Import component InfoCard để hiển thị thông tin
 import InfoCard from '@/components/InfoCard.vue'
+// Import component MenuItem để hiển thị menu item
 import MenuItem from '@/components/MenuItem.vue'
 
 // H3: import icon components
+// Import icon Copy và Loader2 từ lucide-vue-next
 import { Copy, Loader2 } from 'lucide-vue-next'
 
 // H4: import types
-// (none)
+// Component này không có types import
 
 // H5: props, emits
-// (none)
+// Component này không có props và emits
 
 // H6: i18n, store
+// Import toast từ vue3-toastify để hiển thị thông báo
 import { toast } from 'vue3-toastify'
 
 /** Avatar default asset */
@@ -203,7 +210,7 @@ const is_copy_loading = ref(false)
 const CLICK_DELAY = 500
 
 // H8: lifecycle hooks
-/** Hook xử lý khi component được mounted */
+/** Lifecycle hook chạy khi component được mount vào DOM */
 onMounted(() => {
   try {
     /** Lấy object query parameters từ URL hiện tại */
@@ -218,27 +225,32 @@ onMounted(() => {
       const VALUE = QUERY[key]
 
       // Nếu giá trị hợp lệ (khác null/undefined) thì lưu vào localStorage
-      if (VALUE != null) localStorage.setItem(key, String(VALUE))
+      if (VALUE != null) {
+        // Lưu giá trị vào localStorage với key tương ứng
+        localStorage.setItem(key, String(VALUE))
+      }
     })
   } catch (error) {
-    // Ghi log nếu có lỗi xảy ra trong quá trình lưu storage
+    // Log error ra console để debug
     console.error('Error saving params to localStorage:', error)
   }
 })
 
 // H9: watch, computed
-/** Format số điện thoại hiển thị dạng XXXX.XXX.XXXX */
+/** Computed property format số điện thoại hiển thị dạng XXXX.XXX.XXXX */
 const formatted_support_phone = computed(() => {
   // Loại bỏ ký tự không phải số nếu có
   const PHONE = SUPPORT_PHONE?.replace(/\D/g, '') || ''
 
   // Format theo nhóm 4-3-4 nếu đủ 11 số
   if (PHONE.length === 11) {
+    // Replace với pattern 4-3-4 và thêm dấu chấm
     return PHONE.replace(/(\d{4})(\d{3})(\d{4})/, '$1.$2.$3')
   }
 
   // Format theo nhóm 4-3-3 nếu 10 số (dự phòng)
   if (PHONE.length === 10) {
+    // Replace với pattern 4-3-3 và thêm dấu chấm
     return PHONE.replace(/(\d{4})(\d{3})(\d{3})/, '$1.$2.$3')
   }
 
@@ -246,37 +258,45 @@ const formatted_support_phone = computed(() => {
   return SUPPORT_PHONE
 })
 
-/** Avatar URL based on client_id */
+/** Computed property trả về avatar URL dựa trên client_id */
 const avatar_url = computed(() => {
   /** Lấy client_id từ query params */
   const CLIENT_ID = route.query.client_id
 
   // Nếu có client_id thì trả về URL CDN tương ứng
-  if (CLIENT_ID) return `${CDN_BASE_URL}/media/s/${CLIENT_ID}/user`
+  if (CLIENT_ID) {
+    // Tạo URL CDN với client_id
+    return `${CDN_BASE_URL}/media/s/${CLIENT_ID}/user`
+  }
 
   // Nếu không có thì trả về avatar mặc định
   return avatarDefault
 })
 
-/** Tên khách hàng từ query */
+/** Computed property trả về tên khách hàng từ query */
 const customer_name = computed(() => {
   /** Lấy tên từ params */
   const NAME = route.query.user_name
 
-  /** Nếu không có tên thì trả về mặc định */
-  if (!NAME) return t('mainMenu.defaultCustomerName')
+  // Nếu không có tên thì trả về mặc định
+  if (!NAME) {
+    return t('mainMenu.defaultCustomerName')
+  }
 
   // Decode URI component để hiển thị đúng tiếng Việt
   return decodeURIComponent(NAME as string)
 })
 
-/** Mã khách hàng từ query */
+/** Computed property trả về mã khách hàng từ query */
 const customer_id = computed<string>(() => {
   /** Lấy giá trị client_id từ URL query */
   const CLIENT_ID = route.query.client_id
 
   // Nếu là array thì lấy phần tử đầu tiên
-  if (Array.isArray(CLIENT_ID)) return CLIENT_ID[0] || '---'
+  if (Array.isArray(CLIENT_ID)) {
+    // Trả về phần tử đầu tiên hoặc giá trị mặc định
+    return CLIENT_ID[0] || '---'
+  }
 
   // Trả về giá trị ID hoặc mặc định
   return CLIENT_ID || '---'
@@ -290,22 +310,24 @@ async function copyCustomerId() {
 
   // Kiểm tra điều kiện: không có ID, ID mặc định '---', hoặc đang loading thì thoát
   if (!CUSTOMER_ID || CUSTOMER_ID === '---' || is_copy_loading.value) {
+    // Hiển thị error toast nếu không có customer ID
     toast.error(t('mainMenu.not_found_customer_id'))
     return
   }
 
-  // Đặt trạng thái đang xử lý
+  // Set trạng thái đang xử lý thành true
   is_copy_loading.value = true
 
   try {
-    // 1. Ưu tiên dùng Navigator Clipboard API (Chỉ hoạt động trên HTTPS hoặc Localhost)
+    // Ưu tiên dùng Navigator Clipboard API (chỉ hoạt động trên HTTPS hoặc Localhost)
     if (navigator.clipboard && window.isSecureContext) {
+      // Gọi Clipboard API để copy text
       await navigator.clipboard.writeText(CUSTOMER_ID)
-    }
-    // 2. Fallback cho Mobile / HTTP (Tránh lỗi trên môi trường dev không có HTTPS)
-    else {
+    } else {
+      // Fallback cho Mobile / HTTP (tránh lỗi trên môi trường dev không có HTTPS)
       /** Tạo thẻ textarea ẩn để chứa text */
       const TEXT_AREA = document.createElement('textarea')
+      // Set giá trị cần copy vào textarea
       TEXT_AREA.value = CUSTOMER_ID
 
       // Style để ẩn khỏi view nhưng vẫn select được
@@ -313,26 +335,35 @@ async function copyCustomerId() {
       TEXT_AREA.style.left = '-9999px'
       TEXT_AREA.style.top = '0'
 
+      // Thêm textarea vào DOM
       document.body.appendChild(TEXT_AREA)
+      // Focus vào textarea
       TEXT_AREA.focus()
+      // Select text trong textarea
       TEXT_AREA.select()
 
       // Thực hiện lệnh copy native
       const SUCCESSFUL = document.execCommand('copy')
+      // Xóa textarea khỏi DOM
       document.body.removeChild(TEXT_AREA)
 
-      if (!SUCCESSFUL) throw new Error('Copy fallback failed')
+      // Nếu copy thất bại thì throw error
+      if (!SUCCESSFUL) {
+        throw new Error('Copy fallback failed')
+      }
     }
 
     // Hiển thị thông báo thành công
     toast.success(t('mainMenu.copySuccess'))
   } catch (e) {
+    // Log error ra console để debug
     console.error('Copy error:', e)
     // Hiển thị thông báo lỗi nếu copy thất bại
     toast.error(t('mainMenu.copyError'))
   } finally {
     // Tắt trạng thái loading sau khoảng thời gian delay
     setTimeout(() => {
+      // Set trạng thái loading thành false
       is_copy_loading.value = false
     }, CLICK_DELAY)
   }

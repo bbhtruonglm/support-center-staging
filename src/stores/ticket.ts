@@ -1,11 +1,11 @@
+// Import ref từ Vue để tạo reactive reference
 import { ref } from 'vue'
+// Import defineStore từ Pinia để tạo store
 import { defineStore } from 'pinia'
+// Import type TicketItem từ ticket types
 import type { TicketItem } from '@/types/ticket'
 
-/**
- * Store quản lý ticket data
- * Dùng để cache ticket detail và tránh lỗi DataCloneError khi navigate
- */
+/** Store quản lý ticket data - Dùng để cache ticket detail và tránh lỗi DataCloneError khi navigate */
 export const useTicketStore = defineStore('ticket', () => {
   /** Map lưu ticket detail theo ID (UUID) */
   const ticket_cache = ref<Map<string, TicketItem>>(new Map())
@@ -15,7 +15,9 @@ export const useTicketStore = defineStore('ticket', () => {
    * @param ticket - TicketItem cần lưu
    */
   function setTicket(ticket: TicketItem) {
+    // Kiểm tra ticket có ID không
     if (ticket?.id) {
+      // Lưu ticket vào cache với key là ticket.id
       ticket_cache.value.set(ticket.id, ticket)
     }
   }
@@ -26,6 +28,7 @@ export const useTicketStore = defineStore('ticket', () => {
    * @returns TicketItem nếu có trong cache, null nếu không có
    */
   function getTicket(ticket_id: string): TicketItem | null {
+    // Lấy ticket từ cache hoặc trả về null nếu không có
     return ticket_cache.value.get(ticket_id) || null
   }
 
@@ -34,6 +37,7 @@ export const useTicketStore = defineStore('ticket', () => {
    * @param ticket_id - ID của ticket cần xóa
    */
   function removeTicket(ticket_id: string) {
+    // Xóa ticket khỏi cache theo ID
     ticket_cache.value.delete(ticket_id)
   }
 
@@ -41,6 +45,7 @@ export const useTicketStore = defineStore('ticket', () => {
    * Xóa toàn bộ cache
    */
   function clearCache() {
+    // Xóa tất cả tickets khỏi cache
     ticket_cache.value.clear()
   }
 
@@ -50,14 +55,21 @@ export const useTicketStore = defineStore('ticket', () => {
    * @returns true nếu có trong cache, false nếu không
    */
   function hasTicket(ticket_id: string): boolean {
+    // Kiểm tra ticket có tồn tại trong cache không
     return ticket_cache.value.has(ticket_id)
   }
 
+  // Trả về các functions và state của store
   return {
+    // Function để lưu ticket vào cache
     setTicket,
+    // Function để lấy ticket từ cache
     getTicket,
+    // Function để xóa ticket khỏi cache
     removeTicket,
+    // Function để xóa toàn bộ cache
     clearCache,
+    // Function để kiểm tra ticket có trong cache không
     hasTicket,
   }
 })

@@ -15,42 +15,8 @@
         <!-- Feedback List Content -->
         <div class="flex-1 text-black">
           <!-- Skeleton Loading State -->
-          <div v-if="is_loading" class="flex flex-col gap-3 px-2">
-            <div
-              v-for="i in 3"
-              :key="i"
-              class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
-            >
-              <!-- Title & Status Row Skeleton -->
-              <div class="flex items-start justify-between border-b border-gray-200 py-2">
-                <div class="flex-1">
-                  <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                </div>
-                <div class="h-5 bg-gray-200 rounded w-20"></div>
-              </div>
-
-              <div class="flex flex-col py-2">
-                <!-- Date & Support Row Skeleton -->
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-1">
-                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                    <div class="h-3 bg-gray-200 rounded w-24"></div>
-                  </div>
-                  <div class="flex items-center gap-1">
-                    <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                    <div class="h-3 bg-gray-200 rounded w-16"></div>
-                  </div>
-                </div>
-
-                <!-- Content Description Skeleton -->
-                <div class="space-y-2 mt-2">
-                  <div class="h-3 bg-gray-200 rounded w-full"></div>
-                  <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-                  <div class="h-3 bg-gray-200 rounded w-4/6"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Skeleton component cho danh sách feedback khi đang loading -->
+          <FeedbackListSkeleton v-if="is_loading" :count="3" />
 
           <!-- Empty State: No feedback or Invalid client_id -->
           <div
@@ -109,41 +75,9 @@
             </div>
 
             <!-- Loading More Skeleton - chỉ hiện khi còn data -->
+            <!-- Skeleton component cho danh sách feedback khi đang load more -->
             <div v-if="is_loading_more && has_more" class="flex flex-col gap-3">
-              <div
-                v-for="i in 2"
-                :key="`skeleton-${i}`"
-                class="bg-white rounded-lg px-4 py-1 shadow-sm animate-pulse"
-              >
-                <!-- Title & Status Row Skeleton -->
-                <div class="flex items-start justify-between border-b border-gray-200 py-2">
-                  <div class="flex-1">
-                    <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-                  </div>
-                  <div class="h-5 bg-gray-200 rounded w-20"></div>
-                </div>
-
-                <div class="flex flex-col py-2">
-                  <!-- Date & Support Row Skeleton -->
-                  <div class="flex items-center justify-between">
-                    <div class="flex items-center gap-1">
-                      <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                      <div class="h-3 bg-gray-200 rounded w-24"></div>
-                    </div>
-                    <div class="flex items-center gap-1">
-                      <div class="h-3 w-3 bg-gray-200 rounded"></div>
-                      <div class="h-3 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  </div>
-
-                  <!-- Content Description Skeleton -->
-                  <div class="space-y-2 mt-2">
-                    <div class="h-3 bg-gray-200 rounded w-full"></div>
-                    <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-                    <div class="h-3 bg-gray-200 rounded w-4/6"></div>
-                  </div>
-                </div>
-              </div>
+              <FeedbackListItemSkeleton v-for="i in 2" :key="`skeleton-${i}`" />
             </div>
           </div>
         </div>
@@ -164,114 +98,139 @@
 
 <script setup lang="ts">
 // H1: import runtime functions
+// Import các runtime functions từ Vue
 import { ref, computed, onMounted, watch } from 'vue'
+// Import useRouter từ vue-router để điều hướng
 import { useRouter } from 'vue-router'
+// Import useI18n từ vue-i18n để dịch text
 import { useI18n } from 'vue-i18n'
 
 // H2: import components
+// Import component PageHeader để hiển thị header
 import PageHeader from '@/components/PageHeader.vue'
+// Import component TabNav để hiển thị tabs
 import TabNav from '@/components/TabNav.vue'
+// Import skeleton component cho danh sách feedback khi loading
+import FeedbackListSkeleton from '@/components/skeletons/FeedbackListSkeleton.vue'
+// Import skeleton component cho một feedback item khi load more
+import FeedbackListItemSkeleton from '@/components/skeletons/FeedbackListItemSkeleton.vue'
 
 // H3: import icon components
+// Import icon Calendar và Bookmark từ lucide-vue-next
 import { Calendar, Bookmark } from 'lucide-vue-next'
 
 // H4: import types
+// Import function getTicketList và type TicketItem từ ticket API
 import { getTicketList, type TicketItem } from '@/api/ticket'
+// Import function transformTicketToFeedback để chuyển đổi TicketItem sang FeedbackItem
 import { transformTicketToFeedback } from '@/api/ticket/transform'
+// Import type FeedbackItem để định nghĩa kiểu dữ liệu
 import type { FeedbackItem } from '@/types/ticket'
 
 // H5: props, emits
-// (none)
+// Component này không có props hoặc emits
 
 // H6: i18n, store
+// Import toast từ vue3-toastify để hiển thị thông báo
 import { toast } from 'vue3-toastify'
+// Import composable useApiContext để lấy API context
 import { useApiContext } from '@/composables/useApiContext'
+// Import ticket store từ Pinia để cache ticket data
 import { useTicketStore } from '@/stores/ticket'
 
-/** Mail icon asset */
+/** Mail icon asset để hiển thị khi không có feedback */
 import MailIcon from '@/assets/MailIcon.png'
 
-/** Router instance */
+/** Router instance để điều hướng */
 const router = useRouter()
 
-/** i18n instance */
+/** i18n instance để dịch text */
 const { t } = useI18n()
 
-/** API context từ composable */
+/** API context từ composable để kiểm tra tính hợp lệ */
 const { is_valid } = useApiContext()
 
 /** Ticket store để cache ticket data */
 const ticket_store = useTicketStore()
 
 // H7: variables
-/** Tab đang active */
+/** Tab đang active (all, pending, processing, completed) */
 const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
 
-/** Danh sách feedback từ API */
+/** Danh sách feedback từ API đã được transform */
 const feedbackList = ref<FeedbackItem[]>([])
 
 /** Map lưu TicketItem theo ID để truyền qua router state */
 const ticketMap = ref<Map<string, TicketItem>>(new Map())
 
-/** Trạng thái loading */
+/** Trạng thái loading lần đầu */
 const is_loading = ref(false)
 
-/** Trạng thái loading more */
+/** Trạng thái loading more (pagination) */
 const is_loading_more = ref(false)
 
 /** Flag để track khi đang đổi tab */
 const is_changing_tab = ref(false)
 
-/** Số lượng bản ghi đã skip */
+/** Số lượng bản ghi đã skip trong pagination */
 const skip = ref(0)
 
-/** Số lượng bản ghi mỗi lần load */
+/** Constant định nghĩa số lượng bản ghi load mỗi lần từ API */
 const TAKE = 10
 
-/** Còn dữ liệu để load không */
+/** Flag kiểm tra còn dữ liệu để load thêm không */
 const has_more = ref(true)
 
-/** Ref đến scroll container */
+/** Ref đến scroll container DOM element */
 const scrollContainer = ref<HTMLElement | null>(null)
 
 // H8: lifecycle hooks
-/** Load data khi component mounted */
+/** Hook chạy khi component được mount vào DOM */
 onMounted(() => {
-  // Nếu không có client_id thì không cần load data
+  // Kiểm tra tính hợp lệ của API context trước khi load data
   if (!is_valid.value) {
     return
   }
+  // Gọi function loadFeedbackList với is_reset = true để load dữ liệu lần đầu
   loadFeedbackList(true)
 })
 
 // H9: watch, computed
-/** Danh sách tabs */
+/** Computed property để tạo danh sách tabs với label đã được dịch */
 const tabs = computed(() => [
+  // Tab "Tất cả" với key là 'all'
   { key: 'all', label: t('feedback.all') },
+  // Tab "Chờ xử lý" với key là 'pending'
   { key: 'pending', label: t('feedback.pending') },
+  // Tab "Đang xử lý" với key là 'processing'
   { key: 'processing', label: t('feedback.processing') },
+  // Tab "Hoàn thành" với key là 'completed'
   { key: 'completed', label: t('feedback.completed') },
 ])
 
 /**
  * Watch activeTab để reload data khi tab thay đổi
- * immediate: false để tránh trigger khi component mount (đã có onMounted)
+ * immediate: false để tránh trigger khi component mount
  */
 watch(
+  // Theo dõi sự thay đổi của activeTab
   activeTab,
+  // Callback function được gọi khi activeTab thay đổi
   (new_value, old_value) => {
-    /** Chỉ reload nếu giá trị thực sự thay đổi (không phải lần đầu mount) */
+    // Chỉ reload nếu giá trị thực sự thay đổi (không phải lần đầu mount)
     if (old_value !== undefined && new_value !== old_value) {
-      /** Set flag đang đổi tab */
+      // Set flag đang đổi tab để tránh load more
       is_changing_tab.value = true
-      /** Reset pagination khi đổi tab */
+      // Reset pagination khi đổi tab
       resetPagination()
+      // Gọi loadFeedbackList với is_reset = true để load lại dữ liệu từ đầu
       loadFeedbackList(true).finally(() => {
-        /** Reset flag sau khi load xong */
+        // Reset flag sau khi load xong
         is_changing_tab.value = false
       })
     }
   },
+  // Options object với immediate: false để không trigger khi component mount
   { immediate: false },
 )
 
@@ -280,12 +239,17 @@ watch(
  * Reset pagination về trạng thái ban đầu
  */
 function resetPagination() {
+  // Reset skip về 0
   skip.value = 0
+  // Reset has_more về true
   has_more.value = true
+  // Reset feedbackList về mảng rỗng
   feedbackList.value = []
+  // Clear ticketMap
   ticketMap.value.clear()
-  /** Reset loading states để cancel các request đang chạy */
+  // Reset is_loading về false
   is_loading.value = false
+  // Reset is_loading_more về false
   is_loading_more.value = false
 }
 
@@ -294,78 +258,91 @@ function resetPagination() {
  * @param is_reset - Nếu true thì reset danh sách, nếu false thì append vào danh sách hiện tại
  */
 async function loadFeedbackList(is_reset: boolean = false) {
-  // Kiểm tra context hợp lệ
+  // Kiểm tra is_valid trước khi gọi API
   if (!is_valid.value) {
+    // Nếu không hợp lệ thì reset pagination và return
     resetPagination()
     return
   }
 
-  // Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls)
+  // Nếu đang reset và đang loading thì không gọi tiếp để tránh duplicate requests
   if (is_reset && is_loading.value) {
     return
   }
 
-  // Kiểm tra nếu không còn dữ liệu để load
+  // Nếu không phải reset và không còn dữ liệu thì không load tiếp
   if (!is_reset && !has_more.value) {
     return
   }
 
-  // Kiểm tra nếu đang load more thì không load tiếp
+  // Nếu không phải reset và đang load more thì không load tiếp để tránh duplicate requests
   if (!is_reset && is_loading_more.value) {
     return
   }
 
-  // Nếu reset thì set skip về 0
+  /** Tính toán CURRENT_SKIP: nếu reset thì về 0, nếu không thì dùng skip hiện tại */
   const CURRENT_SKIP = is_reset ? 0 : skip.value
 
-  // Set loading state
+  // Nếu reset thì set is_loading = true
   if (is_reset) {
     is_loading.value = true
   } else {
+    // Nếu không reset thì set is_loading_more = true
     is_loading_more.value = true
   }
 
   try {
-    /** Gọi Ticket API để lấy danh sách ticket với skip và take */
+    /** Gọi API getTicketList với activeTab, CURRENT_SKIP và TAKE */
     const TICKET_LIST = await getTicketList(activeTab.value, CURRENT_SKIP, TAKE)
 
-    /** Transform TicketItem sang FeedbackItem để hiển thị */
+    /** Map từng TicketItem sang FeedbackItem bằng function transformTicketToFeedback */
     const TRANSFORMED_LIST = TICKET_LIST.map(transformTicketToFeedback)
 
-    /** Nếu reset thì thay thế, nếu không thì append */
+    // Kiểm tra is_reset để quyết định thay thế hay append
     if (is_reset) {
+      // Nếu reset thì thay thế toàn bộ danh sách
       feedbackList.value = TRANSFORMED_LIST
+      // Clear ticketMap để bắt đầu lại
       ticketMap.value.clear()
-      /** Reset skip về số lượng đã load */
+      // Set skip = số lượng đã load
       skip.value = TICKET_LIST.length
     } else {
+      // Nếu không reset thì append vào danh sách hiện tại
       feedbackList.value = [...feedbackList.value, ...TRANSFORMED_LIST]
-      /** Cập nhật skip bằng cách cộng thêm số lượng vừa load */
+      // Cộng thêm số lượng vừa load vào skip hiện tại
       skip.value += TICKET_LIST.length
     }
 
-    /** Lưu TicketItem vào map để truyền qua router state */
+    // Duyệt qua từng ticket trong TICKET_LIST
     TICKET_LIST.forEach((ticket) => {
+      // Lưu ticket vào map với key là ticket.id
       ticketMap.value.set(ticket.id, ticket)
     })
 
-    /** Kiểm tra has_more: nếu số lượng trả về ít hơn TAKE thì không còn dữ liệu */
+    // Kiểm tra số lượng ticket trả về
     if (TICKET_LIST.length < TAKE) {
+      // Nếu ít hơn TAKE thì không còn dữ liệu để load
       has_more.value = false
     } else {
-      /** Nếu số lượng bằng TAKE thì có thể còn dữ liệu */
+      // Nếu bằng TAKE thì có thể còn dữ liệu để load tiếp
       has_more.value = true
     }
   } catch (e: any) {
+    // Log lỗi ra console để debug
     console.error('Error loading feedback list:', e)
+    // Hiển thị toast error với message từ error hoặc message mặc định
     toast.error(e.message || t('feedback.loadListError'))
+    // Nếu đang reset thì reset pagination khi có lỗi
     if (is_reset) {
       resetPagination()
     }
   } finally {
+    // Reset loading state tương ứng
     if (is_reset) {
+      // Nếu reset thì reset is_loading
       is_loading.value = false
     } else {
+      // Nếu không reset thì reset is_loading_more
       is_loading_more.value = false
     }
   }
@@ -375,25 +352,36 @@ async function loadFeedbackList(is_reset: boolean = false) {
  * Handle scroll event để detect khi scroll gần cuối
  */
 function handleScroll() {
-  /** Không load more nếu đang loading (reset hoặc load more) hoặc đang đổi tab */
+  // Kiểm tra các điều kiện để không load more
   if (
+    // Nếu scrollContainer chưa được gán thì return
     !scrollContainer.value ||
+    // Nếu đang load more thì return
     is_loading_more.value ||
+    // Nếu đang loading thì return
     is_loading.value ||
+    // Nếu không còn dữ liệu thì return
     !has_more.value ||
+    // Nếu đang đổi tab thì return
     is_changing_tab.value
   ) {
     return
   }
 
+  /** Lấy reference đến scroll container element */
   const CONTAINER = scrollContainer.value
+  /** Lấy vị trí scroll hiện tại (từ đầu container) */
   const SCROLL_TOP = CONTAINER.scrollTop
+  /** Lấy chiều cao tổng của nội dung (bao gồm phần bị ẩn) */
   const SCROLL_HEIGHT = CONTAINER.scrollHeight
+  /** Lấy chiều cao hiển thị của container (viewport) */
   const CLIENT_HEIGHT = CONTAINER.clientHeight
 
-  /** Khi scroll đến gần cuối (còn 100px) thì load more */
+  /** Constant định nghĩa khoảng cách từ cuối để trigger load more (100px) */
   const THRESHOLD = 100
+  // Kiểm tra nếu scroll position + viewport height >= tổng height - threshold
   if (SCROLL_TOP + CLIENT_HEIGHT >= SCROLL_HEIGHT - THRESHOLD) {
+    // Gọi loadFeedbackList với is_reset = false để load thêm dữ liệu
     loadFeedbackList(false)
   }
 }
@@ -404,11 +392,16 @@ function handleScroll() {
  * @returns CSS class string
  */
 function getStatusClass(status: string) {
+  /** Object chứa mapping giữa status và CSS class */
   const CLASSES = {
+    // Class cho status pending: màu cam
     pending: 'bg-orange-500 text-white',
+    // Class cho status processing: màu xanh dương
     processing: 'bg-blue-500 text-white',
+    // Class cho status completed: màu xanh lá
     completed: 'bg-green-600 text-white',
   }
+  // Trả về class tương ứng với status, nếu không tìm thấy thì dùng pending
   return CLASSES[status as keyof typeof CLASSES] || CLASSES.pending
 }
 
@@ -418,11 +411,16 @@ function getStatusClass(status: string) {
  * @returns Label string
  */
 function getStatusLabel(status: string) {
+  /** Object chứa mapping giữa status và label đã được dịch */
   const LABELS = {
+    // Label cho status pending
     pending: t('feedback.pending'),
+    // Label cho status processing
     processing: t('feedback.processing'),
+    // Label cho status completed
     completed: t('feedback.completed'),
   }
+  // Trả về label tương ứng với status, nếu không tìm thấy thì dùng pending
   return LABELS[status as keyof typeof LABELS] || t('feedback.pending')
 }
 
@@ -430,6 +428,7 @@ function getStatusLabel(status: string) {
  * Navigate đến trang tạo feedback mới
  */
 function navigateToCreate() {
+  // Sử dụng router.push để điều hướng đến route '/feedback-create'
   router.push('/feedback-create')
 }
 
@@ -438,19 +437,20 @@ function navigateToCreate() {
  * @param ticket_id - ID của ticket
  */
 function navigateToDetail(ticket_id: string) {
-  /** Lấy TicketItem từ map */
+  /** Lấy TicketItem từ ticketMap bằng ticket_id */
   const TICKET = ticketMap.value.get(ticket_id)
 
-  /** Nếu có ticket trong map, lưu vào Pinia store để cache
-   * FeedbackDetail sẽ đọc từ store trước, fallback về API nếu không có
-   */
+  // Kiểm tra nếu có ticket trong map
   if (TICKET) {
+    // Lưu ticket vào Pinia store để cache, FeedbackDetail sẽ đọc từ store
     ticket_store.setTicket(TICKET)
   }
 
-  /** Navigate với params, không truyền state để tránh DataCloneError */
+  // Sử dụng router.push với name và params để điều hướng
   router.push({
+    // Tên route là 'Feedback-detail'
     name: 'Feedback-detail',
+    // Truyền id qua params
     params: { id: ticket_id },
   })
 }

@@ -169,25 +169,34 @@
 
 <script setup lang="ts">
 // H1: import runtime functions
+// Import các reactive functions từ Vue
 import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+// Import router hook để điều hướng
 import { useRouter } from 'vue-router'
+// Import i18n hook để sử dụng translation function
 import { useI18n } from 'vue-i18n'
 
 // H2: import components
+// Import component AppHeader để hiển thị header
 import AppHeader from '@/components/AppHeader.vue'
+// Import component PageHeader để hiển thị page header
 import PageHeader from '@/components/PageHeader.vue'
 
 // H3: import icon components
+// Import icon Camera và ChevronDown từ lucide-vue-next
 import { Camera, ChevronDown } from 'lucide-vue-next'
 
 // H4: import types
+// Import API functions và type WorkflowItem từ ticket API
 import { createForm, createTicket, type WorkflowItem } from '@/api/ticket'
 
 // H5: props, emits
-// (none)
+// Component này không có props và emits
 
 // H6: i18n, store
+// Import toast từ vue3-toastify để hiển thị thông báo
 import { toast } from 'vue3-toastify'
+// Import workflow store để quản lý state của workflows
 import { useWorkflowStore } from '@/stores/workflow'
 
 /** Router instance */
@@ -237,14 +246,17 @@ const is_submitting = ref(false)
 const MAX_IMAGES = 6
 
 // H8: lifecycle hooks
-/** Load data khi component mounted */
+/** Lifecycle hook chạy khi component được mount vào DOM */
 onMounted(() => {
+  // Gọi function load workflow list
   loadWorkflowList()
+  // Thêm event listener để đóng dropdown khi click bên ngoài
   document.addEventListener('click', handleClickOutside)
 })
 
-/** Cleanup khi component unmounted */
+/** Lifecycle hook chạy khi component được unmount khỏi DOM */
 onUnmounted(() => {
+  // Xóa event listener khi component unmount
   document.removeEventListener('click', handleClickOutside)
 })
 
@@ -253,13 +265,17 @@ onUnmounted(() => {
  * Watch workflow list để tự động chọn workflow đầu tiên khi load xong
  */
 watch(
+  // Theo dõi sự thay đổi của workflow_list
   () => workflow_list.value,
+  // Callback chạy khi workflow_list thay đổi
   (new_list) => {
-    /** Tự động chọn workflow đầu tiên nếu có và chưa chọn workflow nào */
+    // Tự động chọn workflow đầu tiên nếu có và chưa chọn workflow nào
     if (new_list.length > 0 && !selected_workflow.value && new_list[0]) {
+      // Set workflow đầu tiên làm workflow đã chọn
       selected_workflow.value = new_list[0]
     }
   },
+  // Options với immediate: true để trigger ngay khi component mount
   { immediate: true },
 )
 
@@ -268,6 +284,7 @@ watch(
  * Toggle dropdown mở/đóng
  */
 function toggleDropdown() {
+  // Đảo ngược trạng thái dropdown (mở thành đóng, đóng thành mở)
   is_dropdown_open.value = !is_dropdown_open.value
 }
 
@@ -276,7 +293,9 @@ function toggleDropdown() {
  * @param workflow - Workflow item được chọn
  */
 function selectWorkflow(workflow: WorkflowItem) {
+  // Set workflow đã chọn
   selected_workflow.value = workflow
+  // Đóng dropdown sau khi chọn
   is_dropdown_open.value = false
 }
 
@@ -285,9 +304,12 @@ function selectWorkflow(workflow: WorkflowItem) {
  */
 async function loadWorkflowList() {
   try {
+    // Gọi function load workflow list từ store
     await workflow_store.loadWorkflowList()
   } catch (e: any) {
+    // Log error ra console để debug
     console.error('Error loading workflow list:', e)
+    // Hiển thị toast error với message từ error hoặc message mặc định
     toast.error(e.message || t('feedback.loadServiceError'))
   }
 }
@@ -296,6 +318,7 @@ async function loadWorkflowList() {
  * Trigger file input để chọn/chụp ảnh
  */
 function triggerFileInput() {
+  // Gọi click() trên file input để mở file picker
   fileInputRef.value?.click()
 }
 
@@ -304,14 +327,18 @@ function triggerFileInput() {
  * @param event - File input change event
  */
 function handleImageSelect(event: Event) {
+  /** Cast event.target sang HTMLInputElement */
   const TARGET = event.target as HTMLInputElement
+  /** Lấy danh sách files từ input */
   const FILES = TARGET.files
 
+  // Nếu không có files thì return sớm
   if (!FILES || FILES.length === 0) return
 
   /** Tính số ảnh còn lại có thể thêm */
   const REMAINING_SLOTS = MAX_IMAGES - image_previews.value.length
 
+  // Nếu không còn slot thì hiển thị error và return
   if (REMAINING_SLOTS <= 0) {
     toast.error(t('feedback.maxImagesExceeded', { count: MAX_IMAGES.toString() }))
     return
@@ -320,8 +347,9 @@ function handleImageSelect(event: Event) {
   /** Lấy số lượng file sẽ thêm (không vượt quá số slot còn lại) */
   const FILES_TO_ADD = Math.min(FILES.length, REMAINING_SLOTS)
 
-  /** Duyệt qua từng file và convert sang base64 */
+  // Duyệt qua từng file và convert sang base64
   for (let i = 0; i < FILES_TO_ADD; i++) {
+    /** Lấy file tại index i */
     const FILE = FILES[i]
 
     // Kiểm tra file có tồn tại không
@@ -335,29 +363,35 @@ function handleImageSelect(event: Event) {
       continue
     }
 
-    // Kiểm tra kích thước file (tối đa 5MB)
-    const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+    /** Constant định nghĩa kích thước file tối đa (5MB) */
+    const MAX_SIZE = 5 * 1024 * 1024
+    // Kiểm tra kích thước file có vượt quá MAX_SIZE không
     if (FILE.size > MAX_SIZE) {
       toast.error(t('feedback.imageSizeExceeded', { name: FILE.name }))
       continue
     }
 
-    /** Convert file sang base64 */
+    /** Tạo FileReader instance để convert file sang base64 */
     const READER = new FileReader()
 
+    // Callback khi đọc file thành công
     READER.onload = (e) => {
+      /** Lấy kết quả từ FileReader */
       const RESULT = e.target?.result as string
 
+      // Nếu có kết quả thì thêm vào previews và attachments
       if (RESULT) {
         image_previews.value.push(RESULT)
         form_attachments.value.push(RESULT)
       }
     }
 
+    // Callback khi đọc file thất bại
     READER.onerror = () => {
       toast.error(t('feedback.cannotReadFile', { name: FILE.name }))
     }
 
+    // Bắt đầu đọc file dưới dạng data URL (base64)
     READER.readAsDataURL(FILE)
   }
 
@@ -368,6 +402,7 @@ function handleImageSelect(event: Event) {
 
   // Nếu có file bị bỏ qua do vượt quá số lượng
   if (FILES.length > FILES_TO_ADD) {
+    // Hiển thị warning về số file đã thêm
     toast.warning(
       t('feedback.onlyAddedImages', {
         added: FILES_TO_ADD.toString(),
@@ -382,7 +417,9 @@ function handleImageSelect(event: Event) {
  * @param index - Index của ảnh cần xóa
  */
 function removeImage(index: number) {
+  // Xóa ảnh khỏi danh sách previews tại index
   image_previews.value.splice(index, 1)
+  // Xóa ảnh khỏi danh sách attachments tại index
   form_attachments.value.splice(index, 1)
 }
 
@@ -391,24 +428,25 @@ function removeImage(index: number) {
  * @returns true nếu form hợp lệ, false nếu không
  */
 function validateForm(): boolean {
-  // Kiểm tra title
+  // Kiểm tra title có tồn tại và không rỗng không
   if (!form_title.value || form_title.value.trim() === '') {
     toast.error(t('feedback.enterTitle'))
     return false
   }
 
-  // Kiểm tra content
+  // Kiểm tra content có tồn tại và không rỗng không
   if (!form_content.value || form_content.value.trim() === '') {
     toast.error(t('feedback.enterContent'))
     return false
   }
 
-  // Kiểm tra workflow đã chọn
+  // Kiểm tra workflow đã được chọn chưa
   if (!selected_workflow.value) {
     toast.error(t('feedback.selectService'))
     return false
   }
 
+  // Form hợp lệ
   return true
 }
 
@@ -416,7 +454,7 @@ function validateForm(): boolean {
  * Handle submit form
  */
 async function handleSubmit() {
-  // Validate form
+  // Validate form trước khi submit
   if (!validateForm()) {
     return
   }
@@ -426,6 +464,7 @@ async function handleSubmit() {
     return
   }
 
+  // Set trạng thái submitting thành true
   is_submitting.value = true
 
   try {
@@ -436,29 +475,38 @@ async function handleSubmit() {
     }
 
     // Bước 1: Tạo form với form_data
+    /** Object chứa dữ liệu form để gửi lên API */
     const FORM_DATA = {
       title: form_title.value.trim(),
       content: form_content.value.trim(),
       attachments: form_attachments.value,
     }
 
+    // Gọi API để tạo form
+    /** Response từ API createForm */
     const FORM_RESPONSE = await createForm(FORM_DATA)
 
     // Bước 2: Tạo ticket từ workflow_id và ticket_form_id
+    /** Object chứa dữ liệu ticket để gửi lên API */
     const TICKET_REQUEST = {
       workflow_id: selected_workflow.value.workflow_id,
       ticket_form_id: FORM_RESPONSE.id,
     }
 
+    // Gọi API để tạo ticket
     await createTicket(TICKET_REQUEST)
 
-    // Thành công: hiển thị thông báo và navigate
+    // Hiển thị thông báo thành công
     toast.success(t('feedback.submitSuccess'))
+    // Navigate đến trang danh sách feedback
     router.push('/feedback-list')
   } catch (e: any) {
+    // Log error ra console để debug
     console.error('Error submitting feedback:', e)
+    // Hiển thị toast error với message từ error hoặc message mặc định
     toast.error(e.message || t('feedback.submitError'))
   } finally {
+    // Luôn set trạng thái submitting thành false sau khi hoàn thành
     is_submitting.value = false
   }
 }
@@ -467,9 +515,12 @@ async function handleSubmit() {
  * Đóng dropdown khi click bên ngoài
  */
 function handleClickOutside(event: MouseEvent) {
+  /** Cast event.target sang HTMLElement */
   const TARGET = event.target as HTMLElement
 
+  // Kiểm tra click có nằm ngoài dropdown container không
   if (dropdownRef.value && !dropdownRef.value.contains(TARGET)) {
+    // Đóng dropdown nếu click bên ngoài
     is_dropdown_open.value = false
   }
 }

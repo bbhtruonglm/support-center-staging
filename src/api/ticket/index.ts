@@ -1,8 +1,9 @@
-/**
- * Ticket API - Main entry point
- */
+/** Ticket API - Main entry point */
+// Import ticket API client
 import { ticketApiClient } from './client'
+// Import transform function để map tab sang stage filter
 import { mapTabToStageFilter } from './transform'
+// Import các types từ ticket types
 import type {
   TicketItem,
   TabKey,
@@ -39,26 +40,32 @@ export async function getTicketList(
       take,
     }
 
-    /** Chỉ thêm stage vào payload nếu có filter */
+    // Chỉ thêm stage vào payload nếu có filter
     if (STAGE_FILTER && STAGE_FILTER.length > 0) {
+      // Thêm stage filter vào payload
       PAYLOAD.stage = STAGE_FILTER
     }
 
     /** Gọi API POST để lấy danh sách ticket với filter */
     const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', PAYLOAD)
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error loading ticket list:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tải danh sách phản ánh'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -72,18 +79,23 @@ export async function getWorkflowList(): Promise<WorkflowItem[]> {
     /** Gọi API POST để lấy danh sách workflow */
     const RESPONSE = await ticketApiClient.post<WorkflowItem[]>('get_workflow', {})
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error loading workflow list:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tải danh sách dịch vụ'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -100,18 +112,23 @@ export async function createForm(form_data: FormData): Promise<CreateFormRespons
       form_data,
     })
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error creating form:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tạo form'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -126,18 +143,23 @@ export async function createTicket(request: CreateTicketRequest): Promise<Create
     /** Gọi API POST để tạo ticket */
     const RESPONSE = await ticketApiClient.post<CreateTicketResponse>('create_ticket', request)
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error creating ticket:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tạo ticket'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -152,30 +174,37 @@ export async function getTicketDetail(ticket_id: string): Promise<TicketItem> {
     /** Gọi API POST để lấy danh sách ticket */
     const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', {})
 
-    /** Tìm ticket theo ID */
+    /** Tìm ticket theo ID trong danh sách */
     const TICKET = RESPONSE.data.find((ticket) => ticket.id === ticket_id)
 
+    // Nếu không tìm thấy ticket thì throw error
     if (!TICKET) {
       throw new Error('Không tìm thấy phản ánh')
     }
 
+    // Trả về ticket đã tìm thấy
     return TICKET
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error loading ticket detail:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tải chi tiết phản ánh'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi không tìm thấy */
+    // Xử lý lỗi không tìm thấy ticket
     if (error.message === 'Không tìm thấy phản ánh') {
+      // Throw lại error không tìm thấy
       throw error
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -197,18 +226,23 @@ export async function getComments(
       page,
     })
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error loading comments:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể tải danh sách bình luận'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
@@ -223,25 +257,28 @@ export async function createComment(request: CreateCommentRequest): Promise<Crea
     /** Gọi API POST để tạo comment */
     const RESPONSE = await ticketApiClient.post<CreateCommentResponse>('create_comment', request)
 
+    // Trả về data từ response
     return RESPONSE.data
   } catch (error: any) {
+    // Log error ra console để debug
     console.error('Error creating comment:', error)
 
-    /** Xử lý lỗi từ response */
+    // Xử lý lỗi từ response
     if (error.response) {
+      /** Status code từ response */
       const STATUS = error.response.status
+      /** Error message từ response hoặc message mặc định */
       const MESSAGE = error.response.data?.message || 'Không thể gửi bình luận'
+      // Throw error với message
       throw new Error(MESSAGE)
     }
 
-    /** Xử lý lỗi network */
+    // Throw error network nếu không có response
     throw new Error('Không thể kết nối đến server')
   }
 }
 
-/**
- * Export types để sử dụng ở các component
- */
+/** Export types để sử dụng ở các component */
 export type {
   TicketItem,
   FeedbackItem,

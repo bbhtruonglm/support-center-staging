@@ -18,81 +18,11 @@
 
         <!-- Skeleton Loading State -->
         <div v-if="is_loading_initial" class="flex flex-col">
-          <!-- Chi tiết phản ánh Skeleton -->
-          <div class="flex flex-col gap-1">
-            <!-- Tiêu đề Skeleton -->
-            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-              <div class="h-4 bg-gray-200 rounded w-3/4"></div>
-            </section>
+          <!-- Skeleton component cho phần chi tiết phản ánh -->
+          <FeedbackDetailSkeleton />
 
-            <!-- Danh mục Skeleton -->
-            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-              <div class="h-4 bg-gray-200 rounded w-1/2"></div>
-            </section>
-
-            <!-- Trạng thái Skeleton -->
-            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-              <div class="h-5 bg-gray-200 rounded w-20"></div>
-            </section>
-
-            <!-- Nội dung Skeleton -->
-            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-              <div class="h-3 bg-gray-200 rounded w-16 mb-2"></div>
-              <div class="space-y-2">
-                <div class="h-3 bg-gray-200 rounded w-full"></div>
-                <div class="h-3 bg-gray-200 rounded w-5/6"></div>
-                <div class="h-3 bg-gray-200 rounded w-4/6"></div>
-              </div>
-            </section>
-
-            <!-- Ảnh đính kèm Skeleton -->
-            <section class="bg-white rounded-lg px-4 py-3 shadow-sm animate-pulse">
-              <div class="h-3 bg-gray-200 rounded w-20 mb-2"></div>
-              <div class="flex flex-wrap gap-2.5">
-                <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
-                <div class="w-20 h-20 bg-gray-200 rounded-xl"></div>
-              </div>
-            </section>
-          </div>
-
-          <!-- Tình trạng xử lý Skeleton -->
-          <div class="flex flex-col gap-2">
-            <!-- Tiêu đề Skeleton -->
-            <div class="py-3 border-b-2 border-gray-200 flex justify-center animate-pulse">
-              <div class="h-4 bg-gray-200 rounded w-32"></div>
-            </div>
-
-            <!-- Comments List Skeleton -->
-            <div class="flex flex-col gap-2">
-              <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
-                <!-- Avatar, Tên, vị trí, ngày Skeleton -->
-                <div class="flex items-start justify-between gap-2 mb-2">
-                  <div class="flex gap-2 flex-1">
-                    <!-- Avatar Skeleton -->
-                    <div class="w-8 h-8 bg-gray-200 rounded-xl shrink-0"></div>
-                    <!-- Tên, vị trí Skeleton -->
-                    <div class="flex flex-col gap-1 flex-1">
-                      <div class="h-4 bg-gray-200 rounded w-24"></div>
-                      <div class="h-3 bg-gray-200 rounded w-32"></div>
-                    </div>
-                  </div>
-                  <!-- Ngày Skeleton -->
-                  <div class="flex flex-col items-end gap-1 shrink-0">
-                    <div class="h-3 bg-gray-200 rounded w-20"></div>
-                    <div class="h-3 bg-gray-200 rounded w-28"></div>
-                  </div>
-                </div>
-                <!-- Nội dung bình luận Skeleton -->
-                <div class="space-y-2">
-                  <div class="h-4 bg-gray-200 rounded w-full"></div>
-                  <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <!-- Skeleton component cho phần tình trạng xử lý -->
+          <CommentsListSkeleton />
         </div>
 
         <!-- Chi tiết phản ánh -->
@@ -186,33 +116,9 @@
             </div>
 
             <!-- Comments List -->
-            <div v-if="is_loading_comments" class="flex flex-col gap-2">
-              <!-- Comment Skeleton -->
-              <div v-for="i in 2" :key="i" class="bg-white rounded-xl p-3 shadow-sm animate-pulse">
-                <!-- Avatar, Tên, vị trí, ngày Skeleton -->
-                <div class="flex items-start justify-between gap-2 mb-2">
-                  <div class="flex gap-2 flex-1">
-                    <!-- Avatar Skeleton -->
-                    <div class="w-8 h-8 bg-gray-200 rounded-xl shrink-0"></div>
-                    <!-- Tên, vị trí Skeleton -->
-                    <div class="flex flex-col gap-1 flex-1">
-                      <div class="h-4 bg-gray-200 rounded w-24"></div>
-                      <div class="h-3 bg-gray-200 rounded w-32"></div>
-                    </div>
-                  </div>
-                  <!-- Ngày Skeleton -->
-                  <div class="flex flex-col items-end gap-1 shrink-0">
-                    <div class="h-3 bg-gray-200 rounded w-20"></div>
-                    <div class="h-3 bg-gray-200 rounded w-28"></div>
-                  </div>
-                </div>
-                <!-- Nội dung bình luận Skeleton -->
-                <div class="space-y-2">
-                  <div class="h-4 bg-gray-200 rounded w-full"></div>
-                  <div class="h-4 bg-gray-200 rounded w-5/6"></div>
-                </div>
-              </div>
-            </div>
+            <!-- Skeleton component cho danh sách comments khi đang loading -->
+            <!-- showTitle=false vì tiêu đề đã có sẵn ở trên -->
+            <CommentsListSkeleton v-if="is_loading_comments" :show-title="false" />
             <div
               v-else-if="comments_list.length === 0"
               class="flex items-center justify-center py-10"
@@ -380,195 +286,238 @@
 
 <script setup lang="ts">
 // H1: import runtime functions
+// Import các reactive functions từ Vue
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
+// Import router hooks để lấy route params và điều hướng
 import { useRoute, useRouter } from 'vue-router'
+// Import i18n hook để sử dụng translation function
 import { useI18n } from 'vue-i18n'
 
 // H2: import components
+// Import component PageHeader để hiển thị header
 import PageHeader from '@/components/PageHeader.vue'
+// Import skeleton component cho phần chi tiết phản ánh
+import FeedbackDetailSkeleton from '@/components/skeletons/FeedbackDetailSkeleton.vue'
+// Import skeleton component cho danh sách comments
+import CommentsListSkeleton from '@/components/skeletons/CommentsListSkeleton.vue'
 
 // H3: import icon components
+// Import icon ChevronLeft và ChevronRight từ lucide-vue-next
 import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
 
 // H4: import types
+// Import API functions và type TicketItem từ ticket API
 import { getTicketDetail, getComments, createComment, type TicketItem } from '@/api/ticket'
+// Import transform functions để map stage và transform comment
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
+// Import types TicketStage và CommentItem
 import type { TicketStage, CommentItem } from '@/types/ticket'
 
 // H5: props, emits
-// (none)
+// Component này không có props và emits
 
 // H6: i18n, store
+// Import toast từ vue3-toastify để hiển thị thông báo
 import { toast } from 'vue3-toastify'
+// Import ticket store để quản lý state của tickets
 import { useTicketStore } from '@/stores/ticket'
+// Import workflow store để quản lý state của workflows
 import { useWorkflowStore } from '@/stores/workflow'
 
-/** Router instance */
+/** Router instance: route để lấy params từ URL */
 const route = useRoute()
+/** Router instance: router để điều hướng programmatically */
 const router = useRouter()
 
-/** i18n instance */
+/** i18n instance: t function để translate text từ locale files */
 const { t } = useI18n()
 
-/** Ticket store để lấy ticket từ cache */
+/** Ticket store instance: để lấy ticket từ cache và quản lý ticket state */
 const ticket_store = useTicketStore()
 
-/** Workflow store để lấy workflow list từ cache */
+/** Workflow store instance: để lấy workflow list từ cache và quản lý workflow state */
 const workflow_store = useWorkflowStore()
 
 // H7: variables
-/** Chi tiết ticket từ router state hoặc API */
+/** Reactive ref: Chi tiết ticket từ router state hoặc API, null khi chưa load */
 const ticket_detail = ref<TicketItem | null>(null)
 
-/** Trạng thái loading */
+/** Reactive ref: Trạng thái loading ticket detail, true khi đang gọi API */
 const is_loading = ref(false)
 
-/** Thông báo lỗi */
+/** Reactive ref: Thông báo lỗi khi load ticket detail thất bại, null khi không có lỗi */
 const error_message = ref<string | null>(null)
 
-/** Danh sách comments từ API (của trang hiện tại) */
+/** Reactive ref: Danh sách comments từ API của trang hiện tại, empty array khi chưa load hoặc không có */
 const comments_list = ref<CommentItem[]>([])
 
-/** Tổng số trang từ API */
+/** Reactive ref: Tổng số trang comments từ API, 0 khi chưa load hoặc không có comments */
 const total_pages = ref(0)
 
-/** Trạng thái loading comments */
+/** Reactive ref: Trạng thái loading comments, true khi đang gọi API getComments */
 const is_loading_comments = ref(false)
 
-/** Trang hiện tại */
+/** Reactive ref: Trang hiện tại của comments pagination, bắt đầu từ 1 */
 const current_page = ref(1)
 
-/** Nội dung comment đang nhập */
+/** Reactive ref: Nội dung comment đang nhập trong textarea, empty string khi chưa nhập */
 const comment_content = ref('')
 
-/** Trạng thái đang gửi comment */
+/** Reactive ref: Trạng thái đang gửi comment, true khi đang gọi API createComment */
 const is_sending_comment = ref(false)
 
-/** Ref đến scrollable content container */
+/** Reactive ref: Reference đến scrollable content container element để scroll programmatically */
 const scrollable_content_ref = ref<HTMLElement | null>(null)
 
 // H8: lifecycle hooks
-/** Load data khi component mounted */
+/** Lifecycle hook chạy khi component được mount vào DOM */
 onMounted(async () => {
-  /** Load workflow list từ store trước (chỉ gọi API nếu chưa load) */
-  /** Đợi workflow list load xong để đảm bảo có data khi render category */
+  // Đợi workflow list load xong để đảm bảo có data khi render category
   await workflow_store.loadWorkflowList()
-  /** Sau đó mới load ticket detail */
+  // Sau đó mới load ticket detail
   loadTicketDetail()
 })
 
 // H9: watch, computed
 /**
- * Computed property: Có đang loading không (bao gồm cả workflow và ticket)
+ * Computed property: Kiểm tra có đang loading không (bao gồm cả workflow và ticket)
+ * @returns true nếu đang loading, false nếu đã load xong
  */
 const is_loading_initial = computed(() => {
-  /** Hiển thị skeleton nếu:
-   * - Đang load workflow HOẶC
-   * - Đang load ticket detail HOẶC
-   * - Ticket detail chưa có và chưa có error (đang chờ load)
-   */
+  // Kiểm tra đang load workflow hoặc ticket detail hoặc chưa có ticket detail và error
   return (
     workflow_store.is_loading || is_loading.value || (!ticket_detail.value && !error_message.value)
   )
 })
 
 /**
- * Computed property: Danh sách số trang hiển thị
+ * Computed property: Tính toán danh sách số trang hiển thị trong pagination
+ * Logic: Hiển thị tối đa 5 số trang với ellipsis khi cần
+ * @returns Array các số trang cần hiển thị
  */
 const visible_pages = computed(() => {
+  // Mảng chứa các số trang sẽ hiển thị
   const PAGES: number[] = []
+  /** Tổng số trang từ API */
   const TOTAL = total_pages.value
+  /** Trang hiện tại đang xem */
   const CURRENT = current_page.value
 
+  // Nếu tổng số trang <= 3, hiển thị tất cả các trang
   if (TOTAL <= 3) {
-    // Nếu tổng số trang <= 3, hiển thị tất cả
+    // Loop từ 1 đến TOTAL để thêm tất cả các trang vào mảng
     for (let i = 1; i <= TOTAL; i++) {
       PAGES.push(i)
     }
   } else {
-    // Nếu tổng số trang >= 4, luôn hiển thị ellipsis trước trang cuối
+    // Nếu tổng số trang >= 4, cần logic phức tạp hơn với ellipsis
+    // Trường hợp 1: Đang ở trang đầu (trang 1 hoặc 2)
     if (CURRENT <= 2) {
-      // Trang đầu: hiển thị 1, 2, 3, ..., TOTAL
+      // Thêm các trang đầu: 1, 2, 3
       for (let i = 1; i <= 3; i++) {
         PAGES.push(i)
       }
+      // Thêm trang cuối
       PAGES.push(TOTAL)
     } else if (CURRENT >= TOTAL - 1) {
-      // Trang cuối: hiển thị 1, ..., TOTAL-2, TOTAL-1, TOTAL
+      // Trường hợp 2: Đang ở trang cuối
+      // Thêm trang đầu
       PAGES.push(1)
+      // Thêm các trang cuối: TOTAL-2, TOTAL-1, TOTAL
       for (let i = TOTAL - 2; i <= TOTAL; i++) {
         PAGES.push(i)
       }
     } else {
-      // Trang giữa: hiển thị 1, ..., CURRENT-1, CURRENT, CURRENT+1, ..., TOTAL
+      // Trường hợp 3: Đang ở trang giữa
+      // Thêm trang đầu
       PAGES.push(1)
+      // Thêm trang hiện tại và 2 trang xung quanh
       for (let i = CURRENT - 1; i <= CURRENT + 1; i++) {
         PAGES.push(i)
       }
+      // Thêm trang cuối
       PAGES.push(TOTAL)
     }
   }
 
+  // Trả về mảng các số trang cần hiển thị
   return PAGES
 })
 
 /**
- * Computed property: Có hiển thị ellipsis sau số 1 không
- * Hiển thị ellipsis sau số 1 khi trang hiện tại >= 4
+ * Computed property: Kiểm tra có cần hiển thị ellipsis sau số 1 không
+ * Ellipsis hiển thị khi có khoảng cách giữa trang 1 và trang tiếp theo
+ * @returns true nếu cần hiển thị ellipsis sau số 1, false nếu không
  */
 const show_ellipsis_after_first = computed(() => {
+  /** Trang hiện tại đang xem */
   const CURRENT = current_page.value
+  /** Tổng số trang từ API */
   const TOTAL = total_pages.value
 
+  // Nếu tổng số trang < 4 hoặc trang hiện tại < 4, không cần ellipsis
   if (TOTAL < 4 || CURRENT < 4) {
     return false
   }
 
+  /** Lấy danh sách các trang hiển thị */
   const PAGES = visible_pages.value
+  // Nếu không có trang nào hoặc trang đầu không phải là 1, không hiển thị ellipsis
   if (PAGES.length === 0 || PAGES[0] !== 1) {
     return false
   }
 
-  // Kiểm tra xem có khoảng cách giữa số 1 và trang tiếp theo không
+  /** Kiểm tra có khoảng cách giữa số 1 và trang tiếp theo không */
   const SECOND_PAGE = PAGES[1]
   return SECOND_PAGE ? SECOND_PAGE - 1 > 1 : false
 })
 
 /**
- * Computed property: Có hiển thị ellipsis trước trang cuối không
- * Hiển thị ellipsis trước trang cuối nếu tổng số trang >= 4
+ * Computed property: Kiểm tra có cần hiển thị ellipsis trước trang cuối không
+ * Ellipsis hiển thị khi có khoảng cách giữa trang gần cuối và trang cuối
+ * @returns true nếu cần hiển thị ellipsis trước trang cuối, false nếu không
  */
 const show_ellipsis_before_last = computed(() => {
+  /** Tổng số trang từ API */
   const TOTAL = total_pages.value
+  // Nếu tổng số trang < 4, không cần ellipsis
   if (TOTAL < 4) {
     return false
   }
 
+  /** Lấy danh sách các trang hiển thị */
   const PAGES = visible_pages.value
+  // Nếu không có trang nào, không hiển thị ellipsis
   if (PAGES.length === 0) {
     return false
   }
 
+  /** Lấy trang cuối cùng trong danh sách hiển thị */
   const LAST_PAGE = PAGES[PAGES.length - 1]
+  /** Lấy trang gần cuối (trang thứ 2 từ cuối) */
   const SECOND_LAST_PAGE = PAGES[PAGES.length - 2]
 
-  // Kiểm tra xem có khoảng cách giữa trang gần cuối và trang cuối không
+  // Nếu không có đủ 2 trang, không hiển thị ellipsis
   if (!LAST_PAGE || !SECOND_LAST_PAGE) {
     return false
   }
 
-  // Luôn hiển thị ellipsis trước trang cuối nếu có khoảng cách
+  // Kiểm tra có khoảng cách giữa trang gần cuối và trang cuối không
   return LAST_PAGE - SECOND_LAST_PAGE > 1
 })
 
 /**
- * Watch route params để reload khi ID thay đổi (khi navigate giữa các ticket khác nhau)
+ * Watch route params: Theo dõi thay đổi của ticket ID trong URL
+ * Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail
  */
 watch(
+  // Theo dõi route.params.id
   () => route.params.id,
+  // Callback chạy khi ID thay đổi
   (new_id, old_id) => {
-    /** Chỉ reload nếu ID thực sự thay đổi (không phải lần đầu mount) */
+    // Chỉ reload nếu ID thực sự thay đổi (không phải lần đầu mount)
     if (old_id !== undefined && new_id !== old_id) {
+      // Gọi hàm load ticket detail với ID mới
       loadTicketDetail()
     }
   },
@@ -576,96 +525,123 @@ watch(
 
 // H10: functions
 /**
- * Chuyển đến trang trước
+ * Function: Chuyển đến trang trước trong pagination
+ * Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới
  */
 async function goToPreviousPage() {
+  // Kiểm tra: trang hiện tại > 1, có ticket_id, và có tổng số trang > 0
   if (current_page.value > 1 && ticket_detail.value?.ticket_id && total_pages.value > 0) {
+    /** Tính toán số trang mới (trang hiện tại - 1) */
     const NEW_PAGE = current_page.value - 1
-    /** Load comments cho trang mới */
+    // Load comments cho trang mới với ticket_id và số trang mới
     await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
   }
 }
 
 /**
- * Chuyển đến trang tiếp theo
+ * Function: Chuyển đến trang tiếp theo trong pagination
+ * Kiểm tra điều kiện trước khi chuyển trang và load comments cho trang mới
  */
 async function goToNextPage() {
+  // Kiểm tra: trang hiện tại < tổng số trang, có ticket_id, và có tổng số trang > 0
   if (
     current_page.value < total_pages.value &&
     ticket_detail.value?.ticket_id &&
     total_pages.value > 0
   ) {
+    /** Tính toán số trang mới (trang hiện tại + 1) */
     const NEW_PAGE = current_page.value + 1
-    /** Load comments cho trang mới */
+    // Load comments cho trang mới với ticket_id và số trang mới
     await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
   }
 }
 
 /**
- * Chuyển đến trang cụ thể
- * @param page - Số trang cần chuyển đến
+ * Function: Chuyển đến trang cụ thể trong pagination
+ * @param page - Số trang cần chuyển đến (phải >= 1 và <= total_pages)
  */
 async function goToPage(page: number) {
+  // Kiểm tra: page hợp lệ (>= 1 và <= total_pages), có ticket_id, và có tổng số trang > 0
   if (
     page >= 1 &&
     page <= total_pages.value &&
     ticket_detail.value?.ticket_id &&
     total_pages.value > 0
   ) {
-    /** Load comments cho trang mới */
+    // Load comments cho trang được chỉ định với ticket_id và số trang
     await loadComments(ticket_detail.value.ticket_id, page)
   }
 }
 
 /**
- * Get label cho category từ workflow_id
+ * Function: Lấy label cho category từ workflow_id
+ * Sử dụng workflow store để lấy tên workflow tương ứng với workflow_id
  * @param workflow_id - ID của workflow từ ticket detail
- * @returns Label string
+ * @returns Label string của category (tên workflow)
  */
 function getCategoryLabel(workflow_id: number): string {
-  /** Sử dụng workflow store để lấy tên workflow */
+  // Sử dụng workflow store để lấy tên workflow từ workflow_id
   return workflow_store.getWorkflowName(workflow_id)
 }
 
 /**
- * Get CSS class cho status badge
- * @param stage - Stage từ API
- * @returns CSS class string
+ * Function: Lấy CSS class cho status badge dựa trên stage
+ * Map stage từ API sang status, sau đó trả về CSS class tương ứng
+ * @param stage - Stage từ API (ticket stage)
+ * @returns CSS class string cho badge (bg-orange-500, bg-blue-500, hoặc bg-green-600)
  */
 function getStatusBadgeClass(stage: TicketStage): string {
+  /** Map stage từ API sang status (pending, processing, completed) */
   const STATUS = mapStageToStatus(stage)
+  /** Object chứa mapping giữa status và CSS class tương ứng */
   const CLASSES = {
+    // Status pending: màu cam
     pending: 'bg-orange-500',
+    // Status processing: màu xanh dương
     processing: 'bg-blue-500',
+    // Status completed: màu xanh lá
     completed: 'bg-green-600',
   }
+  // Trả về class tương ứng với status, mặc định là pending nếu không tìm thấy
   return CLASSES[STATUS] || CLASSES.pending
 }
 
 /**
- * Get label cho status
- * @param stage - Stage từ API
- * @returns Label string
+ * Function: Lấy label text cho status dựa trên stage
+ * Map stage từ API sang status, sau đó trả về label text đã được translate
+ * @param stage - Stage từ API (ticket stage)
+ * @returns Label string đã được translate (từ i18n)
  */
 function getStatusLabel(stage: TicketStage): string {
+  /** Map stage từ API sang status (pending, processing, completed) */
   const STATUS = mapStageToStatus(stage)
+  /** Object chứa mapping giữa status và label text đã được translate */
   const LABELS = {
+    // Label cho status pending
     pending: t('feedback.pending'),
+    // Label cho status processing
     processing: t('feedback.processing'),
+    // Label cho status completed
     completed: t('feedback.completed'),
   }
+  // Trả về label tương ứng với status, mặc định là pending nếu không tìm thấy
   return LABELS[STATUS] || t('feedback.pending')
 }
 
 /**
- * Scroll lên đầu trang scrollable content
+ * Function: Scroll lên đầu trang scrollable content
+ * Sử dụng nextTick để đảm bảo DOM đã được cập nhật trước khi scroll
  */
 function scrollToTop() {
-  /** Sử dụng nextTick để đảm bảo DOM đã được cập nhật trước khi scroll */
+  // Sử dụng nextTick để đợi DOM được cập nhật trước khi scroll
   nextTick(() => {
+    // Kiểm tra xem ref đến scrollable container có tồn tại không
     if (scrollable_content_ref.value) {
+      // Scroll đến đầu trang với animation smooth
       scrollable_content_ref.value.scrollTo({
+        // Scroll đến vị trí top = 0
         top: 0,
+        // Sử dụng smooth scroll animation
         behavior: 'smooth',
       })
     }
@@ -673,158 +649,184 @@ function scrollToTop() {
 }
 
 /**
- * Load comments từ API
+ * Function: Load comments từ API theo ticket_id và page
+ * Xử lý loading state, transform data, và error handling
  * @param ticket_id - Ticket ID (số) để lấy comments
  * @param page - Số trang cần lấy (mặc định 1)
  */
 async function loadComments(ticket_id: number, page: number = 1) {
-  /** Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls) */
+  // Kiểm tra nếu đang loading thì không gọi tiếp để tránh duplicate calls
   if (is_loading_comments.value) {
     return
   }
 
-  /** Đảm bảo page là số nguyên dương hợp lệ */
+  /** Đảm bảo page là số nguyên dương hợp lệ (>= 1) */
   const VALID_PAGE = Math.max(1, Math.floor(page))
 
-  /** Set loading state */
+  // Set loading state thành true để hiển thị skeleton loading
   is_loading_comments.value = true
 
-  /** Scroll lên đầu trang khi chuyển trang */
+  // Scroll lên đầu trang khi chuyển trang để user thấy nội dung mới ngay
   scrollToTop()
 
   try {
-    /** Gọi API để lấy danh sách comments với page */
+    /** Gọi API để lấy danh sách comments với ticket_id và page */
     const RESPONSE = await getComments(ticket_id, VALID_PAGE)
 
-    /** Transform comments từ API sang format CommentItem */
+    /** Transform comments từ API format sang format CommentItem */
     const TRANSFORMED_COMMENTS = RESPONSE.comments.map(transformCommentToItem)
 
-    /** Cập nhật danh sách comments */
+    // Cập nhật danh sách comments với data đã được transform
     comments_list.value = TRANSFORMED_COMMENTS
 
-    /** Cập nhật total_page từ API */
+    // Cập nhật total_page từ response của API
     total_pages.value = RESPONSE.total_page
 
-    /** Cập nhật current_page để đồng bộ với page đã gọi */
+    // Cập nhật current_page để đồng bộ với page đã gọi API
     current_page.value = VALID_PAGE
   } catch (e: any) {
+    // Log error ra console để debug
     console.error('Error loading comments:', e)
+    /** Lấy error message từ exception hoặc dùng message mặc định từ i18n */
     const ERROR_MSG = e.message || t('feedback.loadCommentsError')
 
-    /** Xử lý đặc biệt cho lỗi PAGE_NOT_FOUND - không hiển thị toast error */
+    // Xử lý đặc biệt cho lỗi PAGE_NOT_FOUND - không hiển thị toast error
     if (ERROR_MSG === 'PAGE_NOT_FOUND' || ERROR_MSG.includes('PAGE_NOT_FOUND')) {
-      /** Set empty array và reset total_page */
+      // Set empty array và reset total_page về 0
       comments_list.value = []
       total_pages.value = 0
+      // Reset về trang 1
       current_page.value = 1
     } else {
-      /** Hiển thị toast error cho các lỗi khác */
+      // Hiển thị toast error cho các lỗi khác
       toast.error(ERROR_MSG)
-      /** Set empty array và reset total_page nếu có lỗi */
+      // Set empty array và reset total_page nếu có lỗi
       comments_list.value = []
       total_pages.value = 0
+      // Reset về trang 1
       current_page.value = 1
     }
   } finally {
+    // Luôn set loading state thành false sau khi hoàn thành
     is_loading_comments.value = false
   }
 }
 
 /**
- * Gửi comment mới
+ * Function: Gửi comment mới cho ticket
+ * Validate input, gọi API, reload comments, và hiển thị thông báo
  */
 async function handleSendComment() {
-  /** Kiểm tra ticket detail và content */
+  // Kiểm tra ticket detail và content có tồn tại không
   if (!ticket_detail.value || !comment_content.value.trim()) {
     return
   }
 
-  /** Set loading state */
+  // Set loading state thành true để disable button và hiển thị loading state
   is_sending_comment.value = true
 
   try {
-    /** Gọi API để tạo comment */
+    // Gọi API để tạo comment mới với ticket_id và content đã được trim
     await createComment({
+      // Ticket ID từ ticket detail
       ticket_id: ticket_detail.value.ticket_id,
+      // Content đã được trim để loại bỏ khoảng trắng đầu cuối
       content: comment_content.value.trim(),
     })
 
-    /** Clear input */
+    // Clear input sau khi gửi thành công
     comment_content.value = ''
 
-    /** Reload comments để hiển thị comment mới (reset về trang 1) */
+    // Reload comments để hiển thị comment mới vừa tạo (reset về trang 1)
     if (ticket_detail.value.ticket_id) {
+      // Reset về trang 1
       current_page.value = 1
+      // Load lại comments từ trang 1
       await loadComments(ticket_detail.value.ticket_id, 1)
     }
 
-    /** Hiển thị thông báo thành công */
+    // Hiển thị thông báo thành công từ i18n
     toast.success(t('feedback.sendCommentSuccess'))
   } catch (e: any) {
+    // Log error ra console để debug
     console.error('Error sending comment:', e)
+    /** Lấy error message từ exception hoặc dùng message mặc định từ i18n */
     const ERROR_MSG = e.message || t('feedback.sendCommentError')
+    // Hiển thị toast error với message lỗi
     toast.error(ERROR_MSG)
   } finally {
+    // Luôn set loading state thành false sau khi hoàn thành
     is_sending_comment.value = false
   }
 }
 
 /**
- * Load chi tiết ticket từ router state hoặc API
+ * Function: Load chi tiết ticket từ cache hoặc API
+ * Ưu tiên lấy từ Pinia store (cache), nếu không có thì gọi API
+ * Sau khi load ticket, sẽ load comments cho ticket đó
  */
 async function loadTicketDetail() {
-  /** Kiểm tra nếu đang loading thì không gọi tiếp (tránh duplicate calls) */
+  // Kiểm tra nếu đang loading thì không gọi tiếp để tránh duplicate calls
   if (is_loading.value) {
     return
   }
 
-  /** Lấy ticket ID từ route params */
+  /** Lấy ticket ID từ route params (từ URL) */
   const TICKET_ID = route.params.id as string
 
+  // Kiểm tra xem có ticket ID không
   if (!TICKET_ID) {
+    // Nếu không có thì set error message và return
     error_message.value = t('feedback.ticketIdNotFound')
     return
   }
 
-  /** Kiểm tra xem có ticket trong Pinia store không
-   * Nếu có thì dùng luôn để tránh gọi API không cần thiết
-   * Nếu không có thì gọi API và lưu vào store
-   */
+  /** Kiểm tra xem có ticket trong Pinia store không */
   const CACHED_TICKET = ticket_store.getTicket(TICKET_ID)
-
+  // Check tồn tại trong cache và id trùng khớp
   if (CACHED_TICKET && CACHED_TICKET.id === TICKET_ID) {
-    /** Sử dụng ticket từ store, không cần gọi API */
+    // Sử dụng ticket từ store, không cần gọi API
     ticket_detail.value = CACHED_TICKET
-    /** Load comments cho ticket này */
+    // Load comments cho ticket này sau khi đã có ticket detail
     if (CACHED_TICKET.ticket_id) {
+      // Gọi load comments với ticket_id từ cached ticket
       await loadComments(CACHED_TICKET.ticket_id)
     }
+    // Return sớm để không gọi API
     return
   }
 
-  /** Nếu không có trong store, gọi API để load */
-  /** Set loading state */
+  // Nếu không có trong store, gọi API để load ticket detail
+  // Set loading state thành true để hiển thị skeleton loading
   is_loading.value = true
+  // Reset error message về null trước khi gọi API mới
   error_message.value = null
 
   try {
-    /** Gọi API để lấy chi tiết ticket */
+    /** Gọi API để lấy chi tiết ticket với TICKET_ID */
     const DATA = await getTicketDetail(TICKET_ID)
+    // Cập nhật ticket_detail với data từ API
     ticket_detail.value = DATA
 
-    /** Lưu ticket vào store để cache cho lần sau */
+    // Lưu ticket vào store để cache cho lần sau
     ticket_store.setTicket(DATA)
 
-    /** Load comments cho ticket này */
+    // Load comments cho ticket này sau khi đã có ticket detail
     if (DATA.ticket_id) {
+      // Gọi load comments với ticket_id từ API response
       await loadComments(DATA.ticket_id)
     }
   } catch (e: any) {
+    // Log error ra console để debug
     console.error('Error loading ticket detail:', e)
+    /** Lấy error message từ exception hoặc dùng message mặc định từ i18n */
     const ERROR_MSG = e.message || t('feedback.loadDetailError')
+    // Set error message để hiển thị trên UI
     error_message.value = ERROR_MSG
+    // Hiển thị toast error với message lỗi
     toast.error(ERROR_MSG)
   } finally {
+    // Luôn set loading state thành false sau khi hoàn thành
     is_loading.value = false
   }
 }
