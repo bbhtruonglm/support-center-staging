@@ -492,7 +492,9 @@ function getStatusLabel(status?: string) {
     completed: t('feedback.completed'),
   }
   // Trả về label tương ứng với status, nếu không tìm thấy thì dùng pending
-  return status ? LABELS[status as keyof typeof LABELS] || t('feedback.pending') : t('feedback.pending')
+  return status
+    ? LABELS[status as keyof typeof LABELS] || t('feedback.pending')
+    : t('feedback.pending')
 }
 
 /** Navigate đến trang tạo feedback mới */
