@@ -1,8 +1,5 @@
 <template>
   <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col overflow-y-auto">
-    <!-- Header Section -->
-    <AppHeader />
-
     <!-- Navigation -->
     <PageHeader :title="t('feedback.createTitle')" />
 
@@ -139,7 +136,6 @@
             ref="fileInputRef"
             type="file"
             accept="image/*"
-            capture="environment"
             multiple
             @change="handleImageSelect"
             class="hidden"
@@ -516,7 +512,8 @@ async function handleSubmit() {
     // Hiển thị thông báo thành công
     toast.success(t('feedback.submitSuccess'))
     // Navigate đến trang danh sách feedback sau khi submit thành công
-    router.push('/feedback-list')
+    // Sử dụng replace để không lưu trang create trong history, back từ list sẽ về thẳng MainMenu
+    router.replace('/feedback-list')
   } catch (e: any) {
     // Log error ra console để debug
     console.error('Error submitting feedback:', e)

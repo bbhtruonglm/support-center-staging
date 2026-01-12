@@ -16,13 +16,15 @@ import { useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { ArrowLeftCircle } from 'lucide-vue-next'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     title: string
     backText?: string
+    manualBack?: boolean
   }>(),
   {
     backText: undefined,
+    manualBack: false,
   },
 )
 
@@ -36,6 +38,8 @@ const router = useRouter()
 
 const handleBack = () => {
   emit('back')
-  router.back()
+  if (!props.manualBack) {
+    router.back()
+  }
 }
 </script>

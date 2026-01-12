@@ -153,6 +153,8 @@ import InfoCard from '@/components/InfoCard.vue'
 import MenuItem from '@/components/MenuItem.vue'
 // Import API function để lấy số lượng ticket
 import { getTicketCount } from '@/api/ticket'
+// Import function lấy merchant token từ client
+import { getMerchantToken } from '@/api/ticket/client'
 
 // H3: import icon components
 // Import icon Copy và Loader2 từ lucide-vue-next
@@ -224,23 +226,54 @@ onMounted(async () => {
     /** Lấy object query parameters từ URL hiện tại */
     const QUERY = route.query
 
-    // Kiểm tra nếu không có query param nào thì dừng hàm
-    if (!QUERY) return
+    // Kiểm tra và lưu query params vào localStorage nếu có
+    if (Object.keys(QUERY).length > 0) {
+      // Duyệt qua từng key trong object query
+      Object.keys(QUERY).forEach((key) => {
+        /** Lấy giá trị của param tương ứng với key */
+        const VALUE = QUERY[key]
 
-    // Duyệt qua từng key trong object query
-    Object.keys(QUERY).forEach((key) => {
-      /** Lấy giá trị của param tương ứng với key */
-      const VALUE = QUERY[key]
+        // Nếu giá trị hợp lệ (khác null/undefined) thì lưu vào localStorage
+        if (VALUE != null) {
+          // Kiểm tra nếu token_user thay đổi thì clear merchant_token cũ
+          if (key === 'token_user') {
+            const OLD_TOKEN = localStorage.getItem('token_user')
+            const NEW_TOKEN = String(VALUE)
 
-      // Nếu giá trị hợp lệ (khác null/undefined) thì lưu vào localStorage
-      if (VALUE != null) {
-        // Lưu giá trị vào localStorage với key tương ứng
-        localStorage.setItem(key, String(VALUE))
-      }
-    })
+            // Nếu token user mới khác token cũ (hoặc chưa có token cũ)
+            if (OLD_TOKEN !== NEW_TOKEN) {
+              // Xóa merchant_token và identifier_id cũ để buộc fetch lại
+              localStorage.removeItem('merchant_token')
+              localStorage.removeItem('identifier_id')
+              console.log('[MainMenu] Token user changed or new, cleared old merchant session')
+            }
+          }
+
+          // Lưu giá trị vào localStorage với key tương ứng
+          localStorage.setItem(key, String(VALUE))
+        }
+      })
+    }
   } catch (error) {
     // Log error ra console để debug
     console.error('Error saving params to localStorage:', error)
+  }
+
+  // Gọi API để lấy merchant token ngay sau khi lưu params
+  // Điều này đảm bảo token được fetch sớm và cache lại
+  try {
+    await getMerchantToken()
+    console.log('[MainMenu] Merchant token fetched successfully')
+
+    // Cập nhật customer_id nếu có identifier_id mới từ localStorage
+    // Identifier ID này được trả về từ API getMerchantToken và lưu vào localStorage
+    const IDENTIFIER_ID = localStorage.getItem('identifier_id')
+    if (IDENTIFIER_ID) {
+      customer_id.value = IDENTIFIER_ID
+    }
+  } catch (tokenError) {
+    // Log error nhưng không block flow (các API sau có thể vẫn gọi và sẽ trigger lại getMerchantToken)
+    console.error('[MainMenu] Warning fetching merchant token:', tokenError)
   }
 
   // Gọi API để lấy số lượng ticket đang xử lý
@@ -279,49 +312,77 @@ const formatted_support_phone = computed(() => {
   return SUPPORT_PHONE
 })
 
-/** Computed property trả về avatar URL dựa trên client_id */
-const avatar_url = computed(() => {
-  /** Lấy client_id từ query params */
-  const CLIENT_ID = route.query.client_id
+/** Ref chứa URL avatar */
+const avatar_url = ref<string>(
+  (() => {
+    // 1. Kiểm tra client_id trong localStorage
+    const STORED_ID = localStorage.getItem('client_id')
+    // 2. Lấy client_id từ query
+    const QUERY_ID = route.query.client_id
+    const PARSED_QUERY_ID = Array.isArray(QUERY_ID) ? QUERY_ID[0] : QUERY_ID
 
-  // Nếu có client_id thì trả về URL CDN tương ứng
-  if (CLIENT_ID) {
-    // Tạo URL CDN với client_id
-    return `${CDN_BASE_URL}/media/s/${CLIENT_ID}/user`
-  }
+    // Ưu tiên query (mới nhất), sau đó đến localStorage
+    // Lưu ý: Nếu query có, onMounted sẽ update localStorage sau
+    const ID = PARSED_QUERY_ID || STORED_ID
 
-  // Nếu không có thì trả về avatar mặc định
-  return avatarDefault
-})
+    if (ID) {
+      return `${CDN_BASE_URL}/media/s/${ID}/user`
+    }
+    return avatarDefault
+  })(),
+)
 
-/** Computed property trả về tên khách hàng từ query */
-const customer_name = computed(() => {
-  /** Lấy tên từ params */
-  const NAME = route.query.user_name
+/** Ref chứa tên khách hàng */
+const customer_name = ref<string>(
+  (() => {
+    // 1. Kiểm tra user_name trong localStorage
+    const STORED_NAME = localStorage.getItem('user_name')
+    // 2. Lấy user_name từ query
+    const QUERY_NAME = route.query.user_name
+    const PARSED_QUERY_NAME = Array.isArray(QUERY_NAME) ? QUERY_NAME[0] : QUERY_NAME
 
-  // Nếu không có tên thì trả về mặc định
-  if (!NAME) {
-    return t('mainMenu.defaultCustomerName')
-  }
+    // Ưu tiên query, sau đó đến localStorage
+    const NAME = PARSED_QUERY_NAME || STORED_NAME
 
-  // Decode URI component để hiển thị đúng tiếng Việt
-  return decodeURIComponent(NAME as string)
-})
+    if (!NAME) {
+      return t('mainMenu.defaultCustomerName')
+    }
 
-/** Computed property trả về mã khách hàng từ query */
-const customer_id = computed<string>(() => {
-  /** Lấy giá trị client_id từ URL query */
-  const CLIENT_ID = route.query.client_id
+    // Decode nếu cần (thường localStorage đã lưu raw string, query là encoded)
+    // Thử decode, nếu lỗi (do không phải encoded) thì giữ nguyên
+    try {
+      return decodeURIComponent(String(NAME))
+    } catch {
+      return String(NAME)
+    }
+  })(),
+)
 
-  // Nếu là array thì lấy phần tử đầu tiên
-  if (Array.isArray(CLIENT_ID)) {
-    // Trả về phần tử đầu tiên hoặc giá trị mặc định
-    return CLIENT_ID[0] || '---'
-  }
+/**
+ * Ref lưu trữ mã khách hàng
+ * Ưu tiên lấy từ identifier_id trong localStorage (nếu đã cached)
+ * Fallback về client_id từ URL query nếu chưa có identifier_id
+ */
+const customer_id = ref<string>(
+  (() => {
+    // 1. Check identifier_id trong localStorage trước
+    const CACHED_ID = localStorage.getItem('identifier_id')
+    if (CACHED_ID) {
+      return CACHED_ID
+    }
 
-  // Trả về giá trị ID hoặc mặc định
-  return CLIENT_ID || '---'
-})
+    // 2. Fallback: Lấy giá trị client_id từ URL query
+    const CLIENT_ID = route.query.client_id
+
+    // Nếu là array thì lấy phần tử đầu tiên
+    if (Array.isArray(CLIENT_ID)) {
+      return CLIENT_ID[0] || '---'
+    }
+
+    // Trả về giá trị ID hoặc mặc định
+    return CLIENT_ID || '---'
+  })(),
+)
 
 // H10: functions
 /** Copy mã khách hàng */

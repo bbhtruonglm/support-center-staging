@@ -2,7 +2,7 @@
   <div class="w-full h-full md:max-w-sm bg-slate-100 flex flex-col">
     <!-- Sticky Header -->
     <div class="sticky top-0 z-10 bg-slate-100">
-      <PageHeader :title="t('feedback.listTitle')" />
+      <PageHeader :title="t('feedback.listTitle')" :manual-back="true" @back="router.push('/')" />
       <!-- Sticky Tabs -->
       <div class="py-3">
         <TabNav v-model="activeTab" :tabs="tabs" />
