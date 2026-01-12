@@ -17,6 +17,7 @@ import type {
   CreateCommentResponse,
   GetTicketRequest,
   CountTicketResponse,
+  UploadFileResponse,
 } from '@/types/ticket'
 
 /**
@@ -309,6 +310,45 @@ export async function getTicketCount(): Promise<CountTicketResponse> {
   }
 }
 
+/**
+ * API: Upload file lên server
+ * @param file - File cần upload
+ * @returns Promise chứa UploadFileResponse với URL của file
+ */
+export async function uploadFile(file: File): Promise<UploadFileResponse> {
+  try {
+    /** Tạo FormData để gửi file */
+    const FORM_DATA = new FormData()
+    // Thêm file vào FormData với key 'file'
+    FORM_DATA.append('file', file)
+
+    /** Gọi API POST để upload file với multipart/form-data */
+    const RESPONSE = await ticketApiClient.post<UploadFileResponse>('upload_file', FORM_DATA, {
+      // Override Content-Type để axios tự động set boundary cho multipart/form-data
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+
+    // Trả về data từ response
+    return RESPONSE.data
+  } catch (error: any) {
+    // Log error ra console để debug
+    console.error('Error uploading file:', error)
+
+    // Xử lý lỗi từ response
+    if (error.response) {
+      /** Error message từ response hoặc message mặc định */
+      const MESSAGE = error.response.data?.message || 'Không thể upload file'
+      // Throw error với message
+      throw new Error(MESSAGE)
+    }
+
+    // Throw error network nếu không có response
+    throw new Error('Không thể kết nối đến server')
+  }
+}
+
 /** Export types để sử dụng ở các component */
 export type {
   TicketItem,
@@ -330,4 +370,5 @@ export type {
   CommentItem,
   GetTicketRequest,
   CountTicketResponse,
+  UploadFileResponse,
 } from '@/types/ticket'

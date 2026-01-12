@@ -211,11 +211,25 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
     POSITION = 'Khách hàng'
   }
 
-  /** Format date bằng function formatCommentDate */
-  const DATE = formatCommentDate(comment.created_at)
+  // Nếu có branch thì thêm vào POSITION
+  if (EMPLOYEE_INFO?.branch?.name && POSITION) {
+    // Append branch name vào POSITION với dấu gạch ngang
+    POSITION = `${POSITION} - ${EMPLOYEE_INFO.branch.name}`
+  } else if (EMPLOYEE_INFO?.branch?.name && !POSITION) {
+    // Nếu không có POSITION thì chỉ dùng branch name
+    POSITION = EMPLOYEE_INFO.branch.name
+  }
+
+  /** Format date bằng function formatCommentDate, fallback nếu không có */
+  const DATE = comment.created_at ? formatCommentDate(comment.created_at) : ''
 
   /** Xác định is_bold: employee comments sẽ in đậm */
   const IS_BOLD = !!EMPLOYEE_INFO
+
+  /** Xử lý attachments: map sang string array */
+  const ATTACHMENTS = Array.isArray(comment.attachments)
+    ? comment.attachments.map((att) => (typeof att === 'string' ? att : att?.url || ''))
+    : []
 
   // Trả về CommentItem object
   return {
@@ -233,5 +247,9 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
     date: DATE,
     // Flag is_bold đã được xác định
     is_bold: IS_BOLD,
+    // Attachments đã được xử lý
+    attachments: ATTACHMENTS,
+    // Branch từ comment
+    branch: comment.branch,
   }
 }

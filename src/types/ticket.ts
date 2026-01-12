@@ -47,19 +47,80 @@ export interface WorkflowData {
  */
 export interface ContactInfo {
   /** ID contact */
-  id: string
+  id?: string
 
   /** Avatar URL */
-  avatar: string
+  avatar?: string
 
   /** Họ */
-  last_name: string
+  last_name?: string
 
   /** Tên */
-  first_name: string
+  first_name?: string
 
   /** Identifier ID */
-  identifier_id: string
+  identifier_id?: string
+}
+
+/**
+ * Interface định nghĩa department
+ */
+export interface Department {
+  /** ID department */
+  id?: string
+
+  /** MongoDB ID */
+  _id?: string
+
+  /** Tên department */
+  name?: string
+
+  /** Type */
+  type?: string
+
+  /** Archive status */
+  archive?: boolean
+
+  /** User ID */
+  user_id?: string
+
+  /** Branch ID */
+  branch_id?: string
+
+  /** Created at */
+  createdAt?: string
+
+  /** Updated at */
+  updatedAt?: string
+
+  /** Business ID */
+  business_id?: string
+
+  /** Can archive flag */
+  can_archive?: boolean
+}
+
+/**
+ * Interface định nghĩa employee info
+ */
+export interface EmployeeInfo {
+  /** Avatar URL */
+  avatar?: string
+
+  /** Thông tin trụ sở */
+  branch?: Branch
+
+  /** Họ */
+  last_name?: string
+
+  /** Tên */
+  first_name?: string
+
+  /** Thông tin phòng ban */
+  department?: Department | string
+
+  /** Vị trí/chức vụ */
+  position?: string
 }
 
 /**
@@ -67,55 +128,58 @@ export interface ContactInfo {
  */
 export interface TicketComment {
   /** ID comment */
-  id: string
+  id?: string
 
   /** Scope */
-  scope: string
+  scope?: string
 
   /** Type */
-  type: string
+  type?: string
 
   /** Ticket ID */
-  ticket_id: number
+  ticket_id?: number
 
   /** Nội dung comment */
-  content: string
+  content?: string
 
   /** Danh sách attachments */
-  attachments: any[]
+  attachments?: any[]
 
   /** Contact ID */
-  contact_id: string
+  contact_id?: string
 
   /** Contact info */
-  contact_info: ContactInfo | null
+  contact_info?: ContactInfo | null
 
   /** Employee info */
-  employee_info: any | null
+  employee_info?: EmployeeInfo | null
 
   /** Business ID */
-  business_id: string
+  business_id?: string
 
   /** Branch ID */
-  branch_id: string
+  branch_id?: string
 
   /** Department ID */
-  department_id: string | null
+  department_id?: string | null
 
   /** Team ID */
-  team_id: string | null
+  team_id?: string | null
 
   /** Employee ID */
-  employee_id: string | null
+  employee_id?: string | null
 
   /** User ID */
-  user_id: string | null
+  user_id?: string | null
 
   /** Thời gian tạo */
-  created_at: string
+  created_at?: string
 
   /** Thời gian cập nhật */
-  updated_at: string
+  updated_at?: string
+
+  /** Thông tin trụ sở */
+  branch?: Branch
 }
 
 /**
@@ -285,6 +349,8 @@ export interface TicketItem {
 
   /** Danh sách comments */
   comments: TicketComment[]
+  /** Ticket form info */
+  ticket_form_info: TicketFormInfo
 }
 
 /**
@@ -426,6 +492,9 @@ export interface TicketFormInfo {
 
     /** Nội dung */
     content: string
+
+    /** Danh sách attachments */
+    attachments: string[]
   }
 
   /** Contact ID */
@@ -483,25 +552,45 @@ export interface GetCommentResponse {
  */
 export interface CommentItem {
   /** ID comment */
-  id: string
+  id?: string
 
   /** Tên người comment */
-  name: string
+  name?: string
 
   /** Vị trí/chức vụ */
-  position: string
+  position?: string
 
   /** Avatar URL */
-  avatar: string
+  avatar?: string
 
   /** Nội dung comment */
-  content: string
+  content?: string
 
   /** Ngày comment */
-  date: string
+  date?: string
 
   /** Có in đậm tên không */
-  is_bold: boolean
+  is_bold?: boolean
+
+  /** Danh sách attachments (URL ảnh) */
+  attachments?: string[]
+
+  /** thông tin trụ sở */
+  branch?: Branch
+}
+
+/**
+ * Interface định nghĩa branch
+ */
+export interface Branch {
+  /** ID trụ sở */
+  id?: string
+
+  /** MongoDB ID */
+  _id?: string
+
+  /** Tên trụ sở */
+  name?: string
 }
 
 /**
@@ -526,4 +615,12 @@ export interface CreateCommentResponse extends TicketComment {}
 export interface CountTicketResponse {
   /** Số lượng ticket đang xử lý */
   processing: number
+}
+
+/**
+ * Interface định nghĩa response từ API customer/upload_file
+ */
+export interface UploadFileResponse {
+  /** URL của file đã upload */
+  url: string
 }

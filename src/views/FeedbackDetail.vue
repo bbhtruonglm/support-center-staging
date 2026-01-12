@@ -82,9 +82,9 @@
                 <!-- Empty State: Giữ height để đồng bộ với skeleton -->
                 <div
                   v-if="
-                    !ticket_detail.attachments ||
-                    (Array.isArray(ticket_detail.attachments) &&
-                      ticket_detail.attachments.length === 0)
+                    !ticket_detail.ticket_form_info?.form_data?.attachments ||
+                    (Array.isArray(ticket_detail.ticket_form_info?.form_data?.attachments) &&
+                      ticket_detail.ticket_form_info?.form_data?.attachments.length === 0)
                   "
                   class="w-20 h-20 flex items-center"
                 >
@@ -93,14 +93,20 @@
                   </p>
                 </div>
                 <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
-                <img
-                  v-else-if="Array.isArray(ticket_detail.attachments)"
-                  v-for="(attachment, index) in ticket_detail.attachments"
+                <div
+                  v-else-if="Array.isArray(ticket_detail.ticket_form_info?.form_data?.attachments)"
+                  v-for="(attachment, index) in ticket_detail.ticket_form_info?.form_data
+                    ?.attachments"
                   :key="index"
-                  :src="typeof attachment === 'string' ? attachment : attachment.url || ''"
-                  :alt="`Attachment ${String(index + 1)}`"
-                  class="w-20 h-20 object-cover rounded-xl"
-                />
+                  @click="openPreview(index)"
+                  class="cursor-pointer hover:opacity-80 transition-opacity"
+                >
+                  <img
+                    :src="typeof attachment === 'string' ? attachment : attachment || ''"
+                    :alt="`Attachment ${String(index + 1)}`"
+                    class="w-20 h-20 object-cover rounded-xl"
+                  />
+                </div>
               </div>
             </section>
           </div>
@@ -171,6 +177,20 @@
                 <!-- Nội dung bình luận -->
                 <div class="py-1 text-black font-medium text-base">
                   {{ comment.content }}
+                </div>
+                <!-- Attachments: Hiển thị ảnh đính kèm trong comment -->
+                <div
+                  v-if="comment.attachments && comment.attachments.length > 0"
+                  class="flex flex-wrap gap-2 mt-2"
+                >
+                  <img
+                    v-for="(attachment, attIndex) in comment.attachments"
+                    :key="attIndex"
+                    :src="attachment"
+                    :alt="`Attachment ${String(attIndex + 1)}`"
+                    class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
+                    @click="openCommentPreview(comment.attachments, attIndex)"
+                  />
                 </div>
               </div>
 
@@ -284,6 +304,58 @@
       </div>
     </div>
   </div>
+
+  <!-- Image Preview Modal -->
+  <Teleport to="body">
+    <Transition name="fade">
+      <div
+        v-if="is_preview_open"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+        @click.self="closePreview"
+      >
+        <!-- Close Button -->
+        <button
+          @click="closePreview"
+          class="absolute top-4 right-4 w-10 h-10 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors z-10"
+        >
+          <X :size="24" class="text-white" />
+        </button>
+
+        <!-- Previous Button -->
+        <button
+          v-if="preview_images.length > 1"
+          @click="goToPreviousImage"
+          class="absolute left-4 w-12 h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors z-10"
+        >
+          <ChevronLeft :size="28" class="text-white" />
+        </button>
+
+        <!-- Image -->
+        <img
+          :src="currentPreviewImage"
+          alt="Preview"
+          class="max-w-[90vw] max-h-[85vh] object-contain rounded-lg"
+        />
+
+        <!-- Next Button -->
+        <button
+          v-if="preview_images.length > 1"
+          @click="goToNextImage"
+          class="absolute right-4 w-12 h-12 flex items-center justify-center bg-white/20 hover:bg-white/30 rounded-full transition-colors z-10"
+        >
+          <ChevronRight :size="28" class="text-white" />
+        </button>
+
+        <!-- Image Counter -->
+        <div
+          v-if="preview_images.length > 1"
+          class="absolute bottom-4 left-1/2 -translate-x-1/2 px-4 py-2 bg-white/20 rounded-full text-white text-sm font-medium"
+        >
+          {{ preview_current_index + 1 }} / {{ preview_images.length }}
+        </div>
+      </div>
+    </Transition>
+  </Teleport>
 </template>
 
 <script setup lang="ts">
@@ -304,8 +376,8 @@ import FeedbackDetailSkeleton from '@/components/skeletons/FeedbackDetailSkeleto
 import CommentsListSkeleton from '@/components/skeletons/CommentsListSkeleton.vue'
 
 // H3: import icon components
-// Import icon ChevronLeft và ChevronRight từ lucide-vue-next
-import { ChevronLeft, ChevronRight } from 'lucide-vue-next'
+// Import icon ChevronLeft, ChevronRight và X từ lucide-vue-next
+import { ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 
 // H4: import types
 // Import API functions và type TicketItem từ ticket API
@@ -370,6 +442,15 @@ const is_sending_comment = ref(false)
 
 /** Reactive ref: Reference đến scrollable content container element để scroll programmatically */
 const scrollable_content_ref = ref<HTMLElement | null>(null)
+
+/** Reactive ref: Trạng thái modal preview ảnh, true khi đang mở modal */
+const is_preview_open = ref(false)
+
+/** Reactive ref: Index của ảnh đang xem trong preview, bắt đầu từ 0 */
+const preview_current_index = ref(0)
+
+/** Reactive ref: Danh sách ảnh đang được preview (có thể từ ticket hoặc comment) */
+const preview_images = ref<string[]>([])
 
 // H8: lifecycle hooks
 /** Lifecycle hook chạy khi component được mount vào DOM */
@@ -511,6 +592,40 @@ const show_ellipsis_before_last = computed(() => {
 
   // Kiểm tra có khoảng cách giữa trang gần cuối và trang cuối không
   return LAST_PAGE - SECOND_LAST_PAGE > 1
+})
+
+/**
+ * Computed property: Lấy danh sách attachments từ ticket detail
+ * @returns Array các URL ảnh attachments
+ */
+const preview_attachments = computed(() => {
+  /** Lấy attachments từ ticket_form_info */
+  const ATTACHMENTS = ticket_detail.value?.ticket_form_info?.form_data?.attachments
+  // Kiểm tra có phải array không
+  if (!Array.isArray(ATTACHMENTS)) {
+    // Trả về empty array nếu không có attachments
+    return []
+  }
+  // Map attachments sang string URLs
+  return ATTACHMENTS.map((attachment) =>
+    typeof attachment === 'string' ? attachment : attachment || '',
+  ) as string[]
+})
+
+/**
+ * Computed property: Lấy URL ảnh hiện tại đang xem trong preview
+ * @returns URL string của ảnh hiện tại
+ */
+const currentPreviewImage = computed(() => {
+  /** Lấy danh sách ảnh đang preview */
+  const IMAGES = preview_images.value
+  // Kiểm tra có ảnh và index hợp lệ không
+  if (IMAGES.length === 0) {
+    // Trả về empty string nếu không có ảnh
+    return ''
+  }
+  // Trả về URL ảnh tại index hiện tại
+  return IMAGES[preview_current_index.value] || ''
 })
 
 /** Watch route params: Theo dõi thay đổi của ticket ID trong URL - Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail */
@@ -836,4 +951,97 @@ async function loadTicketDetail() {
     is_loading.value = false
   }
 }
+
+/**
+ * Function: Mở modal preview ảnh từ ticket attachments tại index được chỉ định
+ * @param index - Index của ảnh trong danh sách attachments (0-indexed)
+ */
+function openPreview(index: number) {
+  // Set danh sách ảnh từ ticket attachments
+  preview_images.value = preview_attachments.value
+  // Set index ảnh hiện tại
+  preview_current_index.value = index
+  // Mở modal preview
+  is_preview_open.value = true
+}
+
+/**
+ * Function: Mở modal preview ảnh từ comment attachments
+ * @param attachments - Danh sách URL ảnh từ comment
+ * @param index - Index của ảnh cần preview (0-indexed)
+ */
+function openCommentPreview(attachments: string[], index: number) {
+  // Set danh sách ảnh từ comment attachments
+  preview_images.value = attachments
+  // Set index ảnh hiện tại
+  preview_current_index.value = index
+  // Mở modal preview
+  is_preview_open.value = true
+}
+
+/**
+ * Function: Đóng modal preview ảnh
+ */
+function closePreview() {
+  // Đóng modal preview
+  is_preview_open.value = false
+  // Reset index về 0
+  preview_current_index.value = 0
+  // Reset danh sách ảnh
+  preview_images.value = []
+}
+
+/**
+ * Function: Chuyển đến ảnh trước đó (vòng tròn)
+ * Nếu đang ở ảnh đầu tiên sẽ chuyển về ảnh cuối cùng
+ */
+function goToPreviousImage() {
+  /** Lấy tổng số ảnh */
+  const TOTAL = preview_images.value.length
+  // Nếu không có ảnh thì return
+  if (TOTAL === 0) return
+
+  // Tính index mới (vòng tròn: nếu index = 0 thì chuyển về cuối)
+  if (preview_current_index.value === 0) {
+    // Chuyển về ảnh cuối cùng
+    preview_current_index.value = TOTAL - 1
+  } else {
+    // Chuyển về ảnh trước đó
+    preview_current_index.value -= 1
+  }
+}
+
+/**
+ * Function: Chuyển đến ảnh tiếp theo (vòng tròn)
+ * Nếu đang ở ảnh cuối cùng sẽ chuyển về ảnh đầu tiên
+ */
+function goToNextImage() {
+  /** Lấy tổng số ảnh */
+  const TOTAL = preview_images.value.length
+  // Nếu không có ảnh thì return
+  if (TOTAL === 0) return
+
+  // Tính index mới (vòng tròn: nếu index = cuối thì chuyển về đầu)
+  if (preview_current_index.value === TOTAL - 1) {
+    // Chuyển về ảnh đầu tiên
+    preview_current_index.value = 0
+  } else {
+    // Chuyển đến ảnh tiếp theo
+    preview_current_index.value += 1
+  }
+}
 </script>
+
+<style scoped>
+/** Fade transition: enter state - bắt đầu trong suốt */
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
+
+/** Fade transition: enter/leave active - animation 200ms */
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+</style>

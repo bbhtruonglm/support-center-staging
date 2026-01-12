@@ -120,7 +120,7 @@
               @click="removeImage(index)"
               class="absolute top-1 right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-xs hover:bg-red-600"
             >
-              ×
+              <X :size="12" :stroke-width="1.5" />
             </button>
           </div>
 
@@ -184,11 +184,11 @@ import PageHeader from '@/components/PageHeader.vue'
 
 // H3: import icon components
 // Import icon Camera và ChevronDown từ lucide-vue-next
-import { Camera, ChevronDown } from 'lucide-vue-next'
+import { Camera, ChevronDown, X } from 'lucide-vue-next'
 
 // H4: import types
 // Import API functions và type WorkflowItem từ ticket API
-import { createForm, createTicket, type WorkflowItem } from '@/api/ticket'
+import { createForm, createTicket, uploadFile, type WorkflowItem } from '@/api/ticket'
 
 // H5: props, emits
 // Component này không có props và emits
@@ -326,7 +326,7 @@ function triggerFileInput() {
  * Xử lý khi chọn ảnh
  * @param event - File input change event
  */
-function handleImageSelect(event: Event) {
+async function handleImageSelect(event: Event) {
   /** Cast event.target sang HTMLInputElement */
   const TARGET = event.target as HTMLInputElement
   /** Lấy danh sách files từ input */
@@ -349,7 +349,7 @@ function handleImageSelect(event: Event) {
   /** Lấy số lượng file sẽ thêm (không vượt quá số slot còn lại) */
   const FILES_TO_ADD = Math.min(FILES.length, REMAINING_SLOTS)
 
-  // Duyệt qua từng file và convert sang base64
+  // Duyệt qua từng file và upload lên server
   for (let i = 0; i < FILES_TO_ADD; i++) {
     /** Lấy file tại index i */
     const FILE = FILES[i]
@@ -377,31 +377,24 @@ function handleImageSelect(event: Event) {
       continue
     }
 
-    /** Tạo FileReader instance để convert file sang base64 */
-    const READER = new FileReader()
+    try {
+      /** Tạo preview URL local cho ảnh (không cần chờ upload) */
+      const PREVIEW_URL = URL.createObjectURL(FILE)
+      // Thêm preview URL vào danh sách previews
+      image_previews.value.push(PREVIEW_URL)
 
-    // Callback khi đọc file thành công
-    READER.onload = (e) => {
-      /** Lấy kết quả từ FileReader */
-      const RESULT = e.target?.result as string
-
-      // Nếu có kết quả thì thêm vào previews và attachments
-      if (RESULT) {
-        // Thêm base64 string vào danh sách previews
-        image_previews.value.push(RESULT)
-        // Thêm base64 string vào danh sách attachments
-        form_attachments.value.push(RESULT)
-      }
+      /** Gọi API upload file và lấy URL từ response */
+      const UPLOAD_RESPONSE = await uploadFile(FILE)
+      // Thêm URL từ server vào danh sách attachments
+      form_attachments.value.push(UPLOAD_RESPONSE.url)
+    } catch (e: any) {
+      // Log error ra console để debug
+      console.error('Error uploading file:', e)
+      // Hiển thị error toast khi upload thất bại
+      toast.error(e.message || t('feedback.cannotReadFile', { name: FILE.name }))
+      // Xóa preview cuối cùng nếu upload thất bại
+      image_previews.value.pop()
     }
-
-    // Callback khi đọc file thất bại
-    READER.onerror = () => {
-      // Hiển thị error toast khi không thể đọc file
-      toast.error(t('feedback.cannotReadFile', { name: FILE.name }))
-    }
-
-    // Bắt đầu đọc file dưới dạng data URL (base64)
-    READER.readAsDataURL(FILE)
   }
 
   // Reset input để có thể chọn lại file giống nhau
