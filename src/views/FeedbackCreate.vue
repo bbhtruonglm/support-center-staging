@@ -56,18 +56,18 @@
           >
             <div
               v-for="workflow in workflow_list"
-              :key="workflow.id"
+              :key="workflow?.id"
               @click.stop="selectWorkflow(workflow)"
               class="px-6 py-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-0"
               :class="{
-                'bg-blue-50': selected_workflow?.id === workflow.id,
+                'bg-blue-50': selected_workflow?.id === workflow?.id,
               }"
             >
               <div class="text-sm font-semibold text-black">
-                {{ workflow.name }}
+                {{ workflow?.name }}
               </div>
-              <div v-if="workflow.description" class="text-xs text-gray-500 mt-0.5">
-                {{ workflow.description }}
+              <div v-if="workflow?.description" class="text-xs text-gray-500 mt-0.5">
+                {{ workflow?.description }}
               </div>
             </div>
 
@@ -385,8 +385,13 @@ async function handleImageSelect(event: Event) {
 
       /** Gọi API upload file và lấy URL từ response */
       const UPLOAD_RESPONSE = await uploadFile(FILE)
-      // Thêm URL từ server vào danh sách attachments
-      form_attachments.value.push(UPLOAD_RESPONSE.url)
+      // Lấy URL từ response
+      const UPLOAD_URL = UPLOAD_RESPONSE?.url
+      // Kiểm tra URL có tồn tại trước khi thêm vào danh sách attachments
+      if (UPLOAD_URL) {
+        // Thêm URL từ server vào danh sách attachments
+        form_attachments.value.push(UPLOAD_URL)
+      }
     } catch (e: any) {
       // Log error ra console để debug
       console.error('Error uploading file:', e)
@@ -501,8 +506,8 @@ async function handleSubmit() {
     // Bước 2: Tạo ticket từ workflow_id và ticket_form_id
     /** Object chứa dữ liệu ticket để gửi lên API */
     const TICKET_REQUEST = {
-      workflow_id: selected_workflow.value.workflow_id,
-      ticket_form_id: FORM_RESPONSE.id,
+      workflow_id: selected_workflow.value?.workflow_id,
+      ticket_form_id: FORM_RESPONSE?.id,
     }
 
     // Gọi API để tạo ticket

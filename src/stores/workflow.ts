@@ -64,7 +64,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
    */
   function getWorkflowById(workflow_id: number): WorkflowItem | null {
     // Tìm workflow trong list theo workflow_id hoặc trả về null
-    return workflow_list.value.find((item) => item.workflow_id === workflow_id) || null
+    return workflow_list.value.find((item) => item?.workflow_id === workflow_id) || null
   }
 
   /**
@@ -76,7 +76,7 @@ export const useWorkflowStore = defineStore('workflow', () => {
     /** Lấy workflow từ cache theo workflow_id */
     const WORKFLOW = getWorkflowById(workflow_id)
     // Trả về tên workflow nếu có, nếu không thì trả về fallback string
-    return WORKFLOW ? WORKFLOW.name : `Workflow ${workflow_id}`
+    return WORKFLOW?.name || `Workflow ${workflow_id}`
   }
 
   /**

@@ -34,7 +34,7 @@
                 {{ t('feedback.title') }}
               </h3>
               <p class="text-sm font-medium text-black">
-                {{ ticket_detail.title || t('feedback.noTitle') }}
+                {{ ticket_detail?.title || t('feedback.noTitle') }}
               </p>
             </section>
 
@@ -44,7 +44,7 @@
                 {{ t('feedback.category') }}
               </h3>
               <p class="text-sm font-medium text-black">
-                {{ getCategoryLabel(ticket_detail.workflow_id) }}
+                {{ getCategoryLabel(ticket_detail?.workflow_id) }}
               </p>
             </section>
 
@@ -56,10 +56,10 @@
               <span
                 :class="[
                   'inline-block px-2 py-0.5 text-xs font-medium rounded-md whitespace-nowrap text-white',
-                  getStatusBadgeClass(ticket_detail.stage),
+                  getStatusBadgeClass(ticket_detail?.stage),
                 ]"
               >
-                {{ getStatusLabel(ticket_detail.stage) }}
+                {{ getStatusLabel(ticket_detail?.stage) }}
               </span>
             </section>
 
@@ -69,7 +69,7 @@
                 {{ t('feedback.content') }}
               </h3>
               <p class="text-sm font-medium text-black whitespace-pre-wrap">
-                {{ ticket_detail.content || t('feedback.noContent') }}
+                {{ ticket_detail?.content || t('feedback.noContent') }}
               </p>
             </section>
 
@@ -136,7 +136,7 @@
               <!-- Comment Card -->
               <div
                 v-for="comment in comments_list"
-                :key="comment.id"
+                :key="comment?.id"
                 class="bg-white rounded-xl p-3 shadow-sm"
               >
                 <!-- Avatar, Tên, vị trí, ngày -->
@@ -145,8 +145,8 @@
                   <div class="flex items-center gap-2 flex-1">
                     <!-- avatar -->
                     <img
-                      :src="comment.avatar"
-                      :alt="comment.name"
+                      :src="comment?.avatar"
+                      :alt="comment?.name"
                       class="w-8 h-8 object-cover shrink-0 rounded-xl"
                     />
                     <!-- Tên, vị trí -->
@@ -154,13 +154,13 @@
                       <p
                         :class="[
                           'text-sm text-black',
-                          comment.is_bold ? 'font-bold' : 'font-medium',
+                          comment?.is_bold ? 'font-bold' : 'font-medium',
                         ]"
                       >
-                        {{ comment.name }}
+                        {{ comment?.name }}
                       </p>
                       <p class="text-xs text-slate-500">
-                        {{ comment.position }}
+                        {{ comment?.position }}
                       </p>
                     </div>
                   </div>
@@ -170,26 +170,26 @@
                       {{ t('feedback.addedAt') }}
                     </p>
                     <p class="text-xs text-gray-500 whitespace-nowrap">
-                      {{ comment.date }}
+                      {{ comment?.date }}
                     </p>
                   </div>
                 </div>
                 <!-- Nội dung bình luận -->
                 <div class="py-1 text-black font-medium text-base">
-                  {{ comment.content }}
+                  {{ comment?.content }}
                 </div>
                 <!-- Attachments: Hiển thị ảnh đính kèm trong comment -->
                 <div
-                  v-if="comment.attachments && comment.attachments.length > 0"
+                  v-if="comment?.attachments && comment?.attachments.length > 0"
                   class="flex flex-wrap gap-2 mt-2"
                 >
                   <img
-                    v-for="(attachment, attIndex) in comment.attachments"
+                    v-for="(attachment, attIndex) in comment?.attachments"
                     :key="attIndex"
                     :src="attachment"
                     :alt="`Attachment ${String(attIndex + 1)}`"
                     class="w-16 h-16 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity"
-                    @click="openCommentPreview(comment.attachments, attIndex)"
+                    @click="openCommentPreview(comment?.attachments, attIndex)"
                   />
                 </div>
               </div>
@@ -682,7 +682,7 @@ async function goToPage(page: number) {
     total_pages.value > 0
   ) {
     // Load comments cho trang được chỉ định với ticket_id và số trang
-    await loadComments(ticket_detail.value.ticket_id, page)
+    await loadComments(ticket_detail.value?.ticket_id!, page)
   }
 }
 
@@ -692,7 +692,11 @@ async function goToPage(page: number) {
  * @param workflow_id - ID của workflow từ ticket detail
  * @returns Label string của category (tên workflow)
  */
-function getCategoryLabel(workflow_id: number): string {
+function getCategoryLabel(workflow_id?: number): string {
+  // Kiểm tra workflow_id có tồn tại không
+  if (!workflow_id) {
+    return ''
+  }
   // Sử dụng workflow store để lấy tên workflow từ workflow_id
   return workflow_store.getWorkflowName(workflow_id)
 }
@@ -703,7 +707,11 @@ function getCategoryLabel(workflow_id: number): string {
  * @param stage - Stage từ API (ticket stage)
  * @returns CSS class string cho badge (bg-orange-500, bg-blue-500, hoặc bg-green-600)
  */
-function getStatusBadgeClass(stage: TicketStage): string {
+function getStatusBadgeClass(stage?: TicketStage): string {
+  // Kiểm tra stage có tồn tại không
+  if (!stage) {
+    return 'bg-orange-500'
+  }
   /** Map stage từ API sang status (pending, processing, completed) */
   const STATUS = mapStageToStatus(stage)
   /** Object chứa mapping giữa status và CSS class tương ứng */
@@ -725,7 +733,11 @@ function getStatusBadgeClass(stage: TicketStage): string {
  * @param stage - Stage từ API (ticket stage)
  * @returns Label string đã được translate (từ i18n)
  */
-function getStatusLabel(stage: TicketStage): string {
+function getStatusLabel(stage?: TicketStage): string {
+  // Kiểm tra stage có tồn tại không
+  if (!stage) {
+    return t('feedback.pending')
+  }
   /** Map stage từ API sang status (pending, processing, completed) */
   const STATUS = mapStageToStatus(stage)
   /** Object chứa mapping giữa status và label text đã được translate */
@@ -783,14 +795,14 @@ async function loadComments(ticket_id: number, page: number = 1) {
     /** Gọi API để lấy danh sách comments với ticket_id và page */
     const RESPONSE = await getComments(ticket_id, VALID_PAGE)
 
-    /** Transform comments từ API format sang format CommentItem */
-    const TRANSFORMED_COMMENTS = RESPONSE.comments.map(transformCommentToItem)
+    /** Transform comments từ API format sang format CommentItem, fallback empty array nếu không có */
+    const TRANSFORMED_COMMENTS = (RESPONSE?.comments || []).map(transformCommentToItem)
 
     // Cập nhật danh sách comments với data đã được transform
     comments_list.value = TRANSFORMED_COMMENTS
 
-    // Cập nhật total_page từ response của API
-    total_pages.value = RESPONSE.total_page
+    // Cập nhật total_page từ response của API, fallback 0 nếu không có
+    total_pages.value = RESPONSE?.total_page || 0
 
     // Cập nhật current_page để đồng bộ với page đã gọi API
     current_page.value = VALID_PAGE
@@ -837,7 +849,7 @@ async function handleSendComment() {
     // Gọi API để tạo comment mới với ticket_id và content đã được trim
     await createComment({
       // Ticket ID từ ticket detail
-      ticket_id: ticket_detail.value.ticket_id,
+      ticket_id: ticket_detail.value?.ticket_id,
       // Content đã được trim để loại bỏ khoảng trắng đầu cuối
       content: comment_content.value.trim(),
     })
@@ -846,7 +858,7 @@ async function handleSendComment() {
     comment_content.value = ''
 
     // Reload comments để hiển thị comment mới vừa tạo (reset về trang 1)
-    if (ticket_detail.value.ticket_id) {
+    if (ticket_detail.value?.ticket_id) {
       // Reset về trang 1
       current_page.value = 1
       // Load lại comments từ trang 1
@@ -905,13 +917,13 @@ async function loadTicketDetail() {
   /** Kiểm tra xem có ticket trong Pinia store không - tìm theo ticket_id */
   const CACHED_TICKET = ticket_store.getTicketByTicketId(TICKET_ID_NUMBER)
   // Check tồn tại trong cache và ticket_id trùng khớp
-  if (CACHED_TICKET && CACHED_TICKET.ticket_id === TICKET_ID_NUMBER) {
+  if (CACHED_TICKET && CACHED_TICKET?.ticket_id === TICKET_ID_NUMBER) {
     // Sử dụng ticket từ store, không cần gọi API
     ticket_detail.value = CACHED_TICKET
     // Load comments cho ticket này sau khi đã có ticket detail
-    if (CACHED_TICKET.ticket_id) {
-      // Gọi load comments với ticket_id từ cached ticket
-      await loadComments(CACHED_TICKET.ticket_id)
+    if (CACHED_TICKET?.ticket_id) {
+      // Gọi load comments với ticket_id từ cached ticket (dùng optional chaining để an toàn)
+      await loadComments(CACHED_TICKET?.ticket_id!)
     }
     // Return sớm để không gọi API
     return
@@ -933,9 +945,9 @@ async function loadTicketDetail() {
     ticket_store.setTicket(DATA)
 
     // Load comments cho ticket này sau khi đã có ticket detail
-    if (DATA.ticket_id) {
-      // Gọi load comments với ticket_id từ API response
-      await loadComments(DATA.ticket_id)
+    if (DATA?.ticket_id) {
+      // Gọi load comments với ticket_id từ API response (dùng optional chaining để an toàn)
+      await loadComments(DATA?.ticket_id!)
     }
   } catch (e: any) {
     // Log error ra console để debug
@@ -967,10 +979,14 @@ function openPreview(index: number) {
 
 /**
  * Function: Mở modal preview ảnh từ comment attachments
- * @param attachments - Danh sách URL ảnh từ comment
+ * @param attachments - Danh sách URL ảnh từ comment (optional)
  * @param index - Index của ảnh cần preview (0-indexed)
  */
-function openCommentPreview(attachments: string[], index: number) {
+function openCommentPreview(attachments?: string[], index?: number) {
+  // Kiểm tra attachments và index có tồn tại không
+  if (!attachments || attachments.length === 0 || index === undefined) {
+    return
+  }
   // Set danh sách ảnh từ comment attachments
   preview_images.value = attachments
   // Set index ảnh hiện tại

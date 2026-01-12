@@ -37,22 +37,22 @@
           <div v-else class="flex flex-col gap-3 px-2">
             <div
               v-for="item in feedbackList"
-              :key="item.id"
-              @click="navigateToDetail(item.id)"
+              :key="item?.id"
+              @click="navigateToDetail(item?.id || '')"
               class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <!-- Title & Status Row -->
               <div class="flex items-start justify-between border-b border-gray-200 py-2">
                 <h3 class="text-sm font-semibold flex-1 line-clamp-1">
-                  {{ item.title }}
+                  {{ item?.title }}
                 </h3>
                 <span
                   :class="[
                     'px-2 py-0.5 text-xs font-medium rounded whitespace-nowrap',
-                    getStatusClass(item.status),
+                    getStatusClass(item?.status),
                   ]"
                 >
-                  {{ getStatusLabel(item.status) }}
+                  {{ getStatusLabel(item?.status) }}
                 </span>
               </div>
 
@@ -61,7 +61,7 @@
                 <div class="flex items-center justify-between">
                   <div class="flex items-center gap-1 text-xs text-gray-500">
                     <Calendar :size="12" class="text-gray-500" />
-                    <span>{{ t('feedback.date') }} : {{ item.date }}</span>
+                    <span>{{ t('feedback.date') }} : {{ item?.date }}</span>
                   </div>
                   <div class="flex items-center gap-1 text-xs text-gray-500">
                     <Bookmark :size="12" class="text-gray-500" />
@@ -70,7 +70,7 @@
                 </div>
 
                 <!-- Content Description -->
-                <p class="text-sm line-clamp-3">{{ item.content }}</p>
+                <p class="text-sm line-clamp-3">{{ item?.content }}</p>
               </div>
             </div>
 
@@ -386,8 +386,10 @@ async function loadFeedbackList(is_reset: boolean = false) {
 
     // Duyệt qua từng ticket trong TICKET_LIST
     TICKET_LIST.forEach((ticket) => {
-      // Lưu ticket vào map với key là ticket.id
-      ticketMap.value.set(ticket.id, ticket)
+      // Lưu ticket vào map với key là ticket.id (chỉ lưu nếu có id)
+      if (ticket?.id) {
+        ticketMap.value.set(ticket?.id, ticket)
+      }
     })
 
     // Kiểm tra số lượng ticket trả về
@@ -457,10 +459,10 @@ function handleScroll() {
 
 /**
  * Get CSS class cho status badge
- * @param status - Trạng thái feedback
+ * @param status - Trạng thái feedback (optional)
  * @returns CSS class string
  */
-function getStatusClass(status: string) {
+function getStatusClass(status?: string) {
   /** Object chứa mapping giữa status và CSS class */
   const CLASSES = {
     // Class cho status pending: màu cam
@@ -471,15 +473,15 @@ function getStatusClass(status: string) {
     completed: 'bg-green-600 text-white',
   }
   // Trả về class tương ứng với status, nếu không tìm thấy thì dùng pending
-  return CLASSES[status as keyof typeof CLASSES] || CLASSES.pending
+  return status ? CLASSES[status as keyof typeof CLASSES] || CLASSES.pending : CLASSES.pending
 }
 
 /**
  * Get label cho status
- * @param status - Trạng thái feedback
+ * @param status - Trạng thái feedback (optional)
  * @returns Label string
  */
-function getStatusLabel(status: string) {
+function getStatusLabel(status?: string) {
   /** Object chứa mapping giữa status và label đã được dịch */
   const LABELS = {
     // Label cho status pending
@@ -490,7 +492,7 @@ function getStatusLabel(status: string) {
     completed: t('feedback.completed'),
   }
   // Trả về label tương ứng với status, nếu không tìm thấy thì dùng pending
-  return LABELS[status as keyof typeof LABELS] || t('feedback.pending')
+  return status ? LABELS[status as keyof typeof LABELS] || t('feedback.pending') : t('feedback.pending')
 }
 
 /** Navigate đến trang tạo feedback mới */
@@ -502,14 +504,18 @@ function navigateToCreate() {
 /**
  * Navigate đến trang chi tiết feedback
  * Giữ query params (tab) trong URL để có thể quay lại với tab đã chọn
- * @param ticket_id - ID của ticket (UUID)
+ * @param ticket_id - ID của ticket (UUID, optional)
  */
-function navigateToDetail(ticket_id: string) {
+function navigateToDetail(ticket_id?: string) {
+  // Kiểm tra ticket_id có tồn tại không
+  if (!ticket_id) {
+    return
+  }
   /** Lấy TicketItem từ ticketMap bằng ticket_id */
   const TICKET = ticketMap.value.get(ticket_id)
 
-  // Kiểm tra nếu có ticket trong map
-  if (TICKET) {
+  // Kiểm tra nếu có ticket trong map và có ticket_id
+  if (TICKET && TICKET?.ticket_id) {
     // Lưu ticket vào Pinia store để cache, FeedbackDetail sẽ đọc từ store
     ticket_store.setTicket(TICKET)
     // Sử dụng router.push với name và params để điều hướng
@@ -517,8 +523,8 @@ function navigateToDetail(ticket_id: string) {
     router.push({
       // Tên route là 'Feedback-detail'
       name: 'Feedback-detail',
-      // Truyền ticket_id (số) qua params, convert sang string
-      params: { id: String(TICKET.ticket_id) },
+      // Truyền ticket_id (số) qua params, convert sang string (dùng optional chaining để an toàn)
+      params: { id: String(TICKET?.ticket_id) },
       // Giữ nguyên query params (tab) để khi quay lại sẽ giữ nguyên tab
       query: route.query,
     })

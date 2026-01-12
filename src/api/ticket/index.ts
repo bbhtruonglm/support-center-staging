@@ -176,8 +176,8 @@ export async function getTicketDetail(ticket_id: number): Promise<TicketItem> {
     /** Gọi API POST để lấy danh sách ticket */
     const RESPONSE = await ticketApiClient.post<TicketItem[]>('get_ticket', {})
 
-    /** Tìm ticket theo ticket_id trong danh sách */
-    const TICKET = RESPONSE.data.find((ticket) => ticket.ticket_id === ticket_id)
+    /** Tìm ticket theo ticket_id trong danh sách (dùng optional chaining để an toàn) */
+    const TICKET = RESPONSE.data.find((ticket) => ticket?.ticket_id === ticket_id)
 
     // Nếu không tìm thấy ticket thì throw error
     if (!TICKET) {

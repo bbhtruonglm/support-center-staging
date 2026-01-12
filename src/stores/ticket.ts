@@ -17,8 +17,8 @@ export const useTicketStore = defineStore('ticket', () => {
   function setTicket(ticket: TicketItem) {
     // Kiểm tra ticket có ID không
     if (ticket?.id) {
-      // Lưu ticket vào cache với key là ticket.id
-      ticket_cache.value.set(ticket.id, ticket)
+      // Lưu ticket vào cache với key là ticket.id (dùng optional chaining để an toàn)
+      ticket_cache.value.set(ticket?.id, ticket)
     }
   }
 
@@ -41,7 +41,7 @@ export const useTicketStore = defineStore('ticket', () => {
     // Duyệt qua tất cả tickets trong cache để tìm theo ticket_id
     for (const TICKET of ticket_cache.value.values()) {
       // Nếu ticket_id trùng khớp thì trả về ticket đó
-      if (TICKET.ticket_id === ticket_id) {
+      if (TICKET?.ticket_id === ticket_id) {
         return TICKET
       }
     }

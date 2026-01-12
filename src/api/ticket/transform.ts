@@ -11,10 +11,14 @@ import type {
 
 /**
  * Map stage từ API sang status cho UI
- * @param stage - Stage từ API
+ * @param stage - Stage từ API (optional)
  * @returns Status cho UI
  */
-export function mapStageToStatus(stage: TicketStage): 'pending' | 'processing' | 'completed' {
+export function mapStageToStatus(stage?: TicketStage): 'pending' | 'processing' | 'completed' {
+  // Kiểm tra stage có tồn tại không
+  if (!stage) {
+    return 'pending'
+  }
   // Switch case để map stage sang status
   switch (stage) {
     // Case OPEN và REOPEN map sang pending
@@ -70,21 +74,21 @@ export function formatDate(iso_date: string): string {
 export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
   /** Lấy title từ ticket hoặc từ comment đầu tiên (tối đa 50 ký tự) */
   const TITLE =
-    ticket.title || ticket.comments?.[0]?.content?.substring(0, 50) || 'Không có tiêu đề'
+    ticket?.title || ticket?.comments?.[0]?.content?.substring(0, 50) || 'Không có tiêu đề'
 
   /** Lấy content từ ticket hoặc từ comment đầu tiên */
-  const CONTENT = ticket.content || ticket.comments?.[0]?.content || 'Không có nội dung'
+  const CONTENT = ticket?.content || ticket?.comments?.[0]?.content || 'Không có nội dung'
 
   /** Map stage sang status bằng function mapStageToStatus */
-  const STATUS = mapStageToStatus(ticket.stage)
+  const STATUS = mapStageToStatus(ticket?.stage)
 
-  /** Format date bằng function formatDate */
-  const DATE = formatDate(ticket.created_at)
+  /** Format date bằng function formatDate, fallback nếu không có */
+  const DATE = ticket?.created_at ? formatDate(ticket.created_at) : ''
 
   // Trả về FeedbackItem object
   return {
     // ID của ticket
-    id: ticket.id,
+    id: ticket?.id || '',
     // Title đã được xử lý
     title: TITLE,
     // Date đã được format
@@ -156,26 +160,26 @@ export function formatCommentDate(iso_date: string): string {
  */
 export function transformCommentToItem(comment: TicketComment): CommentItem {
   /** Lấy thông tin từ contact_info */
-  const CONTACT_INFO = comment.contact_info
+  const CONTACT_INFO = comment?.contact_info
   /** Lấy thông tin từ employee_info */
-  const EMPLOYEE_INFO = comment.employee_info
+  const EMPLOYEE_INFO = comment?.employee_info
 
   // Xác định tên người comment
   let NAME = 'Không xác định'
   // Nếu có contact_info thì lấy tên từ đó
   if (CONTACT_INFO) {
     /** Lấy first_name từ contact_info hoặc rỗng */
-    const FIRST_NAME = CONTACT_INFO.first_name || ''
+    const FIRST_NAME = CONTACT_INFO?.first_name || ''
     /** Lấy last_name từ contact_info hoặc rỗng */
-    const LAST_NAME = CONTACT_INFO.last_name || ''
+    const LAST_NAME = CONTACT_INFO?.last_name || ''
     // Ghép first_name và last_name, trim và set mặc định nếu rỗng
     NAME = `${FIRST_NAME} ${LAST_NAME}`.trim() || 'Không xác định'
   } else if (EMPLOYEE_INFO) {
     // Nếu có employee_info thì lấy tên từ đó
     /** Lấy first_name từ employee_info hoặc rỗng */
-    const FIRST_NAME = EMPLOYEE_INFO.first_name || ''
+    const FIRST_NAME = EMPLOYEE_INFO?.first_name || ''
     /** Lấy last_name từ employee_info hoặc rỗng */
-    const LAST_NAME = EMPLOYEE_INFO.last_name || ''
+    const LAST_NAME = EMPLOYEE_INFO?.last_name || ''
     // Ghép first_name và last_name, trim và set mặc định là "Nhân viên"
     NAME = `${FIRST_NAME} ${LAST_NAME}`.trim() || 'Nhân viên'
   }
@@ -195,12 +199,12 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
   // Nếu là employee thì lấy position từ employee_info
   if (EMPLOYEE_INFO) {
     // Nếu có position field thì dùng nó
-    if (EMPLOYEE_INFO.position) {
+    if (EMPLOYEE_INFO?.position) {
       POSITION = EMPLOYEE_INFO.position
-    } else if (EMPLOYEE_INFO.department) {
+    } else if (EMPLOYEE_INFO?.department) {
       // Nếu department là object thì lấy name từ object
-      if (typeof EMPLOYEE_INFO.department === 'object' && EMPLOYEE_INFO.department.name) {
-        POSITION = EMPLOYEE_INFO.department.name
+      if (typeof EMPLOYEE_INFO.department === 'object' && EMPLOYEE_INFO.department?.name) {
+        POSITION = EMPLOYEE_INFO.department?.name || ''
       } else if (typeof EMPLOYEE_INFO.department === 'string') {
         // Nếu department là string thì dùng trực tiếp
         POSITION = EMPLOYEE_INFO.department
@@ -213,28 +217,28 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
 
   // Nếu có branch thì thêm vào POSITION
   if (EMPLOYEE_INFO?.branch?.name && POSITION) {
-    // Append branch name vào POSITION với dấu gạch ngang
-    POSITION = `${POSITION} - ${EMPLOYEE_INFO.branch.name}`
+    // Append branch name vào POSITION với dấu gạch ngang (dùng optional chaining để an toàn)
+    POSITION = `${POSITION} - ${EMPLOYEE_INFO?.branch?.name || ''}`
   } else if (EMPLOYEE_INFO?.branch?.name && !POSITION) {
-    // Nếu không có POSITION thì chỉ dùng branch name
-    POSITION = EMPLOYEE_INFO.branch.name
+    // Nếu không có POSITION thì chỉ dùng branch name (dùng optional chaining để an toàn)
+    POSITION = EMPLOYEE_INFO?.branch?.name || ''
   }
 
   /** Format date bằng function formatCommentDate, fallback nếu không có */
-  const DATE = comment.created_at ? formatCommentDate(comment.created_at) : ''
+  const DATE = comment?.created_at ? formatCommentDate(comment.created_at) : ''
 
   /** Xác định is_bold: employee comments sẽ in đậm */
   const IS_BOLD = !!EMPLOYEE_INFO
 
   /** Xử lý attachments: map sang string array */
-  const ATTACHMENTS = Array.isArray(comment.attachments)
+  const ATTACHMENTS = Array.isArray(comment?.attachments)
     ? comment.attachments.map((att) => (typeof att === 'string' ? att : att?.url || ''))
     : []
 
   // Trả về CommentItem object
   return {
     // ID của comment
-    id: comment.id,
+    id: comment?.id,
     // Tên đã được xử lý
     name: NAME,
     // Vị trí/chức vụ đã được xử lý
@@ -242,7 +246,7 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
     // Avatar đã được xử lý
     avatar: AVATAR,
     // Content từ comment
-    content: comment.content,
+    content: comment?.content,
     // Date đã được format
     date: DATE,
     // Flag is_bold đã được xác định
@@ -250,6 +254,6 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
     // Attachments đã được xử lý
     attachments: ATTACHMENTS,
     // Branch từ comment
-    branch: comment.branch,
+    branch: comment?.branch,
   }
 }
