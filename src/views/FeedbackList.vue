@@ -99,9 +99,9 @@
 <script setup lang="ts">
 // H1: import runtime functions
 // Import các runtime functions từ Vue
-import { ref, computed, onMounted, watch } from 'vue'
-// Import useRouter từ vue-router để điều hướng
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch, nextTick } from 'vue'
+// Import useRouter và useRoute từ vue-router để điều hướng và lấy query params
+import { useRouter, useRoute } from 'vue-router'
 // Import useI18n từ vue-i18n để dịch text
 import { useI18n } from 'vue-i18n'
 
@@ -143,6 +143,8 @@ import MailIcon from '@/assets/MailIcon.png'
 
 /** Router instance để điều hướng */
 const router = useRouter()
+/** Route instance để lấy query params từ URL */
+const route = useRoute()
 
 /** i18n instance để dịch text */
 const { t } = useI18n()
@@ -154,8 +156,13 @@ const { is_valid } = useApiContext()
 const ticket_store = useTicketStore()
 
 // H7: variables
-/** Tab đang active (all, pending, processing, completed) */
-const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>('all')
+/**
+ * Tab đang active (all, pending, processing, completed)
+ * Đọc từ query params khi mount, mặc định là 'all'
+ */
+const activeTab = ref<'all' | 'pending' | 'processing' | 'completed'>(
+  (route.query.tab as 'all' | 'pending' | 'processing' | 'completed') || 'all',
+)
 
 /** Danh sách feedback từ API đã được transform */
 const feedbackList = ref<FeedbackItem[]>([])
@@ -172,6 +179,9 @@ const is_loading_more = ref(false)
 /** Flag để track khi đang đổi tab */
 const is_changing_tab = ref(false)
 
+/** Flag để track khi đang cập nhật tab từ query params (tránh infinite loop) */
+const is_updating_from_query = ref(false)
+
 /** Số lượng bản ghi đã skip trong pagination */
 const skip = ref(0)
 
@@ -187,6 +197,16 @@ const scrollContainer = ref<HTMLElement | null>(null)
 // H8: lifecycle hooks
 /** Hook chạy khi component được mount vào DOM */
 onMounted(() => {
+  // Đọc tab từ query params và cập nhật activeTab nếu có
+  const TAB_FROM_QUERY = route.query.tab as 'all' | 'pending' | 'processing' | 'completed'
+  // Kiểm tra tab từ query có hợp lệ không
+  if (TAB_FROM_QUERY && ['all', 'pending', 'processing', 'completed'].includes(TAB_FROM_QUERY)) {
+    // Cập nhật activeTab từ query params
+    activeTab.value = TAB_FROM_QUERY
+  }
+  // Nếu không có tab trong query hoặc tab không hợp lệ, activeTab đã có giá trị mặc định là 'all'
+  // Không cần cập nhật query params khi mount để tránh tạo history entry không cần thiết
+
   // Kiểm tra tính hợp lệ của API context trước khi load data
   if (!is_valid.value) {
     return
@@ -216,6 +236,11 @@ watch(
   (new_value, old_value) => {
     // Chỉ reload nếu giá trị thực sự thay đổi (không phải lần đầu mount)
     if (old_value !== undefined && new_value !== old_value) {
+      // Chỉ cập nhật query params nếu không phải đang cập nhật từ query params (tránh infinite loop)
+      if (!is_updating_from_query.value) {
+        // Cập nhật query params với tab mới để giữ trạng thái khi navigate back
+        updateTabQuery(new_value)
+      }
       // Set flag đang đổi tab để tránh load more
       is_changing_tab.value = true
       // Reset pagination khi đổi tab
@@ -231,7 +256,54 @@ watch(
   { immediate: false },
 )
 
+/** Watch route.query.tab để cập nhật activeTab khi query params thay đổi (khi navigate back) */
+watch(
+  // Theo dõi sự thay đổi của route.query.tab
+  () => route.query.tab,
+  // Callback function được gọi khi query.tab thay đổi
+  (new_tab) => {
+    // Kiểm tra tab từ query có hợp lệ không
+    if (
+      new_tab &&
+      typeof new_tab === 'string' &&
+      ['all', 'pending', 'processing', 'completed'].includes(new_tab)
+    ) {
+      // Chỉ cập nhật nếu tab thực sự thay đổi để tránh infinite loop
+      if (activeTab.value !== new_tab) {
+        // Set flag đang cập nhật từ query params để tránh trigger watch activeTab update query
+        is_updating_from_query.value = true
+        // Cập nhật activeTab từ query params (khi navigate back)
+        activeTab.value = new_tab as 'all' | 'pending' | 'processing' | 'completed'
+        // Reset flag sau khi cập nhật xong
+        // Sử dụng nextTick để đảm bảo watch activeTab đã chạy xong
+        nextTick(() => {
+          is_updating_from_query.value = false
+        })
+      }
+    }
+  },
+)
+
 // H10: functions
+/**
+ * Cập nhật query params với tab hiện tại để giữ trạng thái khi navigate back
+ * @param tab - Tab cần cập nhật vào query params
+ */
+function updateTabQuery(tab: 'all' | 'pending' | 'processing' | 'completed') {
+  // Sử dụng router.replace để cập nhật query params mà không tạo history entry mới
+  router.replace({
+    // Giữ nguyên route hiện tại
+    name: route.name || 'Feedback-list',
+    // Giữ nguyên params hiện tại
+    params: route.params,
+    // Cập nhật query với tab mới
+    query: {
+      ...route.query,
+      tab: tab,
+    },
+  })
+}
+
 /** Reset pagination về trạng thái ban đầu */
 function resetPagination() {
   // Reset skip về 0
@@ -429,6 +501,7 @@ function navigateToCreate() {
 
 /**
  * Navigate đến trang chi tiết feedback
+ * Giữ query params (tab) trong URL để có thể quay lại với tab đã chọn
  * @param ticket_id - ID của ticket (UUID)
  */
 function navigateToDetail(ticket_id: string) {
@@ -440,12 +513,14 @@ function navigateToDetail(ticket_id: string) {
     // Lưu ticket vào Pinia store để cache, FeedbackDetail sẽ đọc từ store
     ticket_store.setTicket(TICKET)
     // Sử dụng router.push với name và params để điều hướng
-    // Truyền ticket_id (số) qua params thay vì id (UUID)
+    // Giữ query params (tab) để khi quay lại sẽ giữ nguyên tab đã chọn
     router.push({
       // Tên route là 'Feedback-detail'
       name: 'Feedback-detail',
       // Truyền ticket_id (số) qua params, convert sang string
       params: { id: String(TICKET.ticket_id) },
+      // Giữ nguyên query params (tab) để khi quay lại sẽ giữ nguyên tab
+      query: route.query,
     })
   } else {
     // Nếu không có ticket trong map thì không điều hướng
