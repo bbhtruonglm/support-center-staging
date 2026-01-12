@@ -203,9 +203,12 @@ onMounted(() => {
   if (TAB_FROM_QUERY && ['all', 'pending', 'processing', 'completed'].includes(TAB_FROM_QUERY)) {
     // Cập nhật activeTab từ query params
     activeTab.value = TAB_FROM_QUERY
+  } else {
+    // Nếu tab từ query không hợp lệ, fallback về 'all' và cập nhật query params
+    activeTab.value = 'all'
+    // Cập nhật query params thành 'all' để sửa URL
+    updateTabQuery('all')
   }
-  // Nếu không có tab trong query hoặc tab không hợp lệ, activeTab đã có giá trị mặc định là 'all'
-  // Không cần cập nhật query params khi mount để tránh tạo history entry không cần thiết
 
   // Kiểm tra tính hợp lệ của API context trước khi load data
   if (!is_valid.value) {
@@ -274,6 +277,21 @@ watch(
         is_updating_from_query.value = true
         // Cập nhật activeTab từ query params (khi navigate back)
         activeTab.value = new_tab as 'all' | 'pending' | 'processing' | 'completed'
+        // Reset flag sau khi cập nhật xong
+        // Sử dụng nextTick để đảm bảo watch activeTab đã chạy xong
+        nextTick(() => {
+          is_updating_from_query.value = false
+        })
+      }
+    } else {
+      // Nếu tab từ query không hợp lệ, fallback về 'all' và cập nhật query params
+      if (activeTab.value !== 'all') {
+        // Set flag đang cập nhật từ query params để tránh trigger watch activeTab update query
+        is_updating_from_query.value = true
+        // Fallback về tab 'all'
+        activeTab.value = 'all'
+        // Cập nhật query params thành 'all' để sửa URL
+        updateTabQuery('all')
         // Reset flag sau khi cập nhật xong
         // Sử dụng nextTick để đảm bảo watch activeTab đã chạy xong
         nextTick(() => {
