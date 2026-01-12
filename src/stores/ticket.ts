@@ -10,6 +10,12 @@ export const useTicketStore = defineStore('ticket', () => {
   /** Map lưu ticket detail theo ID (UUID) */
   const ticket_cache = ref<Map<string, TicketItem>>(new Map())
 
+  /** Lưu ticket_id (UUID) của ticket cuối cùng được xem để scroll tới khi quay lại */
+  const last_viewed_ticket_id = ref<string | null>(null)
+
+  /** Lưu scroll position (skip count) để biết cần load bao nhiêu tickets trước khi scroll */
+  const last_scroll_position = ref<number>(0)
+
   /**
    * Lưu ticket vào cache
    * @param ticket - TicketItem cần lưu
@@ -76,6 +82,40 @@ export const useTicketStore = defineStore('ticket', () => {
     return ticket_cache.value.has(ticket_id)
   }
 
+  /**
+   * Lưu ticket_id của ticket cuối cùng được xem và scroll position
+   * @param ticket_id - ID của ticket (UUID)
+   * @param scroll_position - Vị trí scroll (skip count)
+   */
+  function setLastViewedTicketId(ticket_id: string | null, scroll_position: number = 0) {
+    // Lưu ticket_id vào state
+    last_viewed_ticket_id.value = ticket_id
+    // Lưu scroll position vào state
+    last_scroll_position.value = scroll_position
+  }
+
+  /**
+   * Lấy ticket_id của ticket cuối cùng được xem
+   * @returns Object chứa ticket_id và scroll_position
+   */
+  function getLastViewedTicketId(): { ticket_id: string | null; scroll_position: number } {
+    // Trả về object chứa ticket_id và scroll_position
+    return {
+      ticket_id: last_viewed_ticket_id.value,
+      scroll_position: last_scroll_position.value,
+    }
+  }
+
+  /**
+   * Xóa ticket_id của ticket cuối cùng được xem
+   */
+  function clearLastViewedTicketId() {
+    // Reset về null
+    last_viewed_ticket_id.value = null
+    // Reset scroll position về 0
+    last_scroll_position.value = 0
+  }
+
   // Trả về các functions và state của store
   return {
     // Function để lưu ticket vào cache
@@ -90,5 +130,11 @@ export const useTicketStore = defineStore('ticket', () => {
     clearCache,
     // Function để kiểm tra ticket có trong cache không
     hasTicket,
+    // Function để lưu ticket_id cuối cùng được xem
+    setLastViewedTicketId,
+    // Function để lấy ticket_id cuối cùng được xem
+    getLastViewedTicketId,
+    // Function để xóa ticket_id cuối cùng được xem
+    clearLastViewedTicketId,
   }
 })

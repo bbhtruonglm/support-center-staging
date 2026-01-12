@@ -38,6 +38,7 @@
             <div
               v-for="item in feedbackList"
               :key="item?.id"
+              :id="`ticket-${item?.id}`"
               @click="navigateToDetail(item?.id || '')"
               class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
             >
@@ -210,12 +211,33 @@ onMounted(() => {
     updateTabQuery('all')
   }
 
+  // Lấy last viewed ticket info từ store để restore scroll position
+  const LAST_VIEWED_INFO = ticket_store.getLastViewedTicketId()
+
   // Kiểm tra tính hợp lệ của API context trước khi load data
   if (!is_valid.value) {
     return
   }
-  // Gọi function loadFeedbackList với is_reset = true để load dữ liệu lần đầu
-  loadFeedbackList(true)
+
+  // Nếu có last viewed ticket, cần load đủ tickets để ticket đó xuất hiện trong DOM
+  if (LAST_VIEWED_INFO.ticket_id && LAST_VIEWED_INFO.scroll_position > 0) {
+    // Load với số lượng tickets đủ để chứa ticket cần scroll tới
+    // Tính toán: scroll_position + TAKE để đảm bảo ticket xuất hiện
+    const TICKETS_TO_LOAD = LAST_VIEWED_INFO.scroll_position + TAKE
+    // Load tickets theo batch cho đến khi đủ số lượng
+    loadTicketsUntilPosition(TICKETS_TO_LOAD, LAST_VIEWED_INFO.ticket_id)
+  } else {
+    // Gọi function loadFeedbackList với is_reset = true để load dữ liệu lần đầu
+    loadFeedbackList(true).then(() => {
+      // Sau khi load xong, nếu có last viewed ticket id thì scroll tới ticket đó
+      if (LAST_VIEWED_INFO.ticket_id) {
+        // Scroll tới ticket đã xem trước đó
+        scrollToTicket(LAST_VIEWED_INFO.ticket_id)
+        // Clear last viewed ticket id sau khi đã scroll
+        ticket_store.clearLastViewedTicketId()
+      }
+    })
+  }
 })
 
 // H9: watch, computed
@@ -522,6 +544,83 @@ function navigateToCreate() {
 }
 
 /**
+ * Load tickets cho đến khi đủ số lượng để chứa ticket cần scroll tới
+ * @param total_needed - Tổng số tickets cần load
+ * @param target_ticket_id - ID của ticket cần scroll tới
+ */
+async function loadTicketsUntilPosition(total_needed: number, target_ticket_id: string) {
+  // Set loading state
+  is_loading.value = true
+  // Reset danh sách
+  feedbackList.value = []
+  ticketMap.value.clear()
+  skip.value = 0
+
+  try {
+    // Load tickets theo batch cho đến khi đủ số lượng
+    while (skip.value < total_needed && has_more.value) {
+      /** Gọi API getTicketList với activeTab, skip và TAKE */
+      const TICKET_LIST = await getTicketList(activeTab.value, skip.value, TAKE)
+
+      /** Map từng TicketItem sang FeedbackItem */
+      const TRANSFORMED_LIST = TICKET_LIST.map(transformTicketToFeedback)
+
+      // Append vào danh sách hiện tại
+      feedbackList.value = [...feedbackList.value, ...TRANSFORMED_LIST]
+
+      // Lưu tickets vào map
+      TICKET_LIST.forEach((ticket) => {
+        if (ticket?.id) {
+          ticketMap.value.set(ticket?.id, ticket)
+        }
+      })
+
+      // Cập nhật skip
+      skip.value += TICKET_LIST.length
+
+      // Kiểm tra còn data không
+      if (TICKET_LIST.length < TAKE) {
+        has_more.value = false
+        break
+      }
+    }
+  } catch (e: any) {
+    console.error('Error loading tickets:', e)
+    toast.error(e.message || t('feedback.loadListError'))
+  } finally {
+    // Reset loading state
+    is_loading.value = false
+
+    // Scroll tới ticket sau khi load xong
+    scrollToTicket(target_ticket_id)
+    // Clear last viewed ticket id
+    ticket_store.clearLastViewedTicketId()
+  }
+}
+
+/**
+ * Scroll đến ticket cụ thể trong danh sách
+ * @param ticket_id - ID của ticket (UUID) cần scroll tới
+ */
+function scrollToTicket(ticket_id: string) {
+  // Sử dụng nextTick để đảm bảo DOM đã được render xong
+  nextTick(() => {
+    // Tìm element theo id
+    const TICKET_ELEMENT = document.getElementById(`ticket-${ticket_id}`)
+    // Nếu tìm thấy element thì scroll tới
+    if (TICKET_ELEMENT) {
+      // Scroll element vào view với behavior smooth và block center
+      TICKET_ELEMENT.scrollIntoView({
+        // Sử dụng smooth scroll animation
+        behavior: 'smooth',
+        // Scroll element vào giữa viewport
+        block: 'center',
+      })
+    }
+  })
+}
+
+/**
  * Navigate đến trang chi tiết feedback
  * Giữ query params (tab) trong URL để có thể quay lại với tab đã chọn
  * @param ticket_id - ID của ticket (UUID, optional)
@@ -538,6 +637,8 @@ function navigateToDetail(ticket_id?: string) {
   if (TICKET && TICKET?.ticket_id) {
     // Lưu ticket vào Pinia store để cache, FeedbackDetail sẽ đọc từ store
     ticket_store.setTicket(TICKET)
+    // Lưu ticket_id và scroll position (skip) vào store để restore scroll position khi quay lại
+    ticket_store.setLastViewedTicketId(ticket_id, skip.value)
     // Sử dụng router.push với name và params để điều hướng
     // Giữ query params (tab) để khi quay lại sẽ giữ nguyên tab đã chọn
     router.push({
