@@ -248,7 +248,7 @@ onMounted(async () => {
     /** Response từ API count ticket */
     const RESPONSE = await getTicketCount()
     // Cập nhật số lượng ticket từ response
-    ticket_count.value = RESPONSE.processing || 0
+    ticket_count.value = RESPONSE?.processing || 0
   } catch (error) {
     // Log error ra console để debug
     console.error('Error loading ticket count:', error)

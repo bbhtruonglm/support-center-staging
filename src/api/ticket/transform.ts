@@ -83,7 +83,7 @@ export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
   const STATUS = mapStageToStatus(ticket?.stage)
 
   /** Format date bằng function formatDate, fallback nếu không có */
-  const DATE = ticket?.created_at ? formatDate(ticket.created_at) : ''
+  const DATE = ticket?.created_at ? formatDate(ticket?.created_at) : ''
 
   // Trả về FeedbackItem object
   return {
@@ -188,10 +188,10 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
   let AVATAR = '/src/assets/systemAvatar.png'
   // Nếu có avatar từ contact_info thì dùng
   if (CONTACT_INFO?.avatar) {
-    AVATAR = CONTACT_INFO.avatar
+    AVATAR = CONTACT_INFO?.avatar || AVATAR
   } else if (EMPLOYEE_INFO?.avatar) {
     // Nếu có avatar từ employee_info thì dùng
-    AVATAR = EMPLOYEE_INFO.avatar
+    AVATAR = EMPLOYEE_INFO?.avatar || AVATAR
   }
 
   // Xác định vị trí/chức vụ
@@ -200,14 +200,14 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
   if (EMPLOYEE_INFO) {
     // Nếu có position field thì dùng nó
     if (EMPLOYEE_INFO?.position) {
-      POSITION = EMPLOYEE_INFO.position
+      POSITION = EMPLOYEE_INFO?.position || ''
     } else if (EMPLOYEE_INFO?.department) {
       // Nếu department là object thì lấy name từ object
-      if (typeof EMPLOYEE_INFO.department === 'object' && EMPLOYEE_INFO.department?.name) {
-        POSITION = EMPLOYEE_INFO.department?.name || ''
-      } else if (typeof EMPLOYEE_INFO.department === 'string') {
+      if (typeof EMPLOYEE_INFO?.department === 'object' && EMPLOYEE_INFO?.department?.name) {
+        POSITION = EMPLOYEE_INFO?.department?.name || ''
+      } else if (typeof EMPLOYEE_INFO?.department === 'string') {
         // Nếu department là string thì dùng trực tiếp
-        POSITION = EMPLOYEE_INFO.department
+        POSITION = EMPLOYEE_INFO?.department || ''
       }
     }
   } else if (CONTACT_INFO) {
@@ -225,14 +225,14 @@ export function transformCommentToItem(comment: TicketComment): CommentItem {
   }
 
   /** Format date bằng function formatCommentDate, fallback nếu không có */
-  const DATE = comment?.created_at ? formatCommentDate(comment.created_at) : ''
+  const DATE = comment?.created_at ? formatCommentDate(comment?.created_at) : ''
 
   /** Xác định is_bold: employee comments sẽ in đậm */
   const IS_BOLD = !!EMPLOYEE_INFO
 
   /** Xử lý attachments: map sang string array */
   const ATTACHMENTS = Array.isArray(comment?.attachments)
-    ? comment.attachments.map((att) => (typeof att === 'string' ? att : att?.url || ''))
+    ? comment?.attachments.map((att) => (typeof att === 'string' ? att : att?.url || '')) || []
     : []
 
   // Trả về CommentItem object

@@ -82,9 +82,9 @@
                 <!-- Empty State: Giữ height để đồng bộ với skeleton -->
                 <div
                   v-if="
-                    !ticket_detail.ticket_form_info?.form_data?.attachments ||
-                    (Array.isArray(ticket_detail.ticket_form_info?.form_data?.attachments) &&
-                      ticket_detail.ticket_form_info?.form_data?.attachments.length === 0)
+                    !ticket_detail?.ticket_form_info?.form_data?.attachments ||
+                    (Array.isArray(ticket_detail?.ticket_form_info?.form_data?.attachments) &&
+                      ticket_detail?.ticket_form_info?.form_data?.attachments.length === 0)
                   "
                   class="w-20 h-20 flex items-center"
                 >
@@ -94,8 +94,8 @@
                 </div>
                 <!-- Attachments: Hiển thị danh sách ảnh khi có dữ liệu -->
                 <div
-                  v-else-if="Array.isArray(ticket_detail.ticket_form_info?.form_data?.attachments)"
-                  v-for="(attachment, index) in ticket_detail.ticket_form_info?.form_data
+                  v-else-if="Array.isArray(ticket_detail?.ticket_form_info?.form_data?.attachments)"
+                  v-for="(attachment, index) in ticket_detail?.ticket_form_info?.form_data
                     ?.attachments"
                   :key="index"
                   @click="openPreview(index)"
@@ -650,7 +650,7 @@ async function goToPreviousPage() {
     /** Tính toán số trang mới (trang hiện tại - 1) */
     const NEW_PAGE = current_page.value - 1
     // Load comments cho trang mới với ticket_id và số trang mới
-    await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
+    await loadComments(ticket_detail.value?.ticket_id!, NEW_PAGE)
   }
 }
 
@@ -665,7 +665,7 @@ async function goToNextPage() {
     /** Tính toán số trang mới (trang hiện tại + 1) */
     const NEW_PAGE = current_page.value + 1
     // Load comments cho trang mới với ticket_id và số trang mới
-    await loadComments(ticket_detail.value.ticket_id, NEW_PAGE)
+    await loadComments(ticket_detail.value?.ticket_id!, NEW_PAGE)
   }
 }
 
@@ -862,7 +862,7 @@ async function handleSendComment() {
       // Reset về trang 1
       current_page.value = 1
       // Load lại comments từ trang 1
-      await loadComments(ticket_detail.value.ticket_id, 1)
+      await loadComments(ticket_detail.value?.ticket_id!, 1)
     }
 
     // Hiển thị thông báo thành công từ i18n
