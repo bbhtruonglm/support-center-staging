@@ -288,6 +288,7 @@
                 class="w-full resize-none px-4 py-3 text-sm rounded-md bg-white border border-gray-200 focus:outline-none text-black placeholder:text-gray-500 shadow-sm"
                 rows="5"
                 :disabled="is_sending_comment"
+                @focus="handleTextareaFocus"
               ></textarea>
             </div>
 
@@ -806,6 +807,19 @@ async function loadComments(ticket_id: number, page: number = 1) {
   // - Transform data
   // - Error handling
   await comment_store.loadComments(ticket_id, page)
+}
+
+/**
+ * Function: Xử lý sự kiện focus vào textarea
+ * Scroll textarea vào giữa màn hình để tránh bị bàn phím che mất trên mobile
+ * Fix lỗi: Safari mobile lần đầu focus không đẩy màn hình lên
+ */
+function handleTextareaFocus(event: FocusEvent) {
+  const TARGET = event.target as HTMLElement
+  // Dùng setTimeout để đợi bàn phím hiện lên (300ms là thời gian animation trung bình)
+  setTimeout(() => {
+    TARGET.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  }, 300)
 }
 
 /**
