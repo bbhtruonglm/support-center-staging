@@ -7,7 +7,9 @@ const TICKET_API_BASE_URL = import.meta.env.VITE_BASE_API_TICKET_URL
 
 /** Constant định nghĩa base URL cho Chatbox API để lấy merchant token từ env */
 const CHATBOX_API_BASE_URL =
-  import.meta.env.VITE_CHATBOX_API_URL || 'https://chatbox-service-v3.botbanhang.vn'
+  'https://chatbox-api.34.142.177.104.sslip.io/v1/n4_service' ||
+  import.meta.env.VITE_CHATBOX_API_URL ||
+  'https://chatbox-service-v3.botbanhang.vn'
 
 /**
  * Interface định nghĩa response từ API get_merchant_token

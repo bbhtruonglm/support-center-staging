@@ -361,7 +361,7 @@
 <script setup lang="ts">
 // H1: import runtime functions
 // Import các reactive functions từ Vue
-import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 // Import router hooks để lấy route params và điều hướng
 import { useRoute, useRouter } from 'vue-router'
 // Import i18n hook để sử dụng translation function
@@ -381,7 +381,7 @@ import { ChevronLeft, ChevronRight, X } from 'lucide-vue-next'
 
 // H4: import types
 // Import API functions và type TicketItem từ ticket API
-import { getTicketDetail, getComments, createComment, type TicketItem } from '@/api/ticket'
+import { getTicketDetail, type TicketItem } from '@/api/ticket'
 // Import transform functions để map stage và transform comment
 import { mapStageToStatus, transformCommentToItem } from '@/api/ticket/transform'
 // Import types TicketStage và CommentItem
@@ -397,6 +397,10 @@ import { toast } from 'vue3-toastify'
 import { useTicketStore } from '@/stores/ticket'
 // Import workflow store để quản lý state của workflows
 import { useWorkflowStore } from '@/stores/workflow'
+// Import comment store để quản lý state của comments
+import { useCommentStore } from '@/stores/comment'
+// Import storeToRefs từ Pinia để giữ tính reactive của store state
+import { storeToRefs } from 'pinia'
 
 /** Router instance: route để lấy params từ URL */
 const route = useRoute()
@@ -412,6 +416,21 @@ const ticket_store = useTicketStore()
 /** Workflow store instance: để lấy workflow list từ cache và quản lý workflow state */
 const workflow_store = useWorkflowStore()
 
+/** Comment store instance: để quản lý state của comments */
+const comment_store = useCommentStore()
+
+/**
+ * Lấy reactive state từ comment store
+ * Dùng storeToRefs để giữ tính reactive
+ */
+const {
+  comments, // Danh sách comments thô từ API
+  page: current_page, // Page hiện tại
+  total_page: total_pages, // Tổng số page
+  is_loading: is_loading_comments, // Đang load comments
+  is_submitting: is_sending_comment, // Đang submit comment
+} = storeToRefs(comment_store)
+
 // H7: variables
 /** Reactive ref: Chi tiết ticket từ router state hoặc API, null khi chưa load */
 const ticket_detail = ref<TicketItem | null>(null)
@@ -422,23 +441,8 @@ const is_loading = ref(false)
 /** Reactive ref: Thông báo lỗi khi load ticket detail thất bại, null khi không có lỗi */
 const error_message = ref<string | null>(null)
 
-/** Reactive ref: Danh sách comments từ API của trang hiện tại, empty array khi chưa load hoặc không có */
-const comments_list = ref<CommentItem[]>([])
-
-/** Reactive ref: Tổng số trang comments từ API, 0 khi chưa load hoặc không có comments */
-const total_pages = ref(0)
-
-/** Reactive ref: Trạng thái loading comments, true khi đang gọi API getComments */
-const is_loading_comments = ref(false)
-
-/** Reactive ref: Trang hiện tại của comments pagination, bắt đầu từ 1 */
-const current_page = ref(1)
-
 /** Reactive ref: Nội dung comment đang nhập trong textarea, empty string khi chưa nhập */
 const comment_content = ref('')
-
-/** Reactive ref: Trạng thái đang gửi comment, true khi đang gọi API createComment */
-const is_sending_comment = ref(false)
 
 /** Reactive ref: Reference đến scrollable content container element để scroll programmatically */
 const scrollable_content_ref = ref<HTMLElement | null>(null)
@@ -459,6 +463,12 @@ onMounted(async () => {
   await workflow_store.loadWorkflowList()
   // Sau đó mới load ticket detail
   loadTicketDetail()
+})
+
+/** Lifecycle hook chạy khi component bị unmount khỏi DOM */
+onUnmounted(() => {
+  // Reset comment store để tránh stale data khi navigate giữa các ticket khác nhau
+  comment_store.$reset()
 })
 
 // H9: watch, computed
@@ -628,6 +638,15 @@ const currentPreviewImage = computed(() => {
   return IMAGES[preview_current_index.value] || ''
 })
 
+/**
+ * Computed property: Transform comments từ store sang CommentItem format
+ * @returns Array các CommentItem đã được transform để hiển thị
+ */
+const comments_list = computed(() => {
+  // Transform từng comment từ store sang format CommentItem
+  return comments.value.map(transformCommentToItem)
+})
+
 /** Watch route params: Theo dõi thay đổi của ticket ID trong URL - Khi ID thay đổi (navigate giữa các ticket khác nhau), reload ticket detail */
 watch(
   // Theo dõi route.params.id (ticket_id dạng string)
@@ -771,70 +790,29 @@ function scrollToTop() {
 }
 
 /**
- * Function: Load comments từ API theo ticket_id và page
- * Xử lý loading state, transform data, và error handling
+ * Function: Load comments từ store theo ticket_id và page
+ * Delegate logic sang comment store để quản lý centralized state
  * @param ticket_id - Ticket ID (số) để lấy comments
  * @param page - Số trang cần lấy (mặc định 1)
  */
 async function loadComments(ticket_id: number, page: number = 1) {
-  // Kiểm tra nếu đang loading thì không gọi tiếp để tránh duplicate calls
-  if (is_loading_comments.value) {
-    return
-  }
-
-  /** Đảm bảo page là số nguyên dương hợp lệ (>= 1) */
-  const VALID_PAGE = Math.max(1, Math.floor(page))
-
-  // Set loading state thành true để hiển thị skeleton loading
-  is_loading_comments.value = true
-
   // Scroll lên đầu trang khi chuyển trang để user thấy nội dung mới ngay
   scrollToTop()
 
-  try {
-    /** Gọi API để lấy danh sách comments với ticket_id và page */
-    const RESPONSE = await getComments(ticket_id, VALID_PAGE)
-
-    /** Transform comments từ API format sang format CommentItem, fallback empty array nếu không có */
-    const TRANSFORMED_COMMENTS = (RESPONSE?.comments || []).map(transformCommentToItem)
-
-    // Cập nhật danh sách comments với data đã được transform
-    comments_list.value = TRANSFORMED_COMMENTS
-
-    // Cập nhật total_page từ response của API, fallback 0 nếu không có
-    total_pages.value = RESPONSE?.total_page || 0
-
-    // Cập nhật current_page để đồng bộ với page đã gọi API
-    current_page.value = VALID_PAGE
-  } catch (e: any) {
-    // Log error ra console để debug
-    console.error('Error loading comments:', e)
-    /** Lấy error message từ exception hoặc dùng message mặc định từ i18n */
-    const ERROR_MSG = e.message || t('feedback.loadCommentsError')
-
-    // Xử lý đặc biệt cho lỗi PAGE_NOT_FOUND - không hiển thị toast error
-    if (ERROR_MSG === 'PAGE_NOT_FOUND' || ERROR_MSG.includes('PAGE_NOT_FOUND')) {
-      // Set empty array và reset total_page về 0
-      comments_list.value = []
-      total_pages.value = 0
-      // Reset về trang 1
-      current_page.value = 1
-    } else {
-      // Hiển thị toast error cho các lỗi khác
-      toast.error(ERROR_MSG)
-      // Set empty array và reset total_page nếu có lỗi
-      comments_list.value = []
-      total_pages.value = 0
-      // Reset về trang 1
-      current_page.value = 1
-    }
-  } finally {
-    // Luôn set loading state thành false sau khi hoàn thành
-    is_loading_comments.value = false
-  }
+  // Gọi store action để load comments
+  // Store sẽ tự động handle:
+  // - Loading state
+  // - API call
+  // - Transform data
+  // - Error handling
+  await comment_store.loadComments(ticket_id, page)
 }
 
-/** Function: Gửi comment mới cho ticket - Validate input, gọi API, reload comments, và hiển thị thông báo */
+/**
+ * Function: Gửi comment mới cho ticket - UX-First Implementation
+ * Sử dụng store action để tự động append comment mới vào list
+ * KHÔNG reload list để tránh gián đoạn UX
+ */
 async function handleSendComment() {
   // Kiểm tra ticket detail và content có tồn tại không
   if (!ticket_detail.value || !comment_content.value.trim()) {
@@ -842,27 +820,24 @@ async function handleSendComment() {
     return
   }
 
-  // Set loading state thành true để disable button và hiển thị loading state
-  is_sending_comment.value = true
-
   try {
-    // Gọi API để tạo comment mới với ticket_id và content đã được trim
-    await createComment({
-      // Ticket ID từ ticket detail
-      ticket_id: ticket_detail.value?.ticket_id,
-      // Content đã được trim để loại bỏ khoảng trắng đầu cuối
-      content: comment_content.value.trim(),
-    })
+    /**
+     * Gọi store action để submit comment
+     * Store sẽ tự động:
+     * - Gọi API createComment
+     * - Append comment mới vào cuối list hiện tại
+     * - Tăng total_comments
+     * - KHÔNG reload list (tránh layout shift và loading state)
+     * - KHÔNG thay đổi page hiện tại
+     */
+    await comment_store.submitComment(ticket_detail.value.ticket_id!, comment_content.value.trim())
 
     // Clear input sau khi gửi thành công
     comment_content.value = ''
 
-    // Reload comments để hiển thị comment mới vừa tạo (reset về trang 1)
-    if (ticket_detail.value?.ticket_id) {
-      // Reset về trang 1
-      current_page.value = 1
-      // Load lại comments từ trang 1
-      await loadComments(ticket_detail.value?.ticket_id!, 1)
+    // Scroll lên đầu trang để thấy comment mới CHỈ khi đang ở trang 1
+    if (current_page.value === 1) {
+      scrollToTop()
     }
 
     // Hiển thị thông báo thành công từ i18n
@@ -874,9 +849,6 @@ async function handleSendComment() {
     const ERROR_MSG = e.message || t('feedback.sendCommentError')
     // Hiển thị toast error với message lỗi
     toast.error(ERROR_MSG)
-  } finally {
-    // Luôn set loading state thành false sau khi hoàn thành
-    is_sending_comment.value = false
   }
 }
 

@@ -123,12 +123,34 @@
 
           <!-- Add Image Button -->
           <div
-            v-if="image_previews.length < 6"
+            v-if="image_previews.length < 6 && uploading_total === 0"
             @click="triggerFileInput"
-            class="w-20 h-20 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white cursor-pointer hover:border-gray-400"
+            class="w-20 h-20 border border-dashed border-gray-300 rounded-xl flex flex-col items-center justify-center text-gray-500 text-xs bg-white cursor-pointer hover:border-gray-400 transition-colors"
           >
             <Camera :size="24" :stroke-width="1.5" class="text-gray-500" />
             <span class="text-xs mt-1">{{ t('feedback.takePhoto') }}</span>
+          </div>
+
+          <!-- Progress Box (Replaces Add Button) -->
+          <div
+            v-if="uploading_total > 0"
+            class="w-20 h-20 border border-blue-200 bg-blue-50 rounded-xl flex flex-col items-center justify-center p-2 gap-2"
+          >
+            <div
+              class="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin shrink-0"
+            ></div>
+            <div class="text-[10px] font-medium text-blue-700">
+              {{ uploading_current }}/{{ uploading_total }}
+            </div>
+            <!-- Mini Bar -->
+            <div class="w-full h-1 bg-blue-200 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-blue-600 transition-all duration-300 ease-out rounded-full"
+                :style="{
+                  width: `${(uploading_current / uploading_total) * 100}%`,
+                }"
+              ></div>
+            </div>
           </div>
 
           <!-- Hidden File Input -->
@@ -241,6 +263,12 @@ const is_submitting = ref(false)
 /** Số lượng ảnh tối đa */
 const MAX_IMAGES = 6
 
+/** Tổng số ảnh đang upload */
+const uploading_total = ref(0)
+
+/** Số ảnh hiện tại đang upload */
+const uploading_current = ref(0)
+
 // H8: lifecycle hooks
 /** Lifecycle hook chạy khi component được mount vào DOM */
 onMounted(() => {
@@ -345,6 +373,10 @@ async function handleImageSelect(event: Event) {
   /** Lấy số lượng file sẽ thêm (không vượt quá số slot còn lại) */
   const FILES_TO_ADD = Math.min(FILES.length, REMAINING_SLOTS)
 
+  // Reset progress counters
+  uploading_total.value = FILES_TO_ADD
+  uploading_current.value = 0
+
   // Duyệt qua từng file và upload lên server
   for (let i = 0; i < FILES_TO_ADD; i++) {
     /** Lấy file tại index i */
@@ -352,6 +384,7 @@ async function handleImageSelect(event: Event) {
 
     // Kiểm tra file có tồn tại không
     if (!FILE) {
+      uploading_current.value++ // Skip count
       continue
     }
 
@@ -359,6 +392,7 @@ async function handleImageSelect(event: Event) {
     if (!FILE.type.startsWith('image/')) {
       // Hiển thị error toast nếu file không phải là ảnh
       toast.error(t('feedback.selectImageFile'))
+      uploading_current.value++ // Skip count
       // Bỏ qua file này và tiếp tục với file tiếp theo
       continue
     }
@@ -369,16 +403,12 @@ async function handleImageSelect(event: Event) {
     if (FILE.size > MAX_SIZE) {
       // Hiển thị error toast nếu file quá lớn
       toast.error(t('feedback.imageSizeExceeded', { name: FILE.name }))
+      uploading_current.value++ // Skip count
       // Bỏ qua file này và tiếp tục với file tiếp theo
       continue
     }
 
     try {
-      /** Tạo preview URL local cho ảnh (không cần chờ upload) */
-      const PREVIEW_URL = URL.createObjectURL(FILE)
-      // Thêm preview URL vào danh sách previews
-      image_previews.value.push(PREVIEW_URL)
-
       /** Gọi API upload file và lấy URL từ response */
       const UPLOAD_RESPONSE = await uploadFile(FILE)
       // Lấy URL từ response
@@ -387,15 +417,31 @@ async function handleImageSelect(event: Event) {
       if (UPLOAD_URL) {
         // Thêm URL từ server vào danh sách attachments
         form_attachments.value.push(UPLOAD_URL)
+
+        /** Tạo preview URL local cho ảnh */
+        const PREVIEW_URL = URL.createObjectURL(FILE)
+        // Thêm preview URL vào danh sách previews chỉ khi upload thành công
+        image_previews.value.push(PREVIEW_URL)
       }
     } catch (e: any) {
       // Log error ra console để debug
       console.error('Error uploading file:', e)
       // Hiển thị error toast khi upload thất bại
       toast.error(e.message || t('feedback.cannotReadFile', { name: FILE.name }))
-      // Xóa preview cuối cùng nếu upload thất bại
-      image_previews.value.pop()
+      // Không cần xóa vì chưa push vào list chính
+    } finally {
+      // Tăng số lượng đã upload (dù thành công hay thất bại)
+      uploading_current.value++
     }
+  }
+
+  // Reset progress sau khi hoàn thành (delay nhẹ để user kịp nhìn thấy 100%)
+  if (uploading_current.value === uploading_total.value) {
+    setTimeout(() => {
+      // Reset counters
+      uploading_total.value = 0
+      uploading_current.value = 0
+    }, 500)
   }
 
   // Reset input để có thể chọn lại file giống nhau
