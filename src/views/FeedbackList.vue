@@ -23,14 +23,14 @@
             v-else-if="!is_valid || feedbackList.length === 0"
             class="flex-1 flex flex-col items-center pt-10 gap-3"
           >
-            <!-- Empty State Image -->
-            <div class="flex items-center justify-center">
-              <!-- Mail Icon Placeholder -->
-              <img :src="MailIcon" alt="No Feedback" class="w-25 h-25 object-contain z-10" />
+            <div class="flex flex-col items-center gap-2">
+              <div class="w-24 h-24">
+                <img :src="mailIcon" alt="Mail" class="w-full h-full object-contain" />
+              </div>
+              <p class="text-xs text-slate-500 text-center px-4">
+                {{ t('mainMenu.footerMessage') }}
+              </p>
             </div>
-            <p class="text-xs text-gray-600 text-center px-4 whitespace-nowrap">
-              {{ t('feedback.emptyMessage') }}
-            </p>
           </div>
 
           <!-- Feedback List -->
@@ -110,6 +110,9 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 // Import useI18n từ vue-i18n để dịch text
 import { useI18n } from 'vue-i18n'
+
+/** Mail icon asset */
+import mailIcon from '@/assets/MailIcon.png'
 
 // H2: import components
 // Import component PageHeader để hiển thị header

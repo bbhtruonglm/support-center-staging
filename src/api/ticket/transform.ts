@@ -28,10 +28,10 @@ export function mapStageToStatus(stage?: TicketStage): 'pending' | 'processing' 
     // Case PENDING, PROCESSING, RESOLVED map sang processing
     case 'PENDING':
     case 'PROCESSING':
-    case 'RESOLVED':
       return 'processing'
     // Case CLOSED map sang completed
     case 'CLOSED':
+    case 'RESOLVED':
       return 'completed'
     // Default trả về pending
     default:
@@ -115,10 +115,10 @@ export function mapTabToStageFilter(tab_key: TabKey): TicketStage[] | undefined 
       return ['OPEN', 'REOPEN']
     // Tab "Đang xử lý" map với PENDING, PROCESSING, RESOLVED
     case 'processing':
-      return ['PENDING', 'PROCESSING', 'RESOLVED']
+      return ['PENDING', 'PROCESSING']
     // Tab "Hoàn thành" map với CLOSED
     case 'completed':
-      return ['CLOSED']
+      return ['CLOSED', 'RESOLVED']
     // Tab "Tất cả" không filter - trả về undefined để không gửi stage trong request
     case 'all':
     default:
