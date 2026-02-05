@@ -97,6 +97,8 @@ export function transformTicketToFeedback(ticket: TicketItem): FeedbackItem {
     status: STATUS,
     // Content đã được xử lý
     content: CONTENT,
+    // Customer unread count
+    customer_unread_count: ticket?.customer_unread_count || 0,
   }
 }
 

@@ -43,10 +43,15 @@
               class="bg-white rounded-lg px-4 py-1 shadow-sm cursor-pointer hover:bg-gray-50 transition-colors"
             >
               <!-- Title & Status Row -->
-              <div class="flex items-start justify-between border-b border-gray-200 py-2">
+              <div class="flex items-start justify-between border-b border-gray-200 py-2 gap-1">
                 <h3 class="text-sm font-semibold flex-1 line-clamp-1">
                   {{ item?.title }}
                 </h3>
+                <span
+                  v-if="item?.customer_unread_count"
+                  class="flex shrink-0 bg-red-500 items-center gap-1 px-1 py-0.5 text-xs font-medium rounded whitespace-nowrap text-white"
+                  ><BellRingIcon :size="12" class="text-white"
+                /></span>
                 <span
                   :class="[
                     'px-2 py-0.5 text-xs font-medium rounded whitespace-nowrap',
@@ -118,7 +123,7 @@ import FeedbackListItemSkeleton from '@/components/skeletons/FeedbackListItemSke
 
 // H3: import icon components
 // Import icon Calendar và Bookmark từ lucide-vue-next
-import { Calendar, Bookmark } from 'lucide-vue-next'
+import { Calendar, Bookmark, BellRingIcon } from 'lucide-vue-next'
 
 // H4: import types
 // Import function getTicketList và type TicketItem từ ticket API

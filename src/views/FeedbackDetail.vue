@@ -33,7 +33,7 @@
               <h3 class="text-xs font-medium text-slate-700">
                 {{ t('feedback.title') }}
               </h3>
-              <p class="text-sm font-medium text-black">
+              <p class="text-sm font-medium text-black wrap-break-word">
                 {{ ticket_detail?.title || t('feedback.noTitle') }}
               </p>
             </section>
@@ -68,7 +68,7 @@
               <h3 class="text-xs font-medium text-slate-700">
                 {{ t('feedback.content') }}
               </h3>
-              <p class="text-sm font-medium text-black whitespace-pre-wrap">
+              <p class="text-sm font-medium text-black whitespace-pre-wrap wrap-break-word">
                 {{ ticket_detail?.content || t('feedback.noContent') }}
               </p>
             </section>

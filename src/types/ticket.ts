@@ -351,6 +351,9 @@ export interface TicketItem {
   comments?: TicketComment[]
   /** Ticket form info */
   ticket_form_info?: TicketFormInfo
+
+  /** Số lượng comment chưa đọc */
+  customer_unread_count?: number
 }
 
 /**
@@ -371,6 +374,9 @@ export interface FeedbackItem {
 
   /** Nội dung feedback */
   content?: string
+
+  /** Số lượng comment chưa đọc */
+  customer_unread_count?: number
 }
 
 /**
